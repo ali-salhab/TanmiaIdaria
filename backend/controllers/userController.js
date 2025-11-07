@@ -13,6 +13,9 @@ export const getUsers = async (req, res) => {
 
 // ✅ Get single user
 export const getUser = async (req, res) => {
+  console.log("====================================");
+  console.log("get user by id function");
+  console.log("====================================");
   try {
     const user = await User.findById(req.params.id).select("-password");
     if (!user) return res.status(404).json({ message: "User not found" });

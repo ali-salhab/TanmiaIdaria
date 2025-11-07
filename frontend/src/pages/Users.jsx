@@ -67,28 +67,43 @@ export default function Users() {
   };
 
   const togglePermission = async (userId, key, value) => {
-    const body = { permissions: { [key]: value } };
-    await axios.put(`${API}/${userId}/permissions`, body, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    fetchUsers();
+    console.log("toggle permisson function ");
+
+    try {
+      const body = { permissions: { [key]: value } };
+      const res = await axios.put(`${API}/${userId}/permissions`, body, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const currentUser = await axios.get(`${API}/${userId}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      console.log("====================================");
+      console.log(currentUser.data);
+      console.log("====================================");
+      toast.success(`${currentUser.data.username} تجديد الصلاحيات للمستخدم  `);
+
+      fetchUsers();
+    } catch (error) {
+      toast.error("❌ Failed to edit user persmissions");
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8 relative">
+    <div dir="rtl" className="min-h-screen bg-gray-100 p-8 relative">
       <h2 className="text-2xl font-semibold mb-6 text-gray-800">
-        👑 Admin Dashboard — Manage Users & Permissions
+        👑 إدارة المستخدمين والصلاحيات
       </h2>
 
       {/* Create New User Form */}
       <div className="bg-white p-6 rounded-2xl shadow mb-10 max-w-2xl">
         <h3 className="text-lg font-medium mb-4 text-gray-700">
-          Create New User
+          انشاء مستخدم جديد
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <input
             type="text"
-            placeholder="Username"
+            placeholder="اسم المستخدم"
             value={newUser.username}
             onChange={(e) =>
               setNewUser({ ...newUser, username: e.target.value })
@@ -97,7 +112,7 @@ export default function Users() {
           />
           <input
             type="password"
-            placeholder="Password"
+            placeholder="كلمة المرور"
             value={newUser.password}
             onChange={(e) =>
               setNewUser({ ...newUser, password: e.target.value })
@@ -109,18 +124,18 @@ export default function Users() {
             onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
             className="border rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-blue-400 outline-none"
           >
-            <option value="admin">admin</option>
-            <option value="employee">employee</option>
-            <option value="viewer">viewer</option>
-            <option value="hr">hr</option>
-            <option value="finance">finance</option>
+            <option value="admin">عامل طباعة</option>
+            <option value="employee">مدير ثانوي</option>
+            <option value="viewer">مشاهد</option>
+            <option value="hr">عامل ديوان</option>
+            <option value="finance">مالي</option>
           </select>
         </div>
         <button
           onClick={createUser}
           className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition"
         >
-          ➕ Add User
+          ➕ إضافة مستخدم
         </button>
       </div>
 
@@ -145,7 +160,7 @@ export default function Users() {
           </thead>
           <tbody>
             {users.map((u) => (
-              <tr key={u._id} className="border-b hover:bg-gray-50 transition">
+              <tr key={u._id} className="border-b hover:bg-gray-50 transition ">
                 <td className="py-3 px-4 font-medium text-gray-800">
                   {u.username}
                 </td>
@@ -173,9 +188,9 @@ export default function Users() {
                 <td className="py-3 px-4 text-center">
                   <button
                     onClick={() => confirmDeleteUser(u._id, u.username)}
-                    className="text-red-600 hover:text-red-800 font-medium"
+                    className="text-red-600 border-teal-200 border-spacing-3 border-x-4 hover:text-red-800 font-medium bg-white-500 shadow-xl p-3 rounded "
                   >
-                    🗑 Delete
+                    مسح ❌
                   </button>
                 </td>
               </tr>

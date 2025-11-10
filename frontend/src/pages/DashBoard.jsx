@@ -1,13 +1,30 @@
 import { Outlet, Link, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
-
+import { io } from "socket.io-client";
+import { useSocket } from "../context/SocketContext";
+import toast from "react-hot-toast";
 export default function Dashboard() {
   const navigate = useNavigate();
-
+  const socket = useSocket();
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) navigate("/login");
-  }, [navigate]);
+
+    if (!socket) return; // wait for socket from context
+
+    // listen for admin notifications
+    const handleNotification = (data) => {
+      console.log("🔔 New notification from user:", data);
+      toast.success(data.message);
+    };
+
+    socket.on("adminNotification", handleNotification);
+
+    // cleanup
+    return () => {
+      socket.off("adminNotification", handleNotification);
+    };
+  }, [navigate, socket]); // ✅ re-run effect when socket is available
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -46,6 +63,12 @@ export default function Dashboard() {
             className="block py-2.5 px-4 rounded-lg bg-white/10 hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105"
           >
             ⚙️ ادارة المستخدمين
+          </Link>
+          <Link
+            to="/dashboard/notifications"
+            className="block py-2.5 px-4 rounded-lg bg-white/10 hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105"
+          >
+            🔔 الإشعارات والأرشيف
           </Link>
         </nav>
 

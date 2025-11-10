@@ -103,7 +103,22 @@ export default function EmployeeList() {
     setAgeMax("");
     setPage(1);
   };
+  const calculateAge = (birthDate) => {
+    if (!birthDate) return "-";
+    const birth = new Date(birthDate);
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
 
+    // Adjust if birthday hasn’t occurred yet this year
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birth.getDate())
+    ) {
+      age--;
+    }
+    return age;
+  };
   return (
     <div className="p-6 font-custom" dir="rtl">
       <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -186,9 +201,9 @@ export default function EmployeeList() {
           }}
           className="border p-2 rounded"
         >
-          <option value="">All Genders</option>
-          <option value="Male">Male</option>
-          <option value="Female">Female</option>
+          <option value="">الكل</option>
+          <option value="Male">انثى</option>
+          <option value="Female">دكر</option>
         </select>
         <input
           type="number"
@@ -228,9 +243,9 @@ export default function EmployeeList() {
               <th className="border p-2">لرقم الوطني</th>
               <th className="border p-2">الجنس</th>
               <th className="border p-2">القسم</th>
-              <th className="border p-2">القسم</th>
               <th className="border p-2">رقم الموبايل</th>
               <th className="border p-2">الاجراءات</th>
+              <th className="border p-2">شلث</th>
             </tr>
           </thead>
           <tbody>
@@ -264,6 +279,9 @@ export default function EmployeeList() {
                   <td className="border p-2 text-center">{emp.gender}</td>
                   <td className="border p-2 text-center">{emp.level4}</td>
                   <td className="border p-2 text-center ">{emp.phone}</td>
+                  <td className="border p-2 text-center">
+                    {emp.birthDate ? calculateAge(emp.birthDate) : "-"}
+                  </td>
                   <td className="border p-2 text-center">
                     <Link
                       to={`${emp._id}`}

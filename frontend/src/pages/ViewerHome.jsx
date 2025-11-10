@@ -1,195 +1,301 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
+import { jwtDecode } from "jwt-decode";
+import { useNavigate } from "react-router-dom";
+import { io } from "socket.io-client";
+import EmployeesSVG from "../assets/employees.svg";
+import VacationsSVG from "../assets/vacation.svg";
+import ReportsSVG from "../assets/report.svg";
+import Logo from "../assets/logo.png";
 import API from "../api/api";
-import * as XLSX from "xlsx";
-import jsPDF from "jspdf";
-import "jspdf-autotable";
 
 export default function ViewerHome() {
-  const [employees, setEmployees] = useState([]);
-  const [search, setSearch] = useState("");
-  const [department, setDepartment] = useState("");
-  const [position, setPosition] = useState("");
+  const navigate = useNavigate();
+  const [user, setUser] = useState(null);
+  const [socket, setSocket] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [showHeader, setShowHeader] = useState(true);
 
-  // ✅ Fetch employee data
+  // ✅ Track scroll direction to hide header
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const res = await API.get("/employees", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setEmployees(res.data);
-      } catch (err) {
-        console.error("Failed to load employees", err);
+    let lastScrollY = window.scrollY;
+
+    const handleScroll = () => {
+      if (window.scrollY > lastScrollY) {
+        setShowHeader(false);
+      } else {
+        setShowHeader(true);
       }
+      lastScrollY = window.scrollY;
     };
-    fetchData();
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // ✅ Extract unique filters
-  //   const departments = [
-  //     ...new Set(employees.map((e) => e.department).filter(Boolean)),
-  //   ];
-  //   const positions = [
-  //     ...new Set(employees.map((e) => e.position).filter(Boolean)),
-  //   ];
+  // ✅ Fetch user from API using decoded token
+  useEffect(() => {
+    const init = async () => {
+      const token = localStorage.getItem("token");
+      console.log("there is token in viewer home page ", token);
 
-  //   // ✅ Apply filters
-  //   const filtered = employees.filter((e) => {
-  //     const matchesSearch =
-  //       e.name?.toLowerCase().includes(search.toLowerCase()) ||
-  //       e.position?.toLowerCase().includes(search.toLowerCase());
-  //     const matchesDept = department ? e.department === department : true;
-  //     const matchesPos = position ? e.position === position : true;
-  //     return matchesSearch && matchesDept && matchesPos;
-  //   });
+      if (!token) return navigate("/login");
 
-  // ✅ Print
-  const handlePrint = () => window.print();
+      try {
+        const decoded = jwtDecode(token);
+        const me = await API.get(`/auth/me`);
+        console.log("loading user data ----------->", me.data);
+        setUser(me.data.user);
 
-  // ✅ Export to Excel
-  const handleExportExcel = () => {
-    const data = filtered.map((e) => ({
-      Name: e.name,
-      Position: e.position,
-      Department: e.department,
-      "Documents Count": e.documents?.length || 0,
-    }));
+        const newSocket = io("http://localhost:5001");
+        setSocket(newSocket);
+        newSocket.emit("joinUser", me.data.user.username);
 
-    const worksheet = XLSX.utils.json_to_sheet(data);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Employees");
-    XLSX.writeFile(workbook, "employees.xlsx");
+        return () => newSocket.disconnect();
+      } catch (err) {
+        console.log("Error loading user:", err);
+        navigate("/login");
+      }
+    };
+    init();
+  }, [navigate]);
+
+  // ✅ Notify admin through socket
+  const notifyAdmin = (message) => {
+    console.log("notify admin function from user ", message);
+
+    if (socket && user) {
+      socket.emit("notifyAdmin", {
+        from: user.username,
+        message,
+        time: new Date(),
+      });
+    }
   };
 
-  // ✅ Export to PDF
-  const handleExportPDF = () => {
-    const doc = new jsPDF();
-    doc.text("Employee Directory", 14, 14);
-    const tableData = filtered.map((e) => [
-      e.name,
-      e.position,
-      e.department,
-      e.documents?.length || 0,
-    ]);
-    doc.autoTable({
-      head: [["Name", "Position", "Department", "Documents"]],
-      body: tableData,
-      startY: 20,
-    });
-    doc.save("employees.pdf");
+  // ✅ Handle section clicks
+  const handleCardClick = (section) => {
+    notifyAdmin(`قام المستخدم ${user?.username} بفتح قسم ${section}`);
+    navigate(`/${section}`);
+  };
+
+  if (!user) {
+    return (
+      <div
+        dir="rtl"
+        className="flex items-center justify-center min-h-screen bg-gray-100 text-gray-600"
+      >
+        جاري تحميل بيانات المستخدم...
+      </div>
+    );
+  }
+
+  const { permissions } = user;
+
+  return (
+    <div
+      dir="rtl"
+      className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex flex-col"
+    >
+      {/* === App Bar === */}
+      <header
+        className={`fixed top-0 left-0 w-full z-50 transition-transform duration-500 ${
+          showHeader ? "translate-y-0" : "-translate-y-full"
+        } backdrop-blur bg-white/70 shadow-md py-3 px-6 flex items-center justify-between border-b border-slate-200`}
+      >
+        <div
+          className="flex items-center gap-3 cursor-pointer"
+          onClick={() => setShowModal(true)}
+        >
+          <img
+            src={
+              user?.image ||
+              "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
+            }
+            alt="User Avatar"
+            className="w-12 h-12 rounded-full border-2 border-emerald-500"
+          />
+
+          <div>
+            <h1 className="text-lg font-semibold text-emerald-700">
+              {user?.username}
+            </h1>
+            <p className="text-slate-500 text-sm">
+              {user?.role || "مستخدم عادي"}
+            </p>
+          </div>
+        </div>
+        <img src={Logo} alt="App Logo" className="w-16 h-16 object-contain" />
+      </header>
+
+      {/* === Spacer to avoid content under fixed header === */}
+      <div className="h-24"></div>
+
+      {/* === Dashboard Main === */}
+      <main className="flex-1 p-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {permissions?.viewEmployees && (
+          <DashboardCard
+            title="الموظفين"
+            subtitle="عرض وتحديث بيانات الموظفين"
+            svg={EmployeesSVG}
+            color="from-green-400 to-emerald-500"
+            onClick={() => handleCardClick("employees")}
+          />
+        )}
+
+        {permissions?.viewDocuments && (
+          <DashboardCard
+            title="الوثائق"
+            subtitle="استعراض وأرشفة المستندات"
+            svg={ReportsSVG}
+            color="from-blue-400 to-sky-500"
+            onClick={() => handleCardClick("documents")}
+          />
+        )}
+
+        {permissions?.viewSalary && (
+          <DashboardCard
+            title="الرواتب والمكافآت"
+            subtitle="تتبع الأداء والمكافآت الشهرية"
+            svg={VacationsSVG}
+            color="from-orange-400 to-amber-500"
+            onClick={() => handleCardClick("salary")}
+          />
+        )}
+      </main>
+
+      {/* === Send Message Section === */}
+      <section className="p-6 bg-white shadow-inner mt-auto">
+        <MessageBox
+          onSend={(msg) => notifyAdmin(`رسالة من ${user?.username}: ${msg}`)}
+        />
+      </section>
+
+      {/* === Footer === */}
+      <footer className="bg-emerald-600 text-white text-center py-3 mt-6 space-y-2">
+        <p className="text-sm">
+          © {new Date().getFullYear()} جميع الحقوق محفوظة | تم التطوير بواسطة
+          فريق الدعم الفني
+        </p>
+        {/* ✅ Test notification button */}
+        <button
+          onClick={() => notifyAdmin(`🔔 اختبار الإشعارات من ${user.username}`)}
+          className="bg-white/20 hover:bg-white/30 text-white px-4 py-1 rounded-md transition"
+        >
+          🔔 اختبار الإشعار
+        </button>
+      </footer>
+
+      {/* === User Info Modal === */}
+      {showModal && (
+        <UserInfoModal user={user} onClose={() => setShowModal(false)} />
+      )}
+    </div>
+  );
+}
+
+/* === Dashboard Card === */
+function DashboardCard({ title, subtitle, svg, color, onClick }) {
+  return (
+    <div
+      onClick={onClick}
+      className={`relative group bg-white shadow-lg rounded-2xl p-6 cursor-pointer overflow-hidden border border-slate-100 transition-all transform hover:-translate-y-2 hover:shadow-2xl`}
+    >
+      <div
+        className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-br ${color}`}
+      ></div>
+      <div className="relative z-10 flex items-center gap-4">
+        <div className="w-16 h-16 bg-emerald-50 flex items-center justify-center rounded-xl">
+          <img src={svg} alt={title} className="w-10 h-10 animate-fadeIn" />
+        </div>
+        <div>
+          <h3 className="text-lg font-semibold text-slate-800 group-hover:text-white transition-colors">
+            {title}
+          </h3>
+          <p className="text-slate-500 text-sm mt-1 group-hover:text-white/90 transition-colors">
+            {subtitle}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* === Message Box === */
+function MessageBox({ onSend }) {
+  const [msg, setMsg] = useState("");
+
+  const handleSend = () => {
+    if (!msg.trim()) return;
+    onSend(msg.trim());
+    setMsg("");
   };
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <h1 className="text-3xl font-semibold mb-6 text-center text-gray-800">
-        Employee Directory
-      </h1>
+    <div className="max-w-xl mx-auto flex flex-col sm:flex-row items-center gap-3">
+      <input
+        type="text"
+        placeholder="اكتب رسالة إلى المشرف..."
+        className="flex-1 border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+        value={msg}
+        onChange={(e) => setMsg(e.target.value)}
+      />
+      <button
+        onClick={handleSend}
+        className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2 rounded-lg shadow transition-all"
+      >
+        إرسال
+      </button>
+    </div>
+  );
+}
 
-      {/* ✅ Filters */}
-      <div className="flex flex-wrap justify-between items-center gap-3 mb-6">
-        <input
-          type="text"
-          placeholder="Search by name or position..."
-          className="border p-2 rounded w-full md:w-1/3"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-
-        <select
-          className="border p-2 rounded w-full md:w-1/4"
-          value={department}
-          onChange={(e) => setDepartment(e.target.value)}
+/* === User Info Modal === */
+function UserInfoModal({ user, onClose }) {
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-md w-full text-right relative animate-fadeIn">
+        <button
+          onClick={onClose}
+          className="absolute top-2 left-2 text-gray-400 hover:text-gray-700"
         >
-          <option value="">All Departments</option>
-          {/* {departments.map((d, i) => (
-            <option key={i} value={d}>
-              {d}
-            </option>
-          ))} */}
-        </select>
-
-        <select
-          className="border p-2 rounded w-full md:w-1/4"
-          value={position}
-          onChange={(e) => setPosition(e.target.value)}
-        >
-          <option value="">All Positions</option>
-          {/* {positions.map((p, i) => (
-            <option key={i} value={p}>
-              {p}
-            </option>
-          ))} */}
-        </select>
-
-        {/* ✅ Export buttons */}
-        <div className="flex gap-2 w-full md:w-auto justify-center md:justify-end">
-          <button
-            onClick={handleExportExcel}
-            className="bg-green-600 text-white px-4 py-2 rounded shadow"
-          >
-            Export Excel
-          </button>
-          <button
-            onClick={handleExportPDF}
-            className="bg-red-600 text-white px-4 py-2 rounded shadow"
-          >
-            Export PDF
-          </button>
-          <button
-            onClick={handlePrint}
-            className="bg-blue-600 text-white px-4 py-2 rounded shadow"
-          >
-            Print
-          </button>
+          ✕
+        </button>
+        <h2 className="text-2xl font-semibold text-emerald-700 mb-4">
+          معلومات المستخدم
+        </h2>
+        <div className="text-gray-700 space-y-2">
+          <p>
+            <strong>الاسم:</strong> {user.username}
+          </p>
+          <p>
+            <strong>الدور:</strong> {user.role}
+          </p>
+          <p>
+            <strong>تاريخ الإنشاء:</strong>{" "}
+            {new Date(user.createdAt).toLocaleString("ar-EG")}
+          </p>
+          <p>
+            <strong>آخر تحديث:</strong>{" "}
+            {new Date(user.updatedAt).toLocaleString("ar-EG")}
+          </p>
+          <div>
+            <strong>الصلاحيات:</strong>
+            <ul className="list-disc list-inside mt-2 text-sm text-gray-600">
+              {Object.entries(user.permissions || {}).map(([key, val]) => (
+                <li key={key}>
+                  {key}:{" "}
+                  <span
+                    className={`font-bold ${
+                      val ? "text-emerald-600" : "text-rose-500"
+                    }`}
+                  >
+                    {val ? "مفعل" : "غير مفعل"}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
-      </div>
-
-      {/* ✅ Table */}
-      <div className="overflow-x-auto bg-white rounded-lg shadow">
-        <table className="min-w-full border">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="border px-3 py-2 text-left">Name</th>
-              <th className="border px-3 py-2 text-left">Position</th>
-              <th className="border px-3 py-2 text-left">Department</th>
-              <th className="border px-3 py-2 text-left">Documents</th>
-            </tr>
-          </thead>
-          <tbody>
-            {/* {filtered.map((emp) => (
-              <tr key={emp._id} className="hover:bg-gray-50">
-                <td className="border px-3 py-2">{emp.name}</td>
-                <td className="border px-3 py-2">{emp.position}</td>
-                <td className="border px-3 py-2">{emp.department}</td>
-                <td className="border px-3 py-2">
-                  {emp.documents?.length ? (
-                    emp.documents.map((doc, i) => (
-                      <a
-                        key={i}
-                        href={`http://localhost:5001${doc.path}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-500 mr-2"
-                      >
-                        View
-                      </a>
-                    ))
-                  ) : (
-                    <span className="text-gray-400">No Docs</span>
-                  )}
-                </td>
-              </tr>
-            ))} */}
-            {/* {!filtered.length && (
-              <tr>
-                <td colSpan="4" className="text-center text-gray-500 py-3">
-                  No results found
-                </td>
-              </tr>
-            )} */}
-          </tbody>
-        </table>
       </div>
     </div>
   );

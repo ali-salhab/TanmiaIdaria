@@ -15,6 +15,8 @@ export default function Login() {
       const res = await API.post("/auth/login", { username, password });
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("role", res.data.user.role);
+      console.log("response from loging function", res.data);
+
       if (res.data.user.role === "admin") navigate("/dashboard");
       else navigate("/home");
     } catch (err) {

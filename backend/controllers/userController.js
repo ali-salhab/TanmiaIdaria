@@ -1,10 +1,13 @@
 import User from "../models/User.js";
 import bcrypt from "bcryptjs";
+import { io } from "../server.js";
+import OperationLog from "../models/ActivityLog.js";
 
 // ✅ Get all users
 export const getUsers = async (req, res) => {
   try {
-    const users = await User.find().select("-password");
+    const users = await User.find().select("-password").sort({ createdAt: -1 });
+    console.log(users);
     res.json(users);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -27,6 +30,9 @@ export const getUser = async (req, res) => {
 
 // ✅ Create new user
 export const createUser = async (req, res) => {
+  console.log("====================================");
+  console.log("Create User controller ");
+  console.log("====================================");
   try {
     const { username, password, role, permissions } = req.body;
     const exists = await User.findOne({ username });
@@ -34,9 +40,24 @@ export const createUser = async (req, res) => {
       return res.status(400).json({ message: "Username already exists" });
 
     const user = new User({ username, password, role, permissions });
-    await user.save();
+    console.log(user);
+
+    const createdUser = await user.save();
+    console.log("");
+    console.log(createdUser._id);
+
+    const log = await OperationLog.create({
+      userId: createdUser._id,
+      username: req.body.username,
+      action: "update",
+      section: "vacations",
+      details: `قام ${req.user.name} بتعديل إجازة رقم `,
+    });
+    io.emit("new_operation", log);
+
     res.status(201).json({ message: "User created", user });
   } catch (err) {
+    console.log(err.message);
     res.status(500).json({ message: err.message });
   }
 };

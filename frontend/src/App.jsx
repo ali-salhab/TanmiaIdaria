@@ -13,7 +13,8 @@ import EmployeeRewards from "./pages/EmployeeRewards";
 import EmployeeIncidents from "./pages/EmployeeIncidents";
 import Users from "./pages/Users";
 import { Toaster } from "react-hot-toast";
-
+import Notifications from "./pages/Notifications";
+import { SocketProvider } from "./context/SocketContext";
 function ProtectedRoute({ children, allowedRoles }) {
   const token = localStorage.getItem("token");
   const role = localStorage.getItem("role");
@@ -32,67 +33,73 @@ function App() {
   const role = localStorage.getItem("role");
 
   return (
-    <BrowserRouter>
-      <Toaster position="top-right" reverseOrder={false} />
-      <Routes>
-        <Route
-          path="/dashboard/employees/:id/vacations"
-          element={<EmployeeVacations />}
-        />
-        <Route
-          path="/dashboard/employees/:id/rewards"
-          element={<EmployeeRewards />}
-        />
-        <Route
-          path="/dashboard/employees/:id/incidents"
-          element={<EmployeeIncidents />}
-        />
+    <SocketProvider>
+      <BrowserRouter>
+        <Toaster position="top-right" reverseOrder={false} />
+        <Routes>
+          <Route
+            path="/dashboard/employees/:id/vacations"
+            element={<EmployeeVacations />}
+          />
+          <Route path="/dashboard/notifications" element={<Notifications />} />
+          <Route
+            path="/dashboard/employees/:id/rewards"
+            element={<EmployeeRewards />}
+          />
+          <Route
+            path="/dashboard/employees/:id/incidents"
+            element={<EmployeeIncidents />}
+          />
 
-        {/* Redirect root to login */}
-        <Route path="/" element={<Navigate to="/login" />} />
+          {/* Redirect root to login */}
+          <Route path="/" element={<Navigate to="/login" />} />
 
-        {/* Auth routes */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+          {/* Auth routes */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
 
-        {/* Admin dashboard */}
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <Dashboard />
-            </ProtectedRoute>
-          }
-        >
-          <Route index element={<EmployeeList />} />
-          <Route path="users" element={<Users />} />
-          <Route path="employees" element={<EmployeeList />} />
-          <Route path="employees/:id" element={<EmployeeEdit />} />
-          <Route path="upload" element={<UploadExcel />} />
-        </Route>
+          {/* Admin dashboard */}
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<EmployeeList />} />
+            <Route path="users" element={<Users />} />
+            <Route path="employees" element={<EmployeeList />} />
+            <Route path="employees/:id" element={<EmployeeEdit />} />
+            <Route path="upload" element={<UploadExcel />} />
+          </Route>
 
-        {/* Viewer Home */}
-        <Route
-          path="/home"
-          element={
-            <ProtectedRoute allowedRoles={["user", "admin"]}>
-              <ViewerHome />
-            </ProtectedRoute>
-          }
-        />
+          {/* Viewer Home */}
+          <Route
+            path="/home"
+            element={
+              <ProtectedRoute allowedRoles={["user", "admin"]}>
+                <ViewerHome />
+              </ProtectedRoute>
+            }
+          />
 
-        {/* Optional unauthorized page */}
-        <Route path="/unauthorized" element={<Unauthorized />} />
+          {/* Optional unauthorized page */}
+          <Route path="/unauthorized" element={<Unauthorized />} />
 
-        {/* Catch-all redirect */}
-        <Route
-          path="*"
-          element={
-            <Navigate to={role === "admin" ? "/dashboard" : "/home"} replace />
-          }
-        />
-      </Routes>
-    </BrowserRouter>
+          {/* Catch-all redirect */}
+          <Route
+            path="*"
+            element={
+              <Navigate
+                to={role === "admin" ? "/dashboard" : "/home"}
+                replace
+              />
+            }
+          />
+        </Routes>
+      </BrowserRouter>
+    </SocketProvider>
   );
 }
 

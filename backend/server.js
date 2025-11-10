@@ -1,5 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
+import operationRoutes from "./routes/operations.js";
+
 import mongoose from "mongoose";
 import cors from "cors";
 import helmet from "helmet";
@@ -13,6 +15,7 @@ import users from "./routes/users.js";
 import { fileURLToPath } from "url";
 import http from "http";
 import { Server } from "socket.io";
+import { log } from "console";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -51,6 +54,7 @@ app.use("/api/employees", employeeRoutes);
 
 app.use("/api/incidents", incidentRoutes);
 app.use("/api/users", users);
+app.use("/api/operations", operationRoutes);
 
 app.use(
   "/uploads",
@@ -79,12 +83,32 @@ export const io = new Server(server, {
     methods: ["GET", "POST"],
   },
 });
+let adminSocket = null;
 
 io.on("connection", (socket) => {
   console.log("🔌 مستخدم متصل:", socket.id);
-
+  socket.on("registerAdmin", () => {
+    adminSocket = socket;
+    console.log(
+      "✅ Admin connected: and with change admin socket varible",
+      socket.id
+    );
+  });
+  socket.on("notifyAdmin", (data) => {
+    // Send it to the admin if connected
+    if (adminSocket) {
+      adminSocket.emit("adminNotification", data);
+      console.log("📤 Notification sent to admin", data);
+    } else {
+      console.log("⚠️ No admin connected");
+    }
+  });
   socket.on("disconnect", () => {
     console.log("❌ مستخدم قطع الاتصال:", socket.id);
+    if (socket === adminSocket) {
+      adminSocket = null;
+      console.log("⚠️ Admin disconnected");
+    }
   });
 });
 

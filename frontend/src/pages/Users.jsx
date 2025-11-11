@@ -284,8 +284,9 @@ export default function Users() {
                           <input
                             type="checkbox"
                             checked={u.permissions[key]}
-                            onChange={() =>
-                              toast("🚧 تعديل الصلاحيات لم يُفعل بعد")
+                            onChange={
+                              () => {}
+                              // toast("🚧 تعديل الصلاحيات لم يُفعل بعد")
                             }
                             className="accent-blue-600 h-4 w-4"
                           />

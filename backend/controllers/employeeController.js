@@ -1,7 +1,45 @@
 import XLSX from "xlsx";
+import multer from "multer";
+import path from "path";
 import fs from "fs";
 import Employee from "../models/Employee.js";
+/**
+ * @desc Upload or update employee profile photo
+ * @route POST /api/employees/:id/photo
+ * @access Private
+ */
+export const updateEmployeePhoto = async (req, res) => {
+  console.log("profile image controller");
+  try {
+    // find employee
+    const employee = await Employee.findById(req.params.id);
+    if (!employee)
+      return res.status(404).json({ message: "Employee not found" });
 
+    if (!req.file)
+      return res.status(400).json({ message: "No image file uploaded" });
+
+    // if employee already has a photo, remove old file
+    if (employee.photo) {
+      const oldPath = path.join("uploads", path.basename(employee.photo));
+      if (fs.existsSync(oldPath)) {
+        fs.unlinkSync(oldPath);
+      }
+    }
+
+    // store new path in DB
+    employee.photo = `/uploads/${req.file.filename}`;
+    await employee.save();
+
+    res.json({
+      message: "Profile photo updated successfully",
+      photo: employee.photo,
+    });
+  } catch (error) {
+    console.error("Photo upload error:", error);
+    res.status(500).json({ message: "Failed to upload photo" });
+  }
+};
 export const uploadEmployeeDocs = async (req, res) => {
   console.log("====================================");
   console.log("upload docs for employee from employee controller");

@@ -35,13 +35,12 @@ function App() {
   return (
     <SocketProvider>
       <BrowserRouter>
-        <Toaster position="top-right" reverseOrder={false} />
+        <Toaster position="top-left" reverseOrder={false} />
         <Routes>
           <Route
             path="/dashboard/employees/:id/vacations"
             element={<EmployeeVacations />}
           />
-          <Route path="/dashboard/notifications" element={<Notifications />} />
           <Route
             path="/dashboard/employees/:id/rewards"
             element={<EmployeeRewards />}
@@ -68,6 +67,7 @@ function App() {
             }
           >
             {" "}
+            <Route path="notifications" element={<Notifications />} />
             <Route path="employees/:id" element={<EmployeeEdit />} />
             <Route index element={<EmployeeList />} />
             <Route path="users" element={<Users />} />
@@ -75,7 +75,6 @@ function App() {
             <Route path="upload" element={<UploadExcel />} />
           </Route>
 
-          {/* Viewer Home */}
           <Route
             path="/home"
             element={
@@ -85,10 +84,8 @@ function App() {
             }
           />
 
-          {/* Optional unauthorized page */}
           <Route path="/unauthorized" element={<Unauthorized />} />
 
-          {/* Catch-all redirect */}
           <Route
             path="*"
             element={

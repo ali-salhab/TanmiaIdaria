@@ -31,7 +31,7 @@ export default function EmployeeList() {
       "Full Name",
       "National ID",
       "Gender",
-      "Department",
+      "Level4level4",
     ];
     const tableRows = employees.map((emp) => [
       emp.selfNumber,
@@ -58,7 +58,7 @@ export default function EmployeeList() {
   const navigate = useNavigate();
   const [employees, setEmployees] = useState([]);
   const [search, setSearch] = useState("");
-  const [department, setDepartment] = useState("");
+  const [level4, setLevel4] = useState("");
   const [gender, setGender] = useState("");
   const [ageMin, setAgeMin] = useState("");
   const [ageMax, setAgeMax] = useState("");
@@ -69,12 +69,13 @@ export default function EmployeeList() {
   const fetchEmployees = async () => {
     try {
       console.log("searching .... filter based on ");
+      console.log(page, search, level4, gender, ageMin, ageMax);
       setLoading(true);
       const res = await API.get("/employees", {
         params: {
           page,
           search,
-          department,
+          level4,
           gender,
           ageMin,
           ageMax,
@@ -82,7 +83,7 @@ export default function EmployeeList() {
       });
       console.log(employees);
       // Adjust according to your API structure
-      setEmployees(res.data.data || []);
+      setEmployees(res.data.data);
       setTotalPages(Math.ceil(res.data.total / res.data.limit));
     } catch (err) {
       console.error(err);
@@ -93,11 +94,11 @@ export default function EmployeeList() {
 
   useEffect(() => {
     fetchEmployees();
-  }, [page, search, department, gender, ageMin, ageMax]);
+  }, [page, search, level4, gender, ageMin, ageMax]);
 
   const resetFilters = () => {
     setSearch("");
-    setDepartment("");
+    setLevel4level4("");
     setGender("");
     setAgeMin("");
     setAgeMax("");
@@ -171,9 +172,9 @@ export default function EmployeeList() {
           className="border p-2 rounded w-full"
         />
         <select
-          value={department}
+          value={level4}
           onChange={(e) => {
-            setDepartment(e.target.value);
+            setLevel4(e.target.value);
             console.log(e.target.value);
             setPage(1);
           }}
@@ -202,8 +203,8 @@ export default function EmployeeList() {
           className="border p-2 rounded"
         >
           <option value="">الكل</option>
-          <option value="Male">انثى</option>
-          <option value="Female">دكر</option>
+          <option value="انثى">انثى</option>
+          <option value="ذكر">ذكر</option>
         </select>
         <input
           type="number"

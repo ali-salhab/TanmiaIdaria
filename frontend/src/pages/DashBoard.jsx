@@ -47,13 +47,13 @@ export default function Dashboard() {
 
         <nav className="flex-1 p-4 space-y-2">
           <Link
-            to="/dashboard/employees"
+            to="/employees"
             className="block py-2.5 px-4 rounded-lg bg-white/10 hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105"
           >
             📋 الموظفين
           </Link>
           <Link
-            to="/dashboard/upload"
+            to="/upload"
             className="block py-2.5 px-4 rounded-lg bg-white/10 hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105"
           >
             📤 ادارة قاعدة البيانات
@@ -65,34 +65,33 @@ export default function Dashboard() {
             ⚙️ ادارة المستخدمين
           </Link>
           <Link
-            to="/dashboard/notifications"
+            to="notifications"
             className="block py-2.5 px-4 rounded-lg bg-white/10 hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105"
           >
             🔔 الإشعارات والأرشيف
-          </Link>
+          </Link>{" "}
+          <div className="p-4 border-t border-white/20">
+            <button
+              onClick={handleLogout}
+              className="w-full bg-rose-500/80 hover:bg-rose-600 text-white py-2 rounded-lg transition transform hover:scale-105"
+            >
+              Logout
+            </button>
+          </div>
+          <div className="p-4 border-t border-white/20">
+            <button
+              onClick={handleLogout}
+              className="w-full bg-grey-500/80 hover:bg-black text-white py-2 rounded-lg transition transform hover:scale-75"
+            >
+              Settings
+            </button>
+          </div>
         </nav>
-
-        <div className="p-4 border-t border-white/20">
-          <button
-            onClick={handleLogout}
-            className="w-full bg-rose-500/80 hover:bg-rose-600 text-white py-2 rounded-lg transition transform hover:scale-105"
-          >
-            Logout
-          </button>
-        </div>
       </aside>
 
       {/* Main content */}
       <div className="relative z-10 flex-1 flex flex-col animate-fadeSlide">
         {/* Navbar */}
-        <header className="backdrop-blur-xl bg-white/15 border-b border-white/20 shadow-md p-4 flex justify-between items-center">
-          <h2 className="text-xl font-semibold text-white drop-shadow">
-            إدارة الموظفين
-          </h2>
-          <span className="text-gray-200 text-sm">
-            {new Date().toLocaleDateString("en-GB")}
-          </span>
-        </header>
 
         {/* Main Content Area */}
         <main className="flex-1 p-6 overflow-y-auto">

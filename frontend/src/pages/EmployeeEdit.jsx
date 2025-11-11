@@ -1,22 +1,33 @@
-import { useEffect, useState } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import API from "../api/api";
+import toast from "react-hot-toast";
+
+// مكونات فرعية
 import EmployeeDocuments from "../components/EmployeeDocuments";
+import EmployeeIncidents from "../pages/EmployeeIncidents";
+import EmployeeVacations from "../pages/EmployeeVacations";
+import EmployeeRewards from "../pages/EmployeeRewards";
 
 export default function EmployeeEdit() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const fileInputRef = useRef(null);
+  const docInputRef = useRef(null);
 
   const [employee, setEmployee] = useState({});
   const [loading, setLoading] = useState(true);
+  const [photoPreview, setPhotoPreview] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [activeTab, setActiveTab] = useState("info"); // تبويب افتراضي: البيانات
 
+  // 🔹 تحميل بيانات الموظف
   const fetchEmployee = async () => {
     try {
       const res = await API.get(`/employees/${id}`);
       setEmployee(res.data || {});
-    } catch (err) {
-      console.error(err);
-      alert("فشل تحميل بيانات الموظف");
+    } catch {
+      toast.error("فشل تحميل بيانات الموظف");
     } finally {
       setLoading(false);
     }
@@ -26,6 +37,7 @@ export default function EmployeeEdit() {
     fetchEmployee();
   }, [id]);
 
+  // 🔹 تحديث البيانات
   const handleChange = (e) => {
     const { name, value } = e.target;
     setEmployee({ ...employee, [name]: value });
@@ -34,11 +46,10 @@ export default function EmployeeEdit() {
   const handleSave = async () => {
     try {
       await API.put(`/employees/${id}`, employee);
-      alert("تم تحديث بيانات الموظف بنجاح!");
+      toast.success("تم حفظ البيانات بنجاح!");
       navigate("/dashboard/employees");
-    } catch (err) {
-      console.error(err);
-      alert("فشل في تحديث بيانات الموظف.");
+    } catch {
+      toast.error("فشل في حفظ البيانات");
     }
   };
 
@@ -46,158 +57,188 @@ export default function EmployeeEdit() {
     if (!window.confirm("هل أنت متأكد أنك تريد حذف هذا الموظف؟")) return;
     try {
       await API.delete(`/employees/${id}`);
-      alert("تم حذف الموظف بنجاح!");
+      toast.success("تم حذف الموظف");
       navigate("/dashboard/employees");
-    } catch (err) {
-      console.error(err);
-      alert("فشل في حذف الموظف.");
+    } catch {
+      toast.error("فشل في حذف الموظف");
+    }
+  };
+
+  // 🔹 تحميل صورة شخصية
+  const handlePhotoChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setPhotoPreview(URL.createObjectURL(file));
+    const formData = new FormData();
+    formData.append("photo", file);
+    try {
+      setUploading(true);
+      const res = await API.post(`/employees/${id}/photo`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      setEmployee({ ...employee, photo: res.data.photo });
+      toast.success("تم تحديث الصورة الشخصية");
+    } catch {
+      toast.error("فشل تحميل الصورة");
+    } finally {
+      setUploading(false);
     }
   };
 
   if (loading) return <p className="p-6 text-center">جاري التحميل...</p>;
 
-  const excludedFields = ["_id", "createdAt", "updatedAt", "__v"];
-
-  const fieldTranslations = {
+  const fieldLabels = {
     selfNumber: "الرقم الذاتي",
+    fullName: "الاسم الكامل",
     firstName: "الاسم الأول",
     fatherName: "اسم الأب",
-    lastName: "الكنية",
-    fullName: "الاسم الكامل",
     motherName: "اسم الأم",
-    motherNameAndLastName: "اسم الأم والكنية",
-    national_id: "الرقم الوطني",
-    age: "العمر",
-    mobile: "رقم الهاتف",
-    address: "العنوان",
-    job_title: "المسمى الوظيفي",
-    governorate: "المحافظة",
-    salary: "الراتب",
-    department: "القسم",
+    lastName: "الكنية",
+    nationalId: "الرقم الوطني",
+    gender: "الجنس",
     nationality: "الجنسية",
-    registrationNumber: " القيد",
+    address: "العنوان",
     city: "المدينة",
-    residenceGovernorate: "مكان الإقامة",
-    district: "المنطقة",
-    healthStatus: "الحالة الصحية",
-    contractType: "نوع العقد",
-    housingType: "نوع السكن",
-    contractDetails: "تفاصيل العقد",
+    governorate: "المحافظة",
+    registrationNumber: "القيد",
     birthDate: "تاريخ الميلاد",
-    level1: "المستوى 1",
-    jobCategory: "فئة الوظيفة",
-    level2: "المستوى 2",
-    level3: "المستوى 3",
-    level4: "المستوى 4",
-    level5: "المستوى 5",
-    level6: "المستوى 6",
-    maritalStatus: "الحالة الاجتماعية",
-    wivesCount: "عدد الزوجات",
-    childrenCount: "عدد الأطفال",
+    birthPlace: "مكان الولادة",
+    qualification: "المؤهل العلمي",
+    specialization: "الاختصاص",
+    job_title: "المسمى الوظيفي",
+    jobCategory: "الفئة الوظيفية",
+    salary: "الراتب",
+    hire_date: "تاريخ التعيين",
     phone: "رقم الهاتف",
     email: "البريد الإلكتروني",
     maritalStatus: "الحالة الاجتماعية",
-    hire_date: "تاريخ التعيين",
-    nationalId: "الرقم الوطني",
-    gender: "الجنس",
-    status: "الحالة",
+    childrenCount: "عدد الأولاد",
     notes: "ملاحظات",
-    documents: "الوثائق",
-    lastSalary: "آخر راتب",
-    onStaff: "على رأس العمل",
     workLocation: "مكان العمل",
-    managementDegree: "درجة الإدارة",
-    graduationYear: "سنة التخرج",
-    faculty: "الكلية",
-    university: "الجامعة",
-    qualification: "المؤهل",
-    specialization: "التخصص",
-    documentAvailable: "الوثيقة متوفرة",
-    bloodType: "فصيلة الدم",
-    illnessDetails: "تفاصيل الأمراض",
-    spouseWorkplace: "مكان عمل الزوج/الزوجة",
-    spouseFullName: "الاسم الكامل للزوج/الزوجة",
-    spouseIsEmployee: "هل الزوج/الزوجة موظف؟",
+    department: "القسم",
   };
 
+  const excluded = [
+    "_id",
+    "__v",
+    "createdAt",
+    "updatedAt",
+    "photo",
+    "documents",
+  ];
+
   return (
-    <div className="p-6 max-w-3xl mx-auto font-custom text-right" dir="rtl">
-      <h2 className="text-2xl font-bold mb-4 text-center text-gray-800">
-        تعديل بيانات الموظف
-      </h2>
+    <div className="p-6 max-w-7xl mx-auto font-custom text-right" dir="rtl">
+      {/* 🪪 رأس الصفحة */}
+      <div className="bg-white shadow-md rounded-2xl border p-6 flex flex-col md:flex-row gap-6 items-start">
+        <div className="flex flex-col items-center md:w-1/3">
+          <img
+            src={
+              photoPreview ||
+              employee.photo ||
+              "http://localhost:5001/uploads/default-avatar.png"
+            }
+            alt="صورة الموظف"
+            className="h-36 w-36 rounded-full border-4 border-blue-400 object-cover shadow-md"
+          />
+          <h3 className="text-xl font-bold mt-3">{employee.fullName}</h3>
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+            className="mt-2 bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700"
+          >
+            {uploading ? "جاري التحميل..." : "تغيير الصورة"}
+          </button>
+          <input
+            type="file"
+            accept="image/*"
+            ref={fileInputRef}
+            onChange={handlePhotoChange}
+            className="hidden"
+          />
+        </div>
 
-      {/* صورة شخصية */}
-      <div className="flex flex-col items-center justify-center bg-white shadow-md border border-gray-200 rounded-xl p-4 w-52 mx-auto mb-6 hover:shadow-lg transition-shadow duration-300">
-        <img
-          className="h-28 w-28 object-cover rounded-full border-4 border-blue-200 shadow-sm"
-          src="http://localhost:5001/uploads/1761814215378-619000236.png"
-          alt="الصورة الشخصية"
-        />
-        {/* <p className="text-gray-700 font-medium mt-3">الصورة الشخصية</p> */}
-      </div>
-      <button
-        onClick={() =>
-          window.open(
-            `${import.meta.env.VITE_API_URL}/employees/${id}/docx`,
-            "_blank"
-          )
-        }
-        className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700"
-      >
-        إنشاء بطاقة ذاتية (Word)
-      </button>
-      {/* الوثائق */}
-      <EmployeeDocuments
-        employeeId={id}
-        existingDocs={employee.documents || []}
-      />
-
-      {/* روابط الصفحات */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center mt-6">
-        <Link
-          to={`/dashboard/employees/${id}/vacations`}
-          className="p-4 bg-white border rounded shadow-sm hover:bg-blue-600 hover:text-white hover:scale-105 transition-all duration-150"
-        >
-          الإجازات
-        </Link>
-
-        <Link
-          to={`/dashboard/employees/${id}/incidents`}
-          className="p-4 bg-white border rounded shadow-sm hover:bg-blue-600 hover:text-white hover:scale-105 transition-all duration-150"
-        >
-          الوقوعات
-        </Link>
-
-        <Link
-          to={`/dashboard/employees/${id}/rewards`}
-          className="p-4 bg-white border rounded shadow-sm hover:bg-blue-600 hover:text-white hover:scale-105 transition-all duration-150"
-        >
-          المكافآت
-        </Link>
+        {/* معلومات سريعة */}
+        <div className="flex-1 grid grid-cols-2 gap-4">
+          <div>
+            <p className="text-sm text-gray-500">الرقم الذاتي</p>
+            <p className="font-semibold">{employee.selfNumber || "—"}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-500">الوظيفة</p>
+            <p className="font-semibold">{employee.job_title || "—"}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-500">المؤهل العلمي</p>
+            <p className="font-semibold">{employee.qualification || "—"}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-500">الراتب</p>
+            <p className="font-semibold">{employee.salary || "—"}</p>
+          </div>
+        </div>
       </div>
 
-      {/* الحقول */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-        {Object.entries(employee)
-          .filter(([key]) => !excludedFields.includes(key))
-          .map(([key, value]) => {
-            return (
-              <div key={key} className="flex flex-col">
-                <label className="mb-1 text-sm font-semibold text-gray-600">
-                  {fieldTranslations[key] || key.replace(/_/g, " ")}
-                </label>
-                <input
-                  name={key}
-                  value={value || ""}
-                  onChange={handleChange}
-                  className="border rounded p-2 focus:ring-2 focus:ring-blue-400"
-                />
-              </div>
-            );
-          })}
+      {/* ✅ التبويبات */}
+      <div className="mt-8">
+        <div className="flex flex-wrap gap-3 border-b border-gray-200 pb-2">
+          {[
+            { key: "info", label: "البيانات الشخصية" },
+            { key: "documents", label: "الوثائق" },
+            { key: "incidents", label: "الوقوعات" },
+            { key: "vacations", label: "الإجازات" },
+            { key: "rewards", label: "المكافآت" },
+          ].map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`px-4 py-2 rounded-t-lg text-sm font-semibold ${
+                activeTab === tab.key
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* محتوى التبويبات */}
+        <div className="bg-white rounded-b-lg shadow-md p-6 mt-2">
+          {activeTab === "info" && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {Object.entries(employee)
+                .filter(([key]) => !excluded.includes(key))
+                .map(([key, value]) => (
+                  <div key={key} className="flex flex-col">
+                    <label className="mb-1 text-sm font-semibold text-gray-600">
+                      {fieldLabels[key] || key}
+                    </label>
+                    <input
+                      name={key}
+                      value={value || ""}
+                      onChange={handleChange}
+                      className="border rounded p-2 focus:ring-2 focus:ring-blue-400"
+                    />
+                  </div>
+                ))}
+            </div>
+          )}
+
+          {activeTab === "documents" && (
+            <EmployeeDocuments
+              employeeId={id}
+              existingDocs={employee.documents || []}
+            />
+          )}
+
+          {activeTab === "incidents" && <EmployeeIncidents />}
+          {activeTab === "vacations" && <EmployeeVacations />}
+          {activeTab === "rewards" && <EmployeeRewards />}
+        </div>
       </div>
 
-      {/* الأزرار */}
+      {/* الأزرار السفلية */}
       <div className="flex justify-between mt-8">
         <button
           onClick={handleSave}

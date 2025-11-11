@@ -7,7 +7,10 @@ import { generatePersonalCard } from "../utils/generatePersonalCard.js";
 
 import { protect, authorize } from "../middleware/auth.js";
 import * as empCtrl from "../controllers/employeeController.js";
-import { uploadEmployeeDocs } from "../controllers/employeeController.js";
+import {
+  uploadEmployeeDocs,
+  updateEmployeePhoto,
+} from "../controllers/employeeController.js";
 
 const router = express.Router();
 const storage = multer.diskStorage({
@@ -22,7 +25,13 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 router.post("/:id/upload", upload.array("files"), uploadEmployeeDocs);
-
+router.post(
+  "/:id/photo",
+  protect,
+  authorize(["admin", "user"]),
+  upload.single("photo"),
+  updateEmployeePhoto
+);
 router.get("/", protect, empCtrl.listEmployees);
 router.get("/export", protect, empCtrl.exportExcel);
 router.get("/:id", protect, empCtrl.getEmployee);

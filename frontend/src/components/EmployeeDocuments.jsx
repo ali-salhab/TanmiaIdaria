@@ -76,28 +76,37 @@ export default function EmployeeDocuments({ employeeId }) {
           docs.map((doc, i) => (
             <div
               key={i}
-              className="border rounded-lg overflow-hidden shadow-sm bg-gray-50"
+              className="relative group bg-white rounded-xl shadow-md overflow-hidden border"
             >
-              <div className="p-2 text-center">
-                <p className="text-sm font-medium text-gray-700">
-                  {doc.description || "No description"}
-                </p>
-                <a
-                  href={`${import.meta.env.VITE_API_URL}${doc.path}`}
-                  target="_blank"
-                  // rel="noopener noreferrer"
-                  className="text-blue-500 text-sm"
-                >
-                  View
-                </a>
-
-                <img
-                  src={`${import.meta.env.VITE_API_URL}${
-                    doc.path.startsWith("/") ? doc.path : "/" + doc.path
-                  }`}
-                  alt={`document-${i}`}
-                  className="w-full h-32 object-cover rounded"
-                />
+              <img
+                src={`http://localhost:5001${doc.path}`}
+                alt={doc.description}
+                className="w-full h-48 object-cover group-hover:opacity-90 transition"
+              />
+              <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/60 to-transparent p-3 text-white">
+                <p className="text-sm">{doc.description || "بدون وصف"}</p>
+                <div className="flex gap-2 mt-2">
+                  <button
+                    onClick={() =>
+                      window.open(`http://localhost:5001${doc.path}`)
+                    }
+                    className="bg-green-600 px-2 py-1 rounded text-xs hover:bg-green-700"
+                  >
+                    تنزيل
+                  </button>
+                  <button
+                    onClick={() => setEditImage(doc.path)}
+                    className="bg-blue-600 px-2 py-1 rounded text-xs hover:bg-blue-700"
+                  >
+                    تعديل
+                  </button>
+                  <button
+                    onClick={() => handleDocDelete(doc.path)}
+                    className="bg-red-600 px-2 py-1 rounded text-xs hover:bg-red-700"
+                  >
+                    حذف
+                  </button>
+                </div>
               </div>
             </div>
           ))

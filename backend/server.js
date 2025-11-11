@@ -2,6 +2,8 @@ import express from "express";
 import dotenv from "dotenv";
 import operationRoutes from "./routes/operations.js";
 import mongoose from "mongoose";
+import vacationRoutes from "./routes/voctionRoutes.js";
+
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
@@ -27,7 +29,6 @@ app.use(
   })
 );
 app.use(compression());
-// here we solve image upload problem it take 3 hours 🙄
 app.use(
   cors({
     // origin: "http://12.0.0.129:5173", // frontend port
@@ -36,12 +37,9 @@ app.use(
     credentials: true,
   })
 );
-app.get("/test", (req, res) => {
-  return res.send(
-    "test--------->connecting to server done successfully 👌👌👌👌👌👌👌😏😏"
-  );
-});
 
+// الاجازات
+app.use("/api", vacationRoutes);
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan("dev"));
@@ -83,6 +81,7 @@ export const io = new Server(server, {
 });
 let adminSocket = null;
 
+let onlineUsers = new Map();
 io.on("connection", (socket) => {
   console.log("🔌 مستخدم متصل:", socket.id);
   socket.on("registerAdmin", () => {
@@ -101,7 +100,22 @@ io.on("connection", (socket) => {
       console.log("⚠️ No admin connected");
     }
   });
+  socket.on("private_message", ({ to, message, from }) => {
+    const targetSocket = onlineUsers.get(to);
+    if (targetSocket) {
+      io.to(targetSocket).emit("private_message", { message, from });
+    }
+  });
+  socket.on("user_connected", (userId) => {
+    onlineUsers.set(userId, socket.id);
+    io.emit("online_users", Array.from(onlineUsers.keys()));
+  });
   socket.on("disconnect", () => {
+    for (let [userId, sid] of onlineUsers.entries()) {
+      if (sid === socket.id) onlineUsers.delete(userId);
+    }
+    io.emit("online_users", Array.from(onlineUsers.keys()));
+    console.log("🔴 User disconnected:", socket.id);
     console.log("❌ مستخدم قطع الاتصال:", socket.id);
     if (socket === adminSocket) {
       adminSocket = null;

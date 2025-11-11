@@ -267,10 +267,15 @@ export default function EmployeeList() {
                   <td className="border p-2 text-center ">
                     {(page - 1) * 50 + index + 1}
                   </td>
-                  <td className="border p-2 text-center">
+                  <td className="border p-4 m-2 text-center">
                     <Link
                       to={`employees/${emp._id}`}
-                      className="text-blue-600 hover:underline"
+                      onClick={(e) => {
+                        console.log("====================================");
+                        console.log(e);
+                        console.log("====================================");
+                      }}
+                      className="text-blue-600 hover:bg-gray-400 hover:p-2 hover:rounded-md hover:m-2 hover:text-primary"
                     >
                       {emp.fullName}
                     </Link>

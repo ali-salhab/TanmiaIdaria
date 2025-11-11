@@ -1,7 +1,6 @@
 import express from "express";
 import dotenv from "dotenv";
 import operationRoutes from "./routes/operations.js";
-
 import mongoose from "mongoose";
 import cors from "cors";
 import helmet from "helmet";
@@ -15,8 +14,7 @@ import users from "./routes/users.js";
 import { fileURLToPath } from "url";
 import http from "http";
 import { Server } from "socket.io";
-import { log } from "console";
-
+import { generateEmployeeCV } from "./controllers/incidentController.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 dotenv.config();
@@ -51,7 +49,7 @@ app.use(morgan("dev"));
 // routes
 app.use("/api/auth", authRoutes);
 app.use("/api/employees", employeeRoutes);
-
+app.use("/api/excel-cv/:id", generateEmployeeCV);
 app.use("/api/incidents", incidentRoutes);
 app.use("/api/users", users);
 app.use("/api/operations", operationRoutes);

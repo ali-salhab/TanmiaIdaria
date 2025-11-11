@@ -67,10 +67,11 @@ function App() {
               </ProtectedRoute>
             }
           >
+            {" "}
+            <Route path="employees/:id" element={<EmployeeEdit />} />
             <Route index element={<EmployeeList />} />
             <Route path="users" element={<Users />} />
             <Route path="employees" element={<EmployeeList />} />
-            <Route path="employees/:id" element={<EmployeeEdit />} />
             <Route path="upload" element={<UploadExcel />} />
           </Route>
 

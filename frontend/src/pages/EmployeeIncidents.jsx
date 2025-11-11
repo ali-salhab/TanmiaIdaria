@@ -100,7 +100,25 @@ export default function EmployeeIncidents() {
     });
     setModalOpen(true);
   };
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      console.log("Saving incident:", selectedIncident);
+      if (selectedIncident._id) {
+        await API.put(`/incidents/${selectedIncident._id}`, selectedIncident);
+        toast.success("تم تعديل الوقوع بنجاح");
+      } else {
+        await API.post("/incidents", selectedIncident);
+        toast.success("تمت إضافة وقوع جديد");
+      }
 
+      setModalOpen(false);
+      fetchIncidents();
+    } catch (err) {
+      console.error(err);
+      toast.error("فشل في حفظ الوقوع");
+    }
+  };
   const openEditModal = (incident) => {
     setSelectedIncident({ ...incident });
     setModalOpen(true);
@@ -199,7 +217,15 @@ export default function EmployeeIncidents() {
       )}
       {/* مودال إضافة/تعديل الوقوع */}
       {modalOpen && selectedIncident && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+        <div
+          onClick={(e) => {
+            // Close modal only if user clicks on the background (overlay)
+            if (e.target === e.currentTarget) {
+              setModalOpen(false);
+            }
+          }}
+          className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
+        >
           <div className="bg-white rounded-lg p-6 max-w-md w-full transform transition-all duration-300 scale-95 animate-fadeInUp overflow-y-auto max-h-[90vh]">
             <h3 className="text-xl font-bold mb-4 text-center">
               {selectedIncident._id ? "تعديل الوقوع" : "إضافة وقوع جديد"}
@@ -210,11 +236,29 @@ export default function EmployeeIncidents() {
                 { label: "المسمى الوظيفي", name: "job_title", type: "text" },
                 { label: "نوع الوظيفة", name: "job_type", type: "text" },
                 { label: "الأجر", name: "salary", type: "number" },
-                { label: "الفئة", name: "category", type: "text" },
+                // ↓↓↓ الفئة dropdown ↓↓↓
+                {
+                  label: "الفئة",
+                  name: "category",
+                  type: "select",
+                  options: ["أولى", "تانية", "تالتة", "رابعة", "خامسة"],
+                },
                 { label: "تاريخ المباشرة", name: "start_date", type: "date" },
                 { label: "تاريخ التبدل", name: "change_date", type: "date" },
-                { label: "السبب", name: "reason", type: "text" },
-                { label: "نوع المستند", name: "document_type", type: "text" },
+                // ↓↓↓ السبب dropdown ↓↓↓
+                {
+                  label: "السبب",
+                  name: "reason",
+                  type: "select",
+                  options: ["زيادة أجر", "تجديد عقد", "تثبيت", "ترفيع"],
+                },
+                // ↓↓↓ نوع المستند dropdown ↓↓↓
+                {
+                  label: "نوع المستند",
+                  name: "document_type",
+                  type: "select",
+                  options: ["مرسوم", "قرار"],
+                },
                 { label: "رقم المستند", name: "document_number", type: "text" },
                 { label: "تاريخ المستند", name: "document_date", type: "date" },
                 { label: "اسم المسجل", name: "registrar_name", type: "text" },
@@ -226,13 +270,30 @@ export default function EmployeeIncidents() {
               ].map((field) => (
                 <div key={field.name} className="flex flex-col">
                   <label className="mb-1 font-medium">{field.label}</label>
-                  <input
-                    name={field.name}
-                    type={field.type}
-                    value={selectedIncident[field.name] || ""}
-                    onChange={handleChange}
-                    className="border p-2 rounded"
-                  />
+
+                  {field.type === "select" ? (
+                    <select
+                      name={field.name}
+                      value={selectedIncident[field.name] || ""}
+                      onChange={handleChange}
+                      className="border p-2 rounded"
+                    >
+                      <option value="">اختر {field.label}</option>
+                      {field.options.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      name={field.name}
+                      type={field.type}
+                      value={selectedIncident[field.name] || ""}
+                      onChange={handleChange}
+                      className="border p-2 rounded"
+                    />
+                  )}
                 </div>
               ))}
 

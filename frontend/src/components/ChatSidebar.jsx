@@ -16,7 +16,7 @@ export default function ChatSidebar() {
   return (
     <div className="fixed z-20 top-0 h-full w-72 bg-white border-xl border-gray-200 shadow-xl flex flex-col">
       <div className="p-3  z-20 border-b text-lg font-semibold bg-blue-600 text-white">
-        المستخدمون المتصلون
+        المستخدمون المتصلونj
       </div>
       <div className="flex-1 overflow-y-auto divide-y">
         {onlineUsers.length === 0 && (

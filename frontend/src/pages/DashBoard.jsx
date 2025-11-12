@@ -50,13 +50,13 @@ export default function Dashboard() {
 
         <nav className="flex-1 p-4 space-y-2">
           <Link
-            to="/employees"
+            to="/dashboard/employees"
             className="block py-2.5 px-4 rounded-lg bg-white/10 hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105"
           >
             📋 الموظفين
           </Link>
           <Link
-            to="/upload"
+            to="/dashboard/upload"
             className="block py-2.5 px-4 rounded-lg bg-white/10 hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105"
           >
             📤 ادارة قاعدة البيانات

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import API from "../api/api";
 import toast from "react-hot-toast";
-
+const VITE_API_URL = import.meta.env.VITE_API_URL;
 // مكونات فرعية
 import EmployeeDocuments from "../components/EmployeeDocuments";
 import EmployeeIncidents from "../pages/EmployeeIncidents";
@@ -136,7 +136,7 @@ export default function EmployeeEdit() {
             src={
               photoPreview ||
               employee.photo ||
-              "http://localhost:5001/uploads/default-avatar.png"
+              VITE_API_URL + "/uploads/default-avatar.png"
             }
             alt="صورة الموظف"
             className="h-36 w-36 rounded-full border-4 border-blue-400 object-cover shadow-md"

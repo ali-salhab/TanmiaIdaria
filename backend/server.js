@@ -31,9 +31,7 @@ app.use(
 app.use(compression());
 app.use(
   cors({
-    // origin: "http://12.0.0.129:5173", // frontend port
-    origin: "http://localhost:5173", // frontend port
-
+    origin: ["http://12.0.0.173:5173", "http://localhost:5173"],
     credentials: true,
   })
 );
@@ -51,7 +49,9 @@ app.use("/api/excel-cv/:id", generateEmployeeCV);
 app.use("/api/incidents", incidentRoutes);
 app.use("/api/users", users);
 app.use("/api/operations", operationRoutes);
-
+app.get("/api/test", (req, res) => {
+  res.send("connected successfully");
+});
 app.use(
   "/uploads",
   express.static(path.join(__dirname, "uploads"), {
@@ -75,7 +75,8 @@ app.use((err, req, res, next) => {
 const server = http.createServer(app);
 export const io = new Server(server, {
   cors: {
-    origin: "*", // غيّرها حسب الدومين لاحقًا
+    origin: ["http://12.0.0.173:5173", "http://localhost:5173"],
+
     methods: ["GET", "POST"],
   },
 });
@@ -135,7 +136,7 @@ mongoose
     console.log("MongoDB connected");
 
     // ✅ استخدم server وليس app
-    server.listen(PORT, () => {
+    server.listen(PORT, "0.0.0.0", () => {
       console.log(`🚀 Server running with Socket.IO on http://0.0.0.0:${PORT}`);
     });
   })

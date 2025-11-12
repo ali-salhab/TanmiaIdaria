@@ -32,7 +32,7 @@ export default function Register() {
       console.log("====================================");
       console.log("register function");
       console.log("====================================");
-      const res = await API.post("http://localhost:5001/api/auth/register", {
+      const res = await API.post("/api/auth/register", {
         username: form.username.trim(),
         password: form.password.trim(),
         role: form.role.toLowerCase(),

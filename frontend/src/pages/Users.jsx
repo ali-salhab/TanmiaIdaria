@@ -2,8 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "react-hot-toast";
 import { FaEdit, FaEye, FaEyeSlash } from "react-icons/fa";
-
-const API = "http://localhost:5001/api/users";
+import API from "../api/api";
 
 export default function Users() {
   const [users, setUsers] = useState([]);
@@ -31,9 +30,10 @@ export default function Users() {
 
   const fetchUsers = async () => {
     try {
-      const res = await axios.get(API, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await API.get("/users");
+      // const res = await axios.get(API, {
+      //   headers: { Authorization: `Bearer ${token}` },
+      // });
       let data = res.data;
       data.sort((a, b) =>
         sortOrder === "asc"
@@ -52,9 +52,8 @@ export default function Users() {
 
   const createUser = async () => {
     try {
-      await axios.post(API, newUser, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await API.post("/users", newUser);
+
       toast.success("✅ تم إنشاء المستخدم بنجاح!");
       setNewUser({ username: "", password: "", role: "employee" });
       fetchUsers();
@@ -72,9 +71,8 @@ export default function Users() {
 
   const deleteUser = async () => {
     try {
-      await axios.delete(`${API}/${deleteModal.userId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await API.delete(`users/${deleteModal.userId}`);
+
       toast.success("🗑️ تم حذف المستخدم");
       cancelDelete();
       fetchUsers();
@@ -90,11 +88,11 @@ export default function Users() {
 
   const saveEdit = async (id) => {
     try {
-      await axios.put(
-        `${API}/${id}`,
-        { username: editedUser.username, role: editedUser.role },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await API.put(`/users/${id}`, editedUser, {
+        username: editedUser.username,
+        role: editedUser.role,
+      });
+
       toast.success("✅ تم حفظ التعديلات");
       setEditUserId(null);
       fetchUsers();

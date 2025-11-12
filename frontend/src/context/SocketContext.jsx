@@ -6,13 +6,13 @@ const SocketContext = createContext(null);
 
 export const SocketProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
+  const [onlineUsers, setOnlineUsers] = useState([]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) return;
 
     let userId = null;
-
     try {
       const decoded = jwtDecode(token);
       userId = decoded.id;
@@ -26,29 +26,31 @@ export const SocketProvider = ({ children }) => {
     const newSocket = io("http://localhost:5001", {
       transports: ["websocket"],
     });
+
+    // Notify backend user connected
+    if (userId) newSocket.emit("user_connected", userId);
+
     setSocket(newSocket);
 
     newSocket.on("connect", async () => {
       console.log("⚡ Socket connected:", newSocket.id);
 
-      // ✅ Fetch full user from backend
       try {
         const res = await fetch("http://localhost:5001/api/auth/me", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         });
 
         if (!res.ok) throw new Error("Failed to fetch user");
 
-        const user = await res.json();
-        console.log("🧑‍💼 Current user:", user.user.role);
+        const data = await res.json();
+        const user = data.user;
+        console.log("🧑‍💼 Current user:", user.role);
 
-        if (user.user.role === "admin") {
-          newSocket.emit("registerAdmin", { id: user.user._id });
+        if (user.role === "admin") {
+          newSocket.emit("registerAdmin", { id: user._id });
           console.log("🧑‍💼 Registered as ADMIN");
         } else {
-          newSocket.emit("registerUser", { id: user.id });
+          newSocket.emit("registerUser", { id: user._id });
           console.log("🙋 Registered as USER");
         }
       } catch (err) {
@@ -56,13 +58,23 @@ export const SocketProvider = ({ children }) => {
       }
     });
 
+    // ✅ Listen for online users list from backend
+    newSocket.on("onlineUsers", (users) => {
+      console.log("👥 Online users:", users);
+      setOnlineUsers(users);
+    });
+
+    // Cleanup
     return () => {
       newSocket.disconnect();
     };
   }, []);
 
+  // ✅ Correct context value (must be an object)
   return (
-    <SocketContext.Provider value={socket}>{children}</SocketContext.Provider>
+    <SocketContext.Provider value={{ socket, onlineUsers }}>
+      {children}
+    </SocketContext.Provider>
   );
 };
 

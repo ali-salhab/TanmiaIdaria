@@ -1,11 +1,14 @@
 import { Outlet, Link, useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { io } from "socket.io-client";
 import { useSocket } from "../context/SocketContext";
 import toast from "react-hot-toast";
+import ChatSidebar from "../components/ChatSidebar";
 export default function Dashboard() {
   const navigate = useNavigate();
-  const socket = useSocket();
+  const [showChat, setShowChat] = useState(false);
+
+  const { socket } = useSocket();
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) navigate("/login");
@@ -69,7 +72,15 @@ export default function Dashboard() {
             className="block py-2.5 px-4 rounded-lg bg-white/10 hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105"
           >
             🔔 الإشعارات والأرشيف
-          </Link>{" "}
+          </Link>
+          <button
+            onClick={() => setShowChat(!showChat)}
+            className="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-xl z-50"
+          >
+            💬
+          </button>
+
+          {showChat && <ChatSidebar />}
           <div className="p-4 border-t border-white/20">
             <button
               onClick={handleLogout}

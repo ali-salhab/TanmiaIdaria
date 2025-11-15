@@ -65,6 +65,9 @@ app.use(
 );
 // error handler
 app.use((err, req, res, next) => {
+  console.log("====================================");
+  console.log("log handler in server called");
+  console.log("====================================");
   console.error(err.stack);
   res
     .status(err.status || 500)
@@ -93,6 +96,9 @@ io.on("connection", (socket) => {
     );
   });
   socket.on("notifyAdmin", (data) => {
+    console.log("====================================");
+    console.log(onlineUsers);
+    console.log("====================================");
     // Send it to the admin if connected
     if (adminSocket) {
       adminSocket.emit("adminNotification", data);

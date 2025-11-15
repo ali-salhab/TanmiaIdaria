@@ -31,20 +31,17 @@ export default function Login() {
   };
 
   return (
-    <div className="relative flex items-center justify-center min-h-screen overflow-hidden font-custom bg-gradient-to-br from-blue-900 via-indigo-900 to-gray-900">
+    <div className="relative flex items-center justify-center min-h-screen overflow-hidden  bg-gradient-to-br from-blue-900 via-indigo-900 to-gray-900">
       {/* floating glass blur backgroundoverlay */}
       <div
         dir="rtl"
-        className="fixed flex-col p-4 r items-start justify-start backdrop-blur-3xl   right-0 font-extrabold text-yellow-50 z-0 top-0 w-max "
+        className="fixed flex-col p-4 r items-start justify-start    right-0 font-extrabold text-yellow-50 z-0 top-0 w-max "
       >
         <p>الجمهورية العربية السورية</p>
         <p>الامانة العامة لمحافطة طرطوس</p>
         <p>مديرية التنمية الادارية</p>
       </div>
-      <div
-        // dir="rtl"
-        className="fixed flex-col p-4  items-start   left-0   z-0 bottom-0 w-max "
-      >
+      <div className="fixed flex-col p-4  items-start   left-0   z-0 bottom-0 w-max ">
         <p>&copy; copy right </p>
         {/* <p>alisalhab@gmail.com</p> */}
       </div>

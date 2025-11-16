@@ -13,6 +13,7 @@ import authRoutes from "./routes/auth.js";
 import path from "path";
 import incidentRoutes from "./routes/incidents.js";
 import users from "./routes/users.js";
+import homepageRoutes from "./routes/homepage.js";
 import { fileURLToPath } from "url";
 import http from "http";
 import { Server } from "socket.io";
@@ -48,6 +49,7 @@ app.use("/api/employees", employeeRoutes);
 app.use("/api/excel-cv/:id", generateEmployeeCV);
 app.use("/api/incidents", incidentRoutes);
 app.use("/api/users", users);
+app.use("/api/homepage", homepageRoutes);
 app.use("/api/operations", operationRoutes);
 app.get("/api/test", (req, res) => {
   res.send("connected successfully");

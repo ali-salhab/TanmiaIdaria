@@ -36,7 +36,7 @@ export default function Sidebar({ onLogout }) {
   ];
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-64 bg-gradient-to-b from-teal-600 via-teal-700 to-teal-800 text-white flex flex-col shadow-2xl border-l border-teal-400/20 overflow-hidden z-40 animate-slideInLeft">
+    <aside className="fixed left-0 top-0 h-screen w-64 bg-gradient-to-b from-teal-600 via-teal-700 to-teal-800 text-white flex flex-col shadow-2xl border-l border-teal-400/20 overflow-hidden z-40 animate-slideInLeft md:block hidden">
       <div className="p-6 border-b border-teal-400/30 text-center backdrop-blur-sm bg-teal-600/50">
         <h1 className="text-2xl font-bold drop-shadow-lg text-white">التنمية الإدارية</h1>
         <p className="text-sm text-teal-100 mt-1 font-medium">لوحة التحكم</p>

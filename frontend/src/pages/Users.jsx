@@ -21,6 +21,8 @@ export default function Users() {
   const [editUserId, setEditUserId] = useState(null);
   const [editedUser, setEditedUser] = useState({});
   const [showPasswords, setShowPasswords] = useState({});
+  const [editingPermissions, setEditingPermissions] = useState(null);
+  const [tempPermissions, setTempPermissions] = useState({});
 
   const token = localStorage.getItem("token");
 
@@ -103,6 +105,35 @@ export default function Users() {
 
   const togglePassword = (id) => {
     setShowPasswords((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const startEditPermissions = (user) => {
+    setEditingPermissions(user._id);
+    setTempPermissions({ ...user.permissions });
+  };
+
+  const cancelEditPermissions = () => {
+    setEditingPermissions(null);
+    setTempPermissions({});
+  };
+
+  const savePermissions = async (id) => {
+    try {
+      await API.put(`/users/${id}/permissions`, { permissions: tempPermissions });
+      toast.success("✅ تم تحديث الصلاحيات بنجاح!");
+      setEditingPermissions(null);
+      setTempPermissions({});
+      fetchUsers();
+    } catch (error) {
+      toast.error("❌ فشل في تحديث الصلاحيات");
+    }
+  };
+
+  const togglePermission = (key) => {
+    setTempPermissions((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
   };
 
   return (
@@ -273,25 +304,41 @@ export default function Users() {
 
                   {/* الصلاحيات */}
                   <td className="py-3 px-4">
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
-                      {Object.keys(u.permissions || {}).map((key) => (
-                        <label
-                          key={key}
-                          className="flex items-center gap-2 text-sm text-gray-600"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={u.permissions[key]}
-                            onChange={
-                              () => {}
-                              // toast("🚧 تعديل الصلاحيات لم يُفعل بعد")
-                            }
-                            className="accent-blue-600 h-4 w-4"
-                          />
-                          {key.replace(/([A-Z])/g, " $1")}
-                        </label>
-                      ))}
-                    </div>
+                    {editingPermissions === u._id ? (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+                        {Object.keys(tempPermissions || {}).map((key) => (
+                          <label
+                            key={key}
+                            className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={tempPermissions[key]}
+                              onChange={() => togglePermission(key)}
+                              className="accent-blue-600 h-4 w-4"
+                            />
+                            {key.replace(/([A-Z])/g, " $1")}
+                          </label>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+                        {Object.keys(u.permissions || {}).map((key) => (
+                          <label
+                            key={key}
+                            className="flex items-center gap-2 text-sm text-gray-600"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={u.permissions[key]}
+                              disabled
+                              className="accent-blue-600 h-4 w-4"
+                            />
+                            {key.replace(/([A-Z])/g, " $1")}
+                          </label>
+                        ))}
+                      </div>
+                    )}
                   </td>
 
                   {/* تاريخ الإنشاء */}
@@ -301,12 +348,37 @@ export default function Users() {
 
                   {/* الإجراءات */}
                   <td className="py-3 px-4 text-center">
-                    <button
-                      onClick={() => confirmDeleteUser(u._id, u.username)}
-                      className="text-red-600 hover:text-red-800 font-medium border border-red-200 px-3 py-1 rounded-lg transition"
-                    >
-                      حذف ❌
-                    </button>
+                    {editingPermissions === u._id ? (
+                      <div className="flex gap-2 justify-center flex-wrap">
+                        <button
+                          onClick={() => savePermissions(u._id)}
+                          className="text-green-600 hover:text-green-800 font-medium border border-green-200 px-2 py-1 rounded-lg transition text-sm"
+                        >
+                          حفظ ✓
+                        </button>
+                        <button
+                          onClick={cancelEditPermissions}
+                          className="text-gray-600 hover:text-gray-800 font-medium border border-gray-200 px-2 py-1 rounded-lg transition text-sm"
+                        >
+                          إلغاء ✕
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex gap-2 justify-center flex-wrap">
+                        <button
+                          onClick={() => startEditPermissions(u)}
+                          className="text-blue-600 hover:text-blue-800 font-medium border border-blue-200 px-2 py-1 rounded-lg transition text-sm"
+                        >
+                          تعديل الصلاحيات
+                        </button>
+                        <button
+                          onClick={() => confirmDeleteUser(u._id, u.username)}
+                          className="text-red-600 hover:text-red-800 font-medium border border-red-200 px-2 py-1 rounded-lg transition text-sm"
+                        >
+                          حذف ❌
+                        </button>
+                      </div>
+                    )}
                   </td>
                 </tr>
               );

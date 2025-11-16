@@ -16,6 +16,7 @@ import { Toaster } from "react-hot-toast";
 import Notifications from "./pages/Notifications";
 import { SocketProvider } from "./context/SocketContext";
 import Dywan from "./pages/Dywan";
+import HomepageBuilder from "./pages/HomepageBuilder";
 function ProtectedRoute({ children, allowedRoles }) {
   const token = localStorage.getItem("token");
   const role = localStorage.getItem("role");
@@ -75,6 +76,7 @@ function App() {
             <Route path="users" element={<Users />} />
             <Route path="employees" element={<EmployeeList />} />
             <Route path="upload" element={<UploadExcel />} />
+            <Route path="homepage-builder" element={<HomepageBuilder />} />
           </Route>
 
           <Route

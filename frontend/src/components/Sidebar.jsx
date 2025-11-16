@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { ChevronDown, Bell, Users, Settings, LogOut, FileText, Archive } from "lucide-react";
+import { ChevronDown, Bell, Users, Settings, LogOut, FileText, Archive, X } from "lucide-react";
 import { useSocket } from "../context/SocketContext";
 
-export default function Sidebar({ onLogout }) {
+export default function Sidebar({ onLogout, isOpen, onClose }) {
   const [expandedMenu, setExpandedMenu] = useState(null);
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [notifications, setNotifications] = useState([]);
@@ -31,6 +31,7 @@ export default function Sidebar({ onLogout }) {
     { label: "📋 الموظفين", to: "/dashboard/employees" },
     { label: "📤 قاعدة البيانات", to: "/dashboard/upload" },
     { label: "⚙️ المستخدمين", to: "/dashboard/users" },
+    { label: "🎨 تخصيص الصفحة الرئيسية", to: "/dashboard/homepage-builder" },
     { label: "📃 الديوان", to: "/dashboard/dywan" },
     { label: "🖨️ الأرشيف", to: "/dashboard" },
   ];

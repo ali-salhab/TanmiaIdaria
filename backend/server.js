@@ -14,6 +14,8 @@ import path from "path";
 import incidentRoutes from "./routes/incidents.js";
 import users from "./routes/users.js";
 import homepageRoutes from "./routes/homepage.js";
+import notificationRoutes from "./routes/notifications.js";
+import appSettingsRoutes from "./routes/appSettings.js";
 import { fileURLToPath } from "url";
 import http from "http";
 import { Server } from "socket.io";
@@ -23,6 +25,9 @@ const __dirname = path.dirname(__filename);
 dotenv.config();
 
 const app = express();
+
+let onlineUsers = new Map();
+
 app.use(
   helmet({
     crossOriginResourcePolicy: { policy: "cross-origin" },
@@ -37,6 +42,11 @@ app.use(
   })
 );
 
+app.use((req, res, next) => {
+  req.onlineUsers = onlineUsers;
+  next();
+});
+
 // الاجازات
 app.use("/api", vacationRoutes);
 app.use(express.json({ limit: "10mb" }));
@@ -50,6 +60,8 @@ app.use("/api/excel-cv/:id", generateEmployeeCV);
 app.use("/api/incidents", incidentRoutes);
 app.use("/api/users", users);
 app.use("/api/homepage", homepageRoutes);
+app.use("/api/notifications", notificationRoutes);
+app.use("/api/app-settings", appSettingsRoutes);
 app.use("/api/operations", operationRoutes);
 app.get("/api/test", (req, res) => {
   res.send("connected successfully");
@@ -87,7 +99,8 @@ export const io = new Server(server, {
 });
 let adminSocket = null;
 
-let onlineUsers = new Map();
+export { onlineUsers };
+
 io.on("connection", (socket) => {
   console.log("🔌 مستخدم متصل:", socket.id);
   socket.on("registerAdmin", () => {
@@ -97,11 +110,14 @@ io.on("connection", (socket) => {
       socket.id
     );
   });
+  socket.on("registerUser", (data) => {
+    console.log("🙋 User registered:", data.id);
+  });
   socket.on("notifyAdmin", (data) => {
     console.log("====================================");
     console.log(onlineUsers);
     console.log("====================================");
-    // Send it to the admin if connected
+    io.emit("notification", data);
     if (adminSocket) {
       adminSocket.emit("adminNotification", data);
       console.log("📤 Notification sent to admin", data);
@@ -109,14 +125,29 @@ io.on("connection", (socket) => {
       console.log("⚠️ No admin connected");
     }
   });
-  socket.on("private_message", ({ to, message, from }) => {
+  socket.on("private_message", ({ to, message, from, fromUsername }) => {
     const targetSocket = onlineUsers.get(to);
     if (targetSocket) {
-      io.to(targetSocket).emit("private_message", { message, from });
+      io.to(targetSocket).emit("private_message", {
+        message,
+        from,
+        fromUsername: fromUsername || "Unknown",
+      });
+    }
+  });
+
+  socket.on("admin_message", ({ message, from, fromUsername }) => {
+    if (adminSocket) {
+      adminSocket.emit("private_message", {
+        message,
+        from,
+        fromUsername: fromUsername || "User",
+      });
     }
   });
   socket.on("user_connected", (userId) => {
     onlineUsers.set(userId, socket.id);
+    console.log("✅ User connected:", userId, "Socket ID:", socket.id);
     io.emit("online_users", Array.from(onlineUsers.keys()));
   });
   socket.on("disconnect", () => {
@@ -140,10 +171,36 @@ mongoose
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
-  .then(() => {
+  .then(async () => {
     console.log("MongoDB connected");
 
-    // ✅ استخدم server وليس app
+    const User = (await import("./models/User.js")).default;
+    const bcrypt = (await import("bcryptjs")).default;
+
+    const adminExists = await User.findOne({ username: process.env.ADMIN_USERNAME });
+    if (!adminExists) {
+      const hashedPassword = await bcrypt.hash(process.env.ADMIN_PASSWORD, 10);
+      const adminUser = new User({
+        username: process.env.ADMIN_USERNAME,
+        password: hashedPassword,
+        role: "admin",
+        permissions: {
+          viewEmployees: true,
+          viewIncidents: true,
+          viewUsers: true,
+          viewDocuments: true,
+          viewSalary: true,
+          viewReports: true,
+          editEmployee: true,
+          manageLeaves: true,
+          manageReawards: true,
+          managePunischments: true,
+        },
+      });
+      await adminUser.save();
+      console.log("✅ Default admin user created");
+    }
+
     server.listen(PORT, "0.0.0.0", () => {
       console.log(`🚀 Server running with Socket.IO on http://0.0.0.0:${PORT}`);
     });

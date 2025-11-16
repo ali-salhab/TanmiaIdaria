@@ -17,6 +17,7 @@ import Notifications from "./pages/Notifications";
 import { SocketProvider } from "./context/SocketContext";
 import Dywan from "./pages/Dywan";
 import HomepageBuilder from "./pages/HomepageBuilder";
+import Onboarding from "./pages/Onboarding";
 function ProtectedRoute({ children, allowedRoles }) {
   const token = localStorage.getItem("token");
   const role = localStorage.getItem("role");
@@ -58,6 +59,14 @@ function App() {
           {/* Auth routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route
+            path="/onboarding"
+            element={
+              <ProtectedRoute>
+                <Onboarding />
+              </ProtectedRoute>
+            }
+          />
 
           {/* Admin dashboard */}
           <Route

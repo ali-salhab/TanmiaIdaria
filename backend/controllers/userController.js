@@ -84,8 +84,45 @@ export const updateUserPermissions = async (req, res) => {
     const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    user.permissions = { ...user.permissions.toObject(), ...permissions };
+    const oldPermissions = user.permissions.toObject();
+    user.permissions = { ...oldPermissions, ...permissions };
     await user.save();
+
+    const changedPermissions = [];
+    Object.keys(permissions).forEach((key) => {
+      if (oldPermissions[key] !== permissions[key]) {
+        changedPermissions.push({
+          name: key,
+          oldValue: oldPermissions[key],
+          newValue: permissions[key],
+        });
+      }
+    });
+
+    const permissionUpdateEvent = {
+      userId: req.params.id,
+      username: user.username,
+      changes: changedPermissions,
+      timestamp: new Date(),
+    };
+
+    io.emit("permission_update", permissionUpdateEvent);
+
+    const notificationEvent = {
+      type: "permission_change",
+      message: `تم تحديث صلاحيات المستخدم ${user.username}`,
+      userId: req.params.id,
+      changes: changedPermissions,
+      time: new Date(),
+    };
+
+    io.emit("notification", notificationEvent);
+
+    const userSocketId = req.onlineUsers?.get(req.params.id);
+    if (userSocketId) {
+      io.to(userSocketId).emit("personal_notification", notificationEvent);
+    }
+
     res.json({ message: "Permissions updated", user });
   } catch (err) {
     res.status(500).json({ message: err.message });

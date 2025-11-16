@@ -123,12 +123,12 @@ export default function EmployeeList() {
   return (
     <div className="p-6 font-custom" dir="rtl">
       <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <h2 className="text-3xl  text-teal-700 font-extrabold">
+        <h2 className="text-3xl text-gray-800 font-extrabold">
           قائمة الموظفين
         </h2>
         <button
           onClick={() => navigate("/employees/add")}
-          className="bg-teal-500 text-white px-4 py-2 ml-5 font-extrabold rounded hover:bg-teal-700"
+          className="bg-gray-700 text-white px-4 py-2 ml-5 font-extrabold rounded hover:bg-gray-800 transition"
         >
           + إضافة موظف جديد
         </button>
@@ -145,13 +145,13 @@ export default function EmployeeList() {
         <div className="space-x-2 ml-3">
           <button
             onClick={exportExcel}
-            className="bg-teal-500 ml-5  text-white px-4 py-2 rounded hover:bg-teal-700"
+            className="bg-gray-700 ml-5 text-white px-4 py-2 rounded hover:bg-gray-800 transition"
           >
             تصدير اكسل
           </button>
           <button
             onClick={exportPDF}
-            className="bg-teal-500 text-white px-4 py-2 rounded hover:bg-teal-700"
+            className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800 transition"
           >
             تصدير PDF
           </button>
@@ -276,7 +276,7 @@ export default function EmployeeList() {
                         console.log(e);
                         console.log("====================================");
                       }}
-                      className="text-blue-600 hover:bg-gray-400 hover:p-2 hover:rounded-md hover:m-2 hover:text-primary"
+                      className="text-gray-700 hover:bg-gray-300 hover:p-2 hover:rounded-md hover:m-2 hover:text-gray-900 transition"
                     >
                       {emp.fullName}
                     </Link>

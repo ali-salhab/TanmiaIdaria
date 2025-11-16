@@ -7,22 +7,25 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [showModal, setShowModal] = useState(false);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     try {
       const res = await API.post("/auth/login", { username, password });
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("role", res.data.user.role);
       console.log("response from loging function", res.data);
 
-      if (res.data.user.role === "admin") navigate("/dashboard");
-      else navigate("/home");
+      navigate("/onboarding");
     } catch (err) {
       const errMsg = err.response?.data?.message || "Login failed";
       setError(errMsg);
       setShowModal(true);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -76,9 +79,21 @@ export default function Login() {
 
         <button
           type="submit"
-          className="w-full py-3 rounded-lg bg-blue-500/70 hover:bg-blue-500 transition-all duration-300 font-semibold"
+          disabled={loading}
+          className={`w-full py-3 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2 ${
+            loading
+              ? "bg-blue-500/50 cursor-not-allowed opacity-75"
+              : "bg-blue-500/70 hover:bg-blue-500 cursor-pointer"
+          }`}
         >
-          تسجيل الدخول
+          {loading ? (
+            <>
+              <span className="animate-spin">⏳</span>
+              جاري تسجيل الدخول ...
+            </>
+          ) : (
+            "تسجيل الدخول"
+          )}
         </button>
 
         <div className="text-gray-200 mt-6 text-center">
@@ -98,16 +113,16 @@ export default function Login() {
           onClick={handleOutsideClick}
           className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 animate-fadeIn"
         >
-          <div className="bg-white/20 backdrop-blur-xl border border-white/30 rounded-2xl shadow-2xl p-6 w-80 text-center transform transition-all duration-300 animate-scaleUp">
-            <h3 className="text-xl font-semibold text-red-400 mb-3 drop-shadow">
-              ⚠️{error}
+          <div className="bg-gradient-to-br from-red-500/20 to-red-600/20 backdrop-blur-xl border border-red-400/50 rounded-2xl shadow-2xl shadow-red-500/20 p-6 w-80 text-center transform transition-all duration-300 animate-scaleUp">
+            <h3 className="text-xl font-semibold text-red-200 mb-3 drop-shadow">
+              ⚠️ خطأ
             </h3>
-            <p className="text-white mb-6">{error}</p>
+            <p className="text-red-100 mb-6">{error}</p>
             <button
               onClick={() => setShowModal(false)}
-              className="px-6 py-2 bg-white/30 text-white font-semibold rounded-lg hover:bg-white/50 transition"
+              className="px-6 py-2 bg-red-500/40 text-white font-semibold rounded-lg hover:bg-red-500/60 transition border border-red-400/50"
             >
-              إغلاف
+              إغلاق
             </button>
           </div>
         </div>

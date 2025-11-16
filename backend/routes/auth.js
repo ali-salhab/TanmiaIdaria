@@ -2,7 +2,6 @@ import express from "express";
 import { body, validationResult } from "express-validator";
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
-import bcrypt from "bcryptjs";
 import { verifyToken } from "../middleware/authMiddleware.js";
 const router = express.Router();
 
@@ -25,10 +24,18 @@ router.post(
     try {
       let user = await User.findOne({ username });
       if (user) return res.status(400).json({ message: "User exists" });
-      password = await bcrypt.hash(password, 10);
       user = new User({ username, password, role });
       await user.save();
-      return res.json({ message: "User created" });
+      
+      const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+        expiresIn: process.env.TOKEN_EXPIRES_IN || "7d",
+      });
+      
+      return res.json({
+        token,
+        user: { id: user._id, username: user.username, role: user.role },
+        message: "User created"
+      });
     } catch (err) {
       console.log("====================================");
       console.log(err.message);
@@ -37,15 +44,33 @@ router.post(
     }
   }
 );
-router.get("/me", verifyToken, (req, res) => {
+router.get("/me", verifyToken, async (req, res) => {
   try {
-    // console.log(req.user);
-
-    return res.status(200).json({ user: req.user });
+    const user = await User.findById(req.user._id).select("-password");
+    console.log("GET /me - User:", user);
+    console.log("GET /me - Permissions:", user?.permissions);
+    return res.status(200).json({ user });
   } catch (error) {
     return res
       .status(500)
-      .json({ message: "Server error", error: err.message });
+      .json({ message: "Server error", error: error.message });
+  }
+});
+
+router.post("/users-info", async (req, res) => {
+  try {
+    const { userIds } = req.body;
+    if (!userIds || !Array.isArray(userIds)) {
+      return res.status(400).json({ message: "userIds array required" });
+    }
+
+    const users = await User.find({ _id: { $in: userIds } }).select(
+      "_id username image role"
+    );
+    return res.json(users);
+  } catch (err) {
+    console.log("Error fetching users info:", err.message);
+    return res.status(500).json({ message: "Server error" });
   }
 });
 

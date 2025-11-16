@@ -1,39 +1,40 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { toast } from "react-hot-toast";
-import { socket } from "../socket"; // إذا أنشأت ملف socket.js
+import { useSocket } from "../context/SocketContext";
 import API from "../api/api";
+
 export default function Notifications() {
   const [logs, setLogs] = useState([]);
   const [filter, setFilter] = useState({
     username: "",
     section: "",
   });
+  const { socket } = useSocket();
 
-  const token = localStorage.getItem("token");
-
-  //  الإشعارات من السيرفر
   const fetchLogs = async () => {
     try {
       const res = await API.get("/operations");
-
-      setLogs(res.data.reverse()); // الأحدث أولاً
-    } catch (err) {
+      setLogs(res.data.reverse());
+    } catch {
       toast.error("❌ خطأ في جلب الإشعارات");
     }
   };
 
   useEffect(() => {
     fetchLogs();
+  }, []);
 
-    // استقبال الإشعارات الجديدة بشكل فوري
-    socket.on("new_operation", (log) => {
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleNewOperation = (log) => {
       setLogs((prev) => [log, ...prev]);
       toast.success(`📢 ${log.details}`);
-    });
+    };
 
-    return () => socket.off("new_operation");
-  }, []);
+    socket.on("new_operation", handleNewOperation);
+    return () => socket.off("new_operation", handleNewOperation);
+  }, [socket]);
 
   // فلترة الإشعارات
   const filteredLogs = logs.filter(

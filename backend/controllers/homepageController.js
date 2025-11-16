@@ -65,17 +65,25 @@ export const updateHomepageSettings = async (req, res) => {
     const { userId } = req.params;
     const { widgets, layout, columns } = req.body;
     
-    const settings = await HomepageSettings.findOneAndUpdate(
-      { userId },
-      { widgets, layout, columns },
-      { new: true }
-    );
+    let settings = await HomepageSettings.findOne({ userId });
     
     if (!settings) {
-      return res.status(404).json({ message: "Settings not found" });
+      settings = new HomepageSettings({
+        userId,
+        widgets,
+        layout,
+        columns,
+      });
+      const savedSettings = await settings.save();
+      return res.json({ message: "Settings created", settings: savedSettings });
     }
     
-    res.json({ message: "Settings updated", settings });
+    settings.widgets = widgets || settings.widgets;
+    settings.layout = layout || settings.layout;
+    settings.columns = columns || settings.columns;
+    
+    const updatedSettings = await settings.save();
+    res.json({ message: "Settings updated", settings: updatedSettings });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

@@ -5,19 +5,48 @@ import { useParams } from "react-router-dom";
 import API from "../api/api";
 import { FaEdit } from "react-icons/fa";
 import toast from "react-hot-toast";
-import { FileArchive } from "lucide-react";
+import { FileArchive, Settings } from "lucide-react";
 export default function EmployeeIncidents() {
   const { id } = useParams(); // Employee ID
 
   const [incidents, setIncidents] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [cvModalOpen, setcvModalOpen] = useState(false);
-  const [selectedIncident, setSelectedIncident] = useState(null); // For add/edit
+  const [selectedIncident, setSelectedIncident] = useState(null);
   const [currentEmployee, setCurrentEmployee] = useState(null);
+  const [settingsModalOpen, setSettingsModalOpen] = useState(false);
+  const [dropdownSettings, setDropdownSettings] = useState({
+    category: ["أولى", "تانية", "تالتة", "رابعة", "خامسة"],
+    reason: ["زيادة أجر", "تجديد عقد", "تثبيت", "ترفيع"],
+    document_type: ["مرسوم", "قرار"],
+  });
   useEffect(() => {
     fetchIncidents();
     fetchCurrentEmployee();
+    fetchDropdownSettings();
   }, []);
+
+  const fetchDropdownSettings = async () => {
+    try {
+      const res = await API.get("/app-settings/dropdowns");
+      if (res.data) {
+        setDropdownSettings(res.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch dropdown settings:", error);
+    }
+  };
+
+  const saveDropdownSettings = async () => {
+    try {
+      await API.post("/app-settings/dropdowns", dropdownSettings);
+      toast.success("تم حفظ إعدادات القائمات بنجاح");
+      setSettingsModalOpen(false);
+    } catch (error) {
+      console.error("Failed to save dropdown settings:", error);
+      toast.error("فشل حفظ الإعدادات");
+    }
+  };
   const fetchCurrentEmployee = async () => {
     try {
       const res = await API.get(`/employees/${id}`);
@@ -126,32 +155,40 @@ export default function EmployeeIncidents() {
 
   return (
     <div
-      className="max-w-6xl mx-auto p-6 bg-gray-100 rounded-lg mt-6"
+      className="max-w-6xl mx-auto p-6 bg-gray-50 rounded-lg mt-6"
       dir="rtl"
     >
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center mb-6 flex-wrap gap-3">
         <h2 className="text-2xl font-bold text-gray-800">الوقوعات للموظف</h2>
-        {currentEmployee ? currentEmployee.fullName : "جارٍ التحميل..."}
-        <button
-          onClick={openAddModal}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-        >
-          إضافة وقوع جديد
-        </button>
-        <div className="flex">
+        <span className="text-gray-600 font-medium">
+          {currentEmployee ? currentEmployee.fullName : "جارٍ التحميل..."}
+        </span>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setSettingsModalOpen(true)}
+            className="bg-gray-600 hover:bg-gray-700 text-white p-2 rounded-lg flex items-center gap-2 transition"
+          >
+            <Settings size={20} />
+            إعدادات
+          </button>
+          <button
+            onClick={openAddModal}
+            className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800 transition"
+          >
+            إضافة وقوع جديد
+          </button>
           <button
             onClick={openCvModal}
-            className="bg-emerald-800 flex items-center gap-2 text-white px-4 py-3 rounded hover:bg-emerald-700 hover:animate-slowBounce"
+            className="bg-gray-800 flex items-center gap-2 text-white px-4 py-3 rounded hover:bg-gray-900 hover:animate-slowBounce transition"
           >
             البطاقة الداتية للموظف <FileArchive />
           </button>
         </div>
       </div>
 
-      {/* جدول الوقوعات */}
       <div className="bg-white rounded-lg shadow overflow-x-auto">
         <table className="min-w-full border-collapse">
-          <thead className="bg-blue-50 border-b">
+          <thead className="bg-gray-200 border-b border-gray-300">
             <tr>
               <th className="py-2 px-4 text-right">مركز العمل</th>
               <th className="py-2 px-4 text-right">المسمى الوظيفي</th>
@@ -166,19 +203,19 @@ export default function EmployeeIncidents() {
           </thead>
           <tbody>
             {incidents.map((inc) => (
-              <tr key={inc._id} className="border-b hover:bg-gray-50 text-sm">
-                <td className="py-2 px-4">{inc.work_center}</td>
-                <td className="py-2 px-4">{inc.job_title}</td>
-                <td className="py-2 px-4">{inc.job_type}</td>
-                <td className="py-2 px-4">{inc.salary}</td>
-                <td className="py-2 px-4">{inc.category}</td>
-                <td className="py-2 px-4">{inc.start_date?.split("T")[0]}</td>
-                <td className="py-2 px-4">{inc.change_date?.split("T")[0]}</td>
-                <td className="py-2 px-4">{inc.reason}</td>
+              <tr key={inc._id} className="border-b border-gray-200 hover:bg-gray-100 text-sm transition">
+                <td className="py-2 px-4 text-gray-700">{inc.work_center}</td>
+                <td className="py-2 px-4 text-gray-700">{inc.job_title}</td>
+                <td className="py-2 px-4 text-gray-700">{inc.job_type}</td>
+                <td className="py-2 px-4 text-gray-700">{inc.salary}</td>
+                <td className="py-2 px-4 text-gray-700">{inc.category}</td>
+                <td className="py-2 px-4 text-gray-700">{inc.start_date?.split("T")[0]}</td>
+                <td className="py-2 px-4 text-gray-700">{inc.change_date?.split("T")[0]}</td>
+                <td className="py-2 px-4 text-gray-700">{inc.reason}</td>
                 <td className="py-2 px-4 text-center">
                   <button
                     onClick={() => openEditModal(inc)}
-                    className="text-blue-600 hover:text-blue-800"
+                    className="text-gray-600 hover:text-gray-800 transition"
                   >
                     <FaEdit />
                   </button>
@@ -196,22 +233,24 @@ export default function EmployeeIncidents() {
         </table>
       </div>
       {cvModalOpen && (
-        <div className="fixed inset-0 animate-pulse duration-200  flex items-center justify-center bg-opacity-5 bg-black  z-5">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full transform transition-all duration-300 scale-95 animate-fadeInUp overflow-y-auto max-h-[90vh]"></div>
-          <div className="flex flex-col justify-between mt-4">
-            <button
-              type="button"
-              onClick={() => setcvModalOpen(false)}
-              className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400"
-            >
-              إلغاء
-            </button>
-            <button
-              type="submit"
-              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-            >
-              حفظ
-            </button>
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full transform transition-all duration-300 animate-fadeInUp overflow-y-auto max-h-[90vh]">
+            <h3 className="text-xl font-bold mb-4 text-center text-gray-800">البطاقة الداتية للموظف</h3>
+            <div className="flex flex-col justify-between mt-4 gap-2">
+              <button
+                type="button"
+                onClick={() => setcvModalOpen(false)}
+                className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500 transition"
+              >
+                إلغاء
+              </button>
+              <button
+                type="submit"
+                className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800 transition"
+              >
+                تحميل
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -236,28 +275,25 @@ export default function EmployeeIncidents() {
                 { label: "المسمى الوظيفي", name: "job_title", type: "text" },
                 { label: "نوع الوظيفة", name: "job_type", type: "text" },
                 { label: "الأجر", name: "salary", type: "number" },
-                // ↓↓↓ الفئة dropdown ↓↓↓
                 {
                   label: "الفئة",
                   name: "category",
                   type: "select",
-                  options: ["أولى", "تانية", "تالتة", "رابعة", "خامسة"],
+                  options: dropdownSettings.category,
                 },
                 { label: "تاريخ المباشرة", name: "start_date", type: "date" },
                 { label: "تاريخ التبدل", name: "change_date", type: "date" },
-                // ↓↓↓ السبب dropdown ↓↓↓
                 {
                   label: "السبب",
                   name: "reason",
                   type: "select",
-                  options: ["زيادة أجر", "تجديد عقد", "تثبيت", "ترفيع"],
+                  options: dropdownSettings.reason,
                 },
-                // ↓↓↓ نوع المستند dropdown ↓↓↓
                 {
                   label: "نوع المستند",
                   name: "document_type",
                   type: "select",
-                  options: ["مرسوم", "قرار"],
+                  options: dropdownSettings.document_type,
                 },
                 { label: "رقم المستند", name: "document_number", type: "text" },
                 { label: "تاريخ المستند", name: "document_date", type: "date" },
@@ -276,7 +312,7 @@ export default function EmployeeIncidents() {
                       name={field.name}
                       value={selectedIncident[field.name] || ""}
                       onChange={handleChange}
-                      className="border p-2 rounded"
+                      className="border border-gray-300 p-2 rounded text-gray-700 focus:outline-none focus:border-gray-500"
                     >
                       <option value="">اختر {field.label}</option>
                       {field.options.map((option) => (
@@ -291,7 +327,7 @@ export default function EmployeeIncidents() {
                       type={field.type}
                       value={selectedIncident[field.name] || ""}
                       onChange={handleChange}
-                      className="border p-2 rounded"
+                      className="border border-gray-300 p-2 rounded text-gray-700 focus:outline-none focus:border-gray-500"
                     />
                   )}
                 </div>
@@ -301,15 +337,95 @@ export default function EmployeeIncidents() {
                 <button
                   type="button"
                   onClick={() => setModalOpen(false)}
-                  className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400"
+                  className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500 transition"
                 >
                   إلغاء
                 </button>
                 <button
                   type="submit"
-                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                  className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800 transition"
                 >
                   حفظ
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {settingsModalOpen && (
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setSettingsModalOpen(false);
+            }
+          }}
+          className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
+        >
+          <div className="bg-white rounded-lg p-6 max-w-2xl w-full transform transition-all duration-300 scale-95 animate-fadeInUp overflow-y-auto max-h-[90vh]">
+            <h3 className="text-xl font-bold mb-4 text-center text-gray-800">إعدادات القائمات المنسدلة</h3>
+            <form className="space-y-4">
+              {[
+                { label: "الفئة", key: "category" },
+                { label: "السبب", key: "reason" },
+                { label: "نوع المستند", key: "document_type" },
+              ].map((field) => (
+                <div key={field.key} className="flex flex-col">
+                  <label className="mb-2 font-semibold text-gray-800">{field.label}</label>
+                  <div className="space-y-2">
+                    {(dropdownSettings[field.key] || []).map((item, idx) => (
+                      <div key={idx} className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          value={item}
+                          onChange={(e) => {
+                            const newSettings = { ...dropdownSettings };
+                            newSettings[field.key][idx] = e.target.value;
+                            setDropdownSettings(newSettings);
+                          }}
+                          className="flex-1 border border-gray-300 p-2 rounded text-gray-700 focus:outline-none focus:border-gray-500"
+                          placeholder={`القيمة ${idx + 1}`}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newSettings = { ...dropdownSettings };
+                            newSettings[field.key] = newSettings[field.key].filter((_, i) => i !== idx);
+                            setDropdownSettings(newSettings);
+                          }}
+                          className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded transition"
+                        >
+                          حذف
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newSettings = { ...dropdownSettings };
+                      newSettings[field.key] = [...(newSettings[field.key] || []), ""];
+                      setDropdownSettings(newSettings);
+                    }}
+                    className="mt-2 bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded transition w-full"
+                  >
+                    + إضافة قيمة جديدة
+                  </button>
+                </div>
+              ))}
+              <div className="flex justify-between mt-6">
+                <button
+                  type="button"
+                  onClick={() => setSettingsModalOpen(false)}
+                  className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500 transition"
+                >
+                  إلغاء
+                </button>
+                <button
+                  type="button"
+                  onClick={saveDropdownSettings}
+                  className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800 transition"
+                >
+                  حفظ الإعدادات
                 </button>
               </div>
             </form>

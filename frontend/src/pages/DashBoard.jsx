@@ -1,24 +1,24 @@
 import { Outlet, Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { io } from "socket.io-client";
 import { useSocket } from "../context/SocketContext";
 import toast from "react-hot-toast";
-import ChatSidebar from "../components/ChatSidebar";
+import AdminChat from "../components/AdminChat";
 import { Menu, X } from "lucide-react";
 import Navbar from "../components/Navbar";
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const [showChat, setShowChat] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const isMobileInit = window.innerWidth < 1024;
+  const [sidebarOpen, setSidebarOpen] = useState(!isMobileInit);
+  const [isMobile, setIsMobile] = useState(isMobileInit);
   const [userInfo, setUserInfo] = useState(null);
 
   const { socket } = useSocket();
 
   useEffect(() => {
     const handleResize = () => {
-      const mobile = window.innerWidth < 768;
+      const mobile = window.innerWidth < 1024;
       setIsMobile(mobile);
       if (!mobile) setSidebarOpen(true);
     };
@@ -87,112 +87,118 @@ export default function Dashboard() {
 
       {sidebarOpen && isMobile && (
         <div
-          className="fixed inset-0 bg-black/50 z-30 md:hidden"
+          className="fixed inset-0 bg-black/50 z-30"
           onClick={() => setSidebarOpen(false)}
         ></div>
       )}
 
       <aside
-        className={`fixed md:relative left-0 top-0 h-screen w-64 bg-white/15 border-r border-white/20 flex flex-col shadow-2xl animate-slideInLeft z-40 transition-transform duration-300 ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
-        } ${sidebarOpen ? "md:block" : "md:block"}`}
+        className={`fixed md:relative left-0 top-0 h-screen w-56 sm:w-64 md:bg-gray-800 bg-white/15 border-r md:border-gray-700 border-white/20 flex flex-col shadow-2xl animate-slideInLeft z-40 transition-transform duration-300 ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        } md:translate-x-0`}
       >
-        <div className="p-6 border-b border-white/20 text-center">
-          <h1 className="text-2xl font-bold text-white drop-shadow">
+        <div className="p-4 sm:p-6 md:border-gray-700 border-b border-white/20 bg-gradient-to-r md:from-gray-700 md:to-gray-800 text-center">
+          <h1 className="text-xl sm:text-2xl font-bold text-white drop-shadow">
             التنمية الإدارية
           </h1>
-          <p className="text-sm text-teal-200 mt-1">لوحة التحكم</p>
+          <p className="text-xs sm:text-sm md:text-gray-300 text-gray-200 mt-1">لوحة التحكم</p>
         </div>
 
-        <nav className="flex-1 p-4 space-y-2 overflow-y-auto" dir="rtl">
+        <nav className="flex-1 p-3 sm:p-4 space-y-2 overflow-y-auto" dir="rtl">
           <Link
             to="/dashboard/employees"
             onClick={closeSidebarOnMobile}
-            className="block py-2.5 px-4 rounded-lg bg-white/10 hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105"
+            className="block py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg md:bg-gray-700 md:hover:bg-gray-600 bg-white/10 hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105 text-sm sm:text-base"
           >
             📋 الموظفين
           </Link>
           <Link
             to="/dashboard/upload"
             onClick={closeSidebarOnMobile}
-            className="block py-2.5 px-4 rounded-lg bg-white/10 hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105"
+            className="block py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg md:bg-gray-700 md:hover:bg-gray-600 bg-white/10 hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105 text-sm sm:text-base"
           >
             📤 ادارة قاعدة البيانات
           </Link>
           <Link
             to="/dashboard/users"
             onClick={closeSidebarOnMobile}
-            className="block py-2.5 px-4 rounded-lg bg-white/10 hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105"
+            className="block py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg md:bg-gray-700 md:hover:bg-gray-600 bg-white/10 hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105 text-sm sm:text-base"
           >
             ⚙️ ادارة المستخدمين
           </Link>
           <Link
             to="/dashboard/dywan"
             onClick={closeSidebarOnMobile}
-            className="block py-2.5 px-4 rounded-lg bg-white/10 hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105"
+            className="block py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg md:bg-gray-700 md:hover:bg-gray-600 bg-white/10 hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105 text-sm sm:text-base"
           >
             الديوان 📃
           </Link>
           <Link
             to="/dashboard"
             onClick={closeSidebarOnMobile}
-            className="block py-2.5 px-4 rounded-lg bg-white/10 hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105"
+            className="block py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg md:bg-gray-700 md:hover:bg-gray-600 bg-white/10 hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105 text-sm sm:text-base"
           >
             الأرشيف 🖨️
           </Link>
           <Link
             to="/dashboard/notifications"
             onClick={closeSidebarOnMobile}
-            className="block py-2 px-4 text-x rounded-lg bg-white/10 hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105"
+            className="block py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg md:bg-gray-700 md:hover:bg-gray-600 bg-white/10 hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105 text-sm sm:text-base"
           >
             🔔الاشعارات
           </Link>
           <Link
             to="/dashboard/homepage-builder"
             onClick={closeSidebarOnMobile}
-            className="block py-2.5 px-4 rounded-lg bg-white/10 hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105"
+            className="block py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg md:bg-gray-700 md:hover:bg-gray-600 bg-white/10 hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105 text-sm sm:text-base"
           >
             🎨 تخصيص الصفحة الرئيسية
           </Link>
         </nav>
 
-        <div className="border-t border-white/20 p-4 space-y-3">
+        <div className="md:border-gray-700 border-t border-white/20 p-3 sm:p-4 space-y-2 sm:space-y-3">
           <button
             onClick={() => {
               setShowChat(!showChat);
               if (isMobile) setSidebarOpen(false);
             }}
-            className="w-full bg-blue-600/80 hover:bg-blue-700 text-white py-2 rounded-lg transition transform hover:scale-105 font-medium"
+            className="w-full md:bg-gray-600 md:hover:bg-gray-500 bg-blue-600/80 hover:bg-blue-700 text-white py-2 rounded-lg transition transform hover:scale-105 font-medium text-sm sm:text-base"
           >
             💬 محادثة
           </button>
 
           <button
             onClick={handleLogout}
-            className="w-full bg-rose-500/80 hover:bg-rose-600 text-white py-2 rounded-lg transition transform hover:scale-105 font-medium"
+            className="w-full md:bg-red-700 md:hover:bg-red-600 bg-rose-500/80 hover:bg-rose-600 text-white py-2 rounded-lg transition transform hover:scale-105 font-medium text-sm sm:text-base"
           >
             تسجيل الخروج 📤
           </button>
         </div>
       </aside>
 
-      <div className="relative z-10 flex-1 flex flex-col animate-fadeSlide">
+      <div className="relative z-10 flex-1 flex flex-col animate-fadeSlide min-w-0">
         <Navbar
           userInfo={userInfo}
           sidebarOpen={sidebarOpen}
           onToggleSidebar={toggleSidebar}
+          onOpenChat={() => setShowChat(true)}
         />
 
-        <main className="flex-1 p-4 md:p-6 overflow-y-auto mt-16">
-          <div className="backdrop-blur-xl bg-white/15 border border-white/20 rounded-2xl shadow-lg p-6 animate-scaleUp">
-            <div className="bg-white rounded-xl shadow-md p-4 text-gray-800">
+        <main className="flex-1 p-2 sm:p-4 md:p-6 overflow-y-auto mt-16">
+          <div className="backdrop-blur-xl bg-white/15 border border-white/20 rounded-lg md:rounded-2xl shadow-lg p-3 md:p-6 animate-scaleUp">
+            <div className="bg-white rounded-lg md:rounded-xl shadow-md p-3 md:p-4 text-gray-800 overflow-x-auto">
               <Outlet />
             </div>
           </div>
         </main>
       </div>
 
-      {showChat && <ChatSidebar onClose={() => setShowChat(false)} />}
+      {showChat && (
+        <AdminChat
+          isAdmin={userInfo?.role === "admin"}
+          onClose={() => setShowChat(false)}
+        />
+      )}
 
       <style>
         {`

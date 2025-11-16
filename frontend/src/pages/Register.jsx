@@ -81,7 +81,7 @@ export default function Register() {
         </h2>
 
         {error && (
-          <p className="text-red-400 bg-white/10 border border-red-400/40 rounded-lg p-2 text-center mb-4 animate-scaleUp">
+          <p className="text-red-200 bg-red-500/20 border border-red-400/50 rounded-lg p-3 text-center mb-4 animate-scaleUp shadow-lg shadow-red-500/20">
             {error}
           </p>
         )}
@@ -149,9 +149,20 @@ export default function Register() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 rounded-lg bg-blue-500/70 hover:bg-blue-500 transition-all duration-300 font-semibold"
+            className={`w-full py-3 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2 ${
+              loading
+                ? "bg-blue-500/50 cursor-not-allowed opacity-75"
+                : "bg-blue-500/70 hover:bg-blue-500 cursor-pointer"
+            }`}
           >
-            {loading ? "جاري انشاء حساب ..." : "انشاء حساب"}
+            {loading ? (
+              <>
+                <span className="animate-spin">⏳</span>
+                جاري انشاء حساب ...
+              </>
+            ) : (
+              "انشاء حساب"
+            )}
           </button>
         </form>
 

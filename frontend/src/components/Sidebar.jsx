@@ -13,7 +13,7 @@ export default function Sidebar({ onLogout, isOpen, onClose }) {
   useEffect(() => {
     if (!socket) return;
 
-    socket.on("onlineUsers", (users) => {
+    socket.on("online_users", (users) => {
       setOnlineUsers(users);
     });
 
@@ -22,7 +22,7 @@ export default function Sidebar({ onLogout, isOpen, onClose }) {
     });
 
     return () => {
-      socket.off("onlineUsers");
+      socket.off("online_users");
       socket.off("notification");
     };
   }, [socket]);

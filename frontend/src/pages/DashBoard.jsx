@@ -4,18 +4,51 @@ import { io } from "socket.io-client";
 import { useSocket } from "../context/SocketContext";
 import toast from "react-hot-toast";
 import ChatSidebar from "../components/ChatSidebar";
+import { Menu, X } from "lucide-react";
+import Navbar from "../components/Navbar";
+
 export default function Dashboard() {
   const navigate = useNavigate();
   const [showChat, setShowChat] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [userInfo, setUserInfo] = useState(null);
 
   const { socket } = useSocket();
+
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (!mobile) setSidebarOpen(true);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) navigate("/login");
 
-    if (!socket) return; // wait for socket from context
+    const fetchUserInfo = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/api/auth/me", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setUserInfo(data.user);
+        }
+      } catch (err) {
+        console.error("Error fetching user info:", err);
+      }
+    };
 
-    // listen for admin notifications
+    fetchUserInfo();
+
+    if (!socket) return;
+
     const handleNotification = (data) => {
       console.log("🔔 New notification from user:", data);
       toast.success(data.message);
@@ -23,24 +56,47 @@ export default function Dashboard() {
 
     socket.on("adminNotification", handleNotification);
 
-    // cleanup
     return () => {
       socket.off("adminNotification", handleNotification);
     };
-  }, [navigate, socket]); // ✅ re-run effect when socket is available
+  }, [navigate, socket]);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("role");
     navigate("/login");
   };
 
+  const toggleSidebar = () => {
+    if (isMobile) {
+      setSidebarOpen(!sidebarOpen);
+    } else {
+      setSidebarOpen(!sidebarOpen);
+    }
+  };
+
+  const closeSidebarOnMobile = () => {
+    if (isMobile) {
+      setSidebarOpen(false);
+    }
+  };
+
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-blue-900 via-indigo-900 to-gray-900 font-custom   text-white relative overflow-hidden">
-      {/* soft blur overlay */}
+    <div className="flex min-h-screen bg-gradient-to-br from-blue-900 via-indigo-900 to-gray-900 font-custom text-white relative overflow-hidden">
       <div className="absolute inset-0 backdrop-blur-3xl bg-white/10"></div>
 
-      {/* Sidebar */}
-      <aside className=" relative z-1 w-64  bg-white/15 border-r border-white/20 flex flex-col shadow-2xl animate-slideInLeft">
+      {sidebarOpen && isMobile && (
+        <div
+          className="fixed inset-0 bg-black/50 z-30 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        ></div>
+      )}
+
+      <aside
+        className={`fixed md:relative left-0 top-0 h-screen w-64 bg-white/15 border-r border-white/20 flex flex-col shadow-2xl animate-slideInLeft z-40 transition-transform duration-300 ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+        } ${sidebarOpen ? "md:block" : "md:block"}`}
+      >
         <div className="p-6 border-b border-white/20 text-center">
           <h1 className="text-2xl font-bold text-white drop-shadow">
             التنمية الإدارية
@@ -48,79 +104,87 @@ export default function Dashboard() {
           <p className="text-sm text-teal-200 mt-1">لوحة التحكم</p>
         </div>
 
-        <nav className="flex-1 p-4 space-y-2" dir="rtl">
+        <nav className="flex-1 p-4 space-y-2 overflow-y-auto" dir="rtl">
           <Link
             to="/dashboard/employees"
+            onClick={closeSidebarOnMobile}
             className="block py-2.5 px-4 rounded-lg bg-white/10 hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105"
           >
             📋 الموظفين
           </Link>
           <Link
             to="/dashboard/upload"
+            onClick={closeSidebarOnMobile}
             className="block py-2.5 px-4 rounded-lg bg-white/10 hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105"
           >
             📤 ادارة قاعدة البيانات
           </Link>
           <Link
             to="/dashboard/users"
+            onClick={closeSidebarOnMobile}
             className="block py-2.5 px-4 rounded-lg bg-white/10 hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105"
           >
             ⚙️ ادارة المستخدمين
           </Link>
           <Link
-            to="/dashboard/users"
+            to="/dashboard/dywan"
+            onClick={closeSidebarOnMobile}
             className="block py-2.5 px-4 rounded-lg bg-white/10 hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105"
           >
             الديوان 📃
           </Link>
           <Link
-            to="/dashboard/users"
+            to="/dashboard"
+            onClick={closeSidebarOnMobile}
             className="block py-2.5 px-4 rounded-lg bg-white/10 hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105"
           >
-            الارشيف 🖨️
+            الأرشيف 🖨️
           </Link>
           <Link
-            to="notifications"
+            to="/dashboard/notifications"
+            onClick={closeSidebarOnMobile}
             className="block py-2 px-4 text-x rounded-lg bg-white/10 hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105"
           >
             🔔الاشعارات
           </Link>
-          <button
-            onClick={() => setShowChat(!showChat)}
-            className="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-xl z-50"
+          <Link
+            to="/dashboard/homepage-builder"
+            onClick={closeSidebarOnMobile}
+            className="block py-2.5 px-4 rounded-lg bg-white/10 hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105"
           >
-            💬
+            🎨 تخصيص الصفحة الرئيسية
+          </Link>
+        </nav>
+
+        <div className="border-t border-white/20 p-4 space-y-3">
+          <button
+            onClick={() => {
+              setShowChat(!showChat);
+              if (isMobile) setSidebarOpen(false);
+            }}
+            className="w-full bg-blue-600/80 hover:bg-blue-700 text-white py-2 rounded-lg transition transform hover:scale-105 font-medium"
+          >
+            💬 محادثة
           </button>
 
-          {showChat && <ChatSidebar />}
-          <div className="p-4 border-t border-white/20">
-            <button
-              onClick={handleLogout}
-              className="w-full bg-rose-500/80 hover:bg-rose-600 text-white py-2 rounded-lg transition transform hover:scale-105"
-            >
-              تسجيل الخروج📤
-            </button>
-          </div>
-          <div className="p-4 border-t border-white/20">
-            <button
-              onClick={handleLogout}
-              className="w-full bg-grey-500/80 hover:p-2 hover:bg-black text-white py-2 rounded-lg transition transform hover:scale-75"
-            >
-              Settings 🔧
-            </button>
-          </div>
-        </nav>
+          <button
+            onClick={handleLogout}
+            className="w-full bg-rose-500/80 hover:bg-rose-600 text-white py-2 rounded-lg transition transform hover:scale-105 font-medium"
+          >
+            تسجيل الخروج 📤
+          </button>
+        </div>
       </aside>
 
-      {/* Main content */}
       <div className="relative z-10 flex-1 flex flex-col animate-fadeSlide">
-        {/* Navbar */}
+        <Navbar
+          userInfo={userInfo}
+          sidebarOpen={sidebarOpen}
+          onToggleSidebar={toggleSidebar}
+        />
 
-        {/* Main Content Area */}
-        <main className="flex-1 p-6 overflow-y-auto">
-          {/* Glass wrapper */}
+        <main className="flex-1 p-4 md:p-6 overflow-y-auto mt-16">
           <div className="backdrop-blur-xl bg-white/15 border border-white/20 rounded-2xl shadow-lg p-6 animate-scaleUp">
-            {/* White background for tables or data views */}
             <div className="bg-white rounded-xl shadow-md p-4 text-gray-800">
               <Outlet />
             </div>
@@ -128,7 +192,8 @@ export default function Dashboard() {
         </main>
       </div>
 
-      {/* Animations */}
+      {showChat && <ChatSidebar onClose={() => setShowChat(false)} />}
+
       <style>
         {`
           @keyframes slideInLeft {

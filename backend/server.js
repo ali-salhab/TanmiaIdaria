@@ -13,6 +13,7 @@ import authRoutes from "./routes/auth.js";
 import path from "path";
 import incidentRoutes from "./routes/incidents.js";
 import users from "./routes/users.js";
+import homepageRoutes from "./routes/homepage.js";
 import { fileURLToPath } from "url";
 import http from "http";
 import { Server } from "socket.io";
@@ -31,9 +32,7 @@ app.use(
 app.use(compression());
 app.use(
   cors({
-    // origin: "http://12.0.0.129:5173", // frontend port
-    origin: "http://localhost:5173", // frontend port
-
+    origin: ["http://12.0.0.173:5173", "http://localhost:5173"],
     credentials: true,
   })
 );
@@ -50,8 +49,11 @@ app.use("/api/employees", employeeRoutes);
 app.use("/api/excel-cv/:id", generateEmployeeCV);
 app.use("/api/incidents", incidentRoutes);
 app.use("/api/users", users);
+app.use("/api/homepage", homepageRoutes);
 app.use("/api/operations", operationRoutes);
-
+app.get("/api/test", (req, res) => {
+  res.send("connected successfully");
+});
 app.use(
   "/uploads",
   express.static(path.join(__dirname, "uploads"), {
@@ -65,6 +67,9 @@ app.use(
 );
 // error handler
 app.use((err, req, res, next) => {
+  console.log("====================================");
+  console.log("log handler in server called");
+  console.log("====================================");
   console.error(err.stack);
   res
     .status(err.status || 500)
@@ -75,7 +80,8 @@ app.use((err, req, res, next) => {
 const server = http.createServer(app);
 export const io = new Server(server, {
   cors: {
-    origin: "*", // غيّرها حسب الدومين لاحقًا
+    origin: ["http://12.0.0.173:5173", "http://localhost:5173"],
+
     methods: ["GET", "POST"],
   },
 });
@@ -92,6 +98,9 @@ io.on("connection", (socket) => {
     );
   });
   socket.on("notifyAdmin", (data) => {
+    console.log("====================================");
+    console.log(onlineUsers);
+    console.log("====================================");
     // Send it to the admin if connected
     if (adminSocket) {
       adminSocket.emit("adminNotification", data);
@@ -135,7 +144,7 @@ mongoose
     console.log("MongoDB connected");
 
     // ✅ استخدم server وليس app
-    server.listen(PORT, () => {
+    server.listen(PORT, "0.0.0.0", () => {
       console.log(`🚀 Server running with Socket.IO on http://0.0.0.0:${PORT}`);
     });
   })

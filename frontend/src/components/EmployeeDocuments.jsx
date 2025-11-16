@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import API from "../api/api";
 import { PlusCircle } from "lucide-react";
-
+const apiUrl = import.meta.env.VITE_API_URL;
 export default function EmployeeDocuments({ employeeId }) {
   console.log(import.meta.env.VITE_API_URL);
 
@@ -79,7 +79,7 @@ export default function EmployeeDocuments({ employeeId }) {
               className="relative group bg-white rounded-xl shadow-md overflow-hidden border"
             >
               <img
-                src={`http://localhost:5001${doc.path}`}
+                src={`${apiUrl}${doc.path}`}
                 alt={doc.description}
                 className="w-full h-48 object-cover group-hover:opacity-90 transition"
               />
@@ -87,9 +87,10 @@ export default function EmployeeDocuments({ employeeId }) {
                 <p className="text-sm">{doc.description || "بدون وصف"}</p>
                 <div className="flex gap-2 mt-2">
                   <button
-                    onClick={() =>
-                      window.open(`http://localhost:5001${doc.path}`)
-                    }
+                    onClick={() => {
+                      console.log(apiUrl);
+                    }}
+                    // onClick={() => window.open(`${apiUrl}/${doc.path}`)}
                     className="bg-green-600 px-2 py-1 rounded text-xs hover:bg-green-700"
                   >
                     تنزيل

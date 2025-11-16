@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "react-hot-toast";
 import { socket } from "../socket"; // إذا أنشأت ملف socket.js
-
+import API from "../api/api";
 export default function Notifications() {
   const [logs, setLogs] = useState([]);
   const [filter, setFilter] = useState({
@@ -11,14 +11,12 @@ export default function Notifications() {
   });
 
   const token = localStorage.getItem("token");
-  const API = "http://localhost:5001/api/operations"; // endpoint لعرض كل الـ OperationLog
 
-  // جلب الإشعارات من السيرفر
+  //  الإشعارات من السيرفر
   const fetchLogs = async () => {
     try {
-      const res = await axios.get(API, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await API.get("/operations");
+
       setLogs(res.data.reverse()); // الأحدث أولاً
     } catch (err) {
       toast.error("❌ خطأ في جلب الإشعارات");

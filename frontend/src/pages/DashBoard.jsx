@@ -35,12 +35,12 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="flex min-h-screen font-custom bg-gradient-to-br from-emerald-800 via-teal-900 to-slate-900 text-white relative overflow-hidden">
+    <div className="flex min-h-screen bg-gradient-to-br from-blue-900 via-indigo-900 to-gray-900 font-custom   text-white relative overflow-hidden">
       {/* soft blur overlay */}
       <div className="absolute inset-0 backdrop-blur-3xl bg-white/10"></div>
 
       {/* Sidebar */}
-      <aside className="relative z-10 w-64 backdrop-blur-xl bg-white/15 border-r border-white/20 flex flex-col shadow-2xl animate-slideInLeft">
+      <aside className=" relative z-1 w-64  bg-white/15 border-r border-white/20 flex flex-col shadow-2xl animate-slideInLeft">
         <div className="p-6 border-b border-white/20 text-center">
           <h1 className="text-2xl font-bold text-white drop-shadow">
             التنمية الإدارية
@@ -48,15 +48,15 @@ export default function Dashboard() {
           <p className="text-sm text-teal-200 mt-1">لوحة التحكم</p>
         </div>
 
-        <nav className="flex-1 p-4 space-y-2">
+        <nav className="flex-1 p-4 space-y-2" dir="rtl">
           <Link
-            to="/employees"
+            to="/dashboard/employees"
             className="block py-2.5 px-4 rounded-lg bg-white/10 hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105"
           >
             📋 الموظفين
           </Link>
           <Link
-            to="/upload"
+            to="/dashboard/upload"
             className="block py-2.5 px-4 rounded-lg bg-white/10 hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105"
           >
             📤 ادارة قاعدة البيانات
@@ -68,10 +68,22 @@ export default function Dashboard() {
             ⚙️ ادارة المستخدمين
           </Link>
           <Link
-            to="notifications"
+            to="/dashboard/users"
             className="block py-2.5 px-4 rounded-lg bg-white/10 hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105"
           >
-            🔔 الإشعارات والأرشيف
+            الديوان 📃
+          </Link>
+          <Link
+            to="/dashboard/users"
+            className="block py-2.5 px-4 rounded-lg bg-white/10 hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105"
+          >
+            الارشيف 🖨️
+          </Link>
+          <Link
+            to="notifications"
+            className="block py-2 px-4 text-x rounded-lg bg-white/10 hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105"
+          >
+            🔔الاشعارات
           </Link>
           <button
             onClick={() => setShowChat(!showChat)}
@@ -86,15 +98,15 @@ export default function Dashboard() {
               onClick={handleLogout}
               className="w-full bg-rose-500/80 hover:bg-rose-600 text-white py-2 rounded-lg transition transform hover:scale-105"
             >
-              Logout
+              تسجيل الخروج📤
             </button>
           </div>
           <div className="p-4 border-t border-white/20">
             <button
               onClick={handleLogout}
-              className="w-full bg-grey-500/80 hover:bg-black text-white py-2 rounded-lg transition transform hover:scale-75"
+              className="w-full bg-grey-500/80 hover:p-2 hover:bg-black text-white py-2 rounded-lg transition transform hover:scale-75"
             >
-              Settings
+              Settings 🔧
             </button>
           </div>
         </nav>

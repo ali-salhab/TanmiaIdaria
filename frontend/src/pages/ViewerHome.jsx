@@ -7,7 +7,8 @@ import VacationsSVG from "../assets/vacation.svg";
 import ReportsSVG from "../assets/report.svg";
 import Logo from "../assets/logo.png";
 import API from "../api/api";
-
+const VITE_API_URL = import.meta.env.VITE_API_URL;
+console.log(VITE_API_URL);
 export default function ViewerHome() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
@@ -46,7 +47,7 @@ export default function ViewerHome() {
         console.log("loading user data ----------->", me.data);
         setUser(me.data.user);
 
-        const newSocket = io("http://localhost:5001");
+        const newSocket = io(VITE_API_URL);
         setSocket(newSocket);
         newSocket.emit("joinUser", me.data.user.username);
 

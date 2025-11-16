@@ -23,7 +23,7 @@ export const SocketProvider = ({ children }) => {
     }
 
     // ✅ Connect socket
-    const newSocket = io("http://localhost:5001", {
+    const newSocket = io("http://12.0.0.173:5001", {
       transports: ["websocket"],
     });
 
@@ -36,7 +36,7 @@ export const SocketProvider = ({ children }) => {
       console.log("⚡ Socket connected:", newSocket.id);
 
       try {
-        const res = await fetch("http://localhost:5001/api/auth/me", {
+        const res = await fetch("http://12.0.0.173:5001/api/auth/me", {
           headers: { Authorization: `Bearer ${token}` },
         });
 

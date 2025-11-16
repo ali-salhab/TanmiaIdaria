@@ -2,8 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "react-hot-toast";
 import { FaEdit, FaEye, FaEyeSlash } from "react-icons/fa";
-
-const API = "http://localhost:5001/api/users";
+import API from "../api/api";
 
 export default function Users() {
   const [users, setUsers] = useState([]);
@@ -22,6 +21,8 @@ export default function Users() {
   const [editUserId, setEditUserId] = useState(null);
   const [editedUser, setEditedUser] = useState({});
   const [showPasswords, setShowPasswords] = useState({});
+  const [editingPermissions, setEditingPermissions] = useState(null);
+  const [tempPermissions, setTempPermissions] = useState({});
 
   const token = localStorage.getItem("token");
 
@@ -31,9 +32,10 @@ export default function Users() {
 
   const fetchUsers = async () => {
     try {
-      const res = await axios.get(API, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await API.get("/users");
+      // const res = await axios.get(API, {
+      //   headers: { Authorization: `Bearer ${token}` },
+      // });
       let data = res.data;
       data.sort((a, b) =>
         sortOrder === "asc"
@@ -52,9 +54,8 @@ export default function Users() {
 
   const createUser = async () => {
     try {
-      await axios.post(API, newUser, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await API.post("/users", newUser);
+
       toast.success("✅ تم إنشاء المستخدم بنجاح!");
       setNewUser({ username: "", password: "", role: "employee" });
       fetchUsers();
@@ -72,9 +73,8 @@ export default function Users() {
 
   const deleteUser = async () => {
     try {
-      await axios.delete(`${API}/${deleteModal.userId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await API.delete(`users/${deleteModal.userId}`);
+
       toast.success("🗑️ تم حذف المستخدم");
       cancelDelete();
       fetchUsers();
@@ -90,11 +90,11 @@ export default function Users() {
 
   const saveEdit = async (id) => {
     try {
-      await axios.put(
-        `${API}/${id}`,
-        { username: editedUser.username, role: editedUser.role },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await API.put(`/users/${id}`, editedUser, {
+        username: editedUser.username,
+        role: editedUser.role,
+      });
+
       toast.success("✅ تم حفظ التعديلات");
       setEditUserId(null);
       fetchUsers();
@@ -105,6 +105,35 @@ export default function Users() {
 
   const togglePassword = (id) => {
     setShowPasswords((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const startEditPermissions = (user) => {
+    setEditingPermissions(user._id);
+    setTempPermissions({ ...user.permissions });
+  };
+
+  const cancelEditPermissions = () => {
+    setEditingPermissions(null);
+    setTempPermissions({});
+  };
+
+  const savePermissions = async (id) => {
+    try {
+      await API.put(`/users/${id}/permissions`, { permissions: tempPermissions });
+      toast.success("✅ تم تحديث الصلاحيات بنجاح!");
+      setEditingPermissions(null);
+      setTempPermissions({});
+      fetchUsers();
+    } catch (error) {
+      toast.error("❌ فشل في تحديث الصلاحيات");
+    }
+  };
+
+  const togglePermission = (key) => {
+    setTempPermissions((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
   };
 
   return (
@@ -275,25 +304,41 @@ export default function Users() {
 
                   {/* الصلاحيات */}
                   <td className="py-3 px-4">
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
-                      {Object.keys(u.permissions || {}).map((key) => (
-                        <label
-                          key={key}
-                          className="flex items-center gap-2 text-sm text-gray-600"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={u.permissions[key]}
-                            onChange={
-                              () => {}
-                              // toast("🚧 تعديل الصلاحيات لم يُفعل بعد")
-                            }
-                            className="accent-blue-600 h-4 w-4"
-                          />
-                          {key.replace(/([A-Z])/g, " $1")}
-                        </label>
-                      ))}
-                    </div>
+                    {editingPermissions === u._id ? (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+                        {Object.keys(tempPermissions || {}).map((key) => (
+                          <label
+                            key={key}
+                            className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={tempPermissions[key]}
+                              onChange={() => togglePermission(key)}
+                              className="accent-blue-600 h-4 w-4"
+                            />
+                            {key.replace(/([A-Z])/g, " $1")}
+                          </label>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+                        {Object.keys(u.permissions || {}).map((key) => (
+                          <label
+                            key={key}
+                            className="flex items-center gap-2 text-sm text-gray-600"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={u.permissions[key]}
+                              disabled
+                              className="accent-blue-600 h-4 w-4"
+                            />
+                            {key.replace(/([A-Z])/g, " $1")}
+                          </label>
+                        ))}
+                      </div>
+                    )}
                   </td>
 
                   {/* تاريخ الإنشاء */}
@@ -303,12 +348,37 @@ export default function Users() {
 
                   {/* الإجراءات */}
                   <td className="py-3 px-4 text-center">
-                    <button
-                      onClick={() => confirmDeleteUser(u._id, u.username)}
-                      className="text-red-600 hover:text-red-800 font-medium border border-red-200 px-3 py-1 rounded-lg transition"
-                    >
-                      حذف ❌
-                    </button>
+                    {editingPermissions === u._id ? (
+                      <div className="flex gap-2 justify-center flex-wrap">
+                        <button
+                          onClick={() => savePermissions(u._id)}
+                          className="text-green-600 hover:text-green-800 font-medium border border-green-200 px-2 py-1 rounded-lg transition text-sm"
+                        >
+                          حفظ ✓
+                        </button>
+                        <button
+                          onClick={cancelEditPermissions}
+                          className="text-gray-600 hover:text-gray-800 font-medium border border-gray-200 px-2 py-1 rounded-lg transition text-sm"
+                        >
+                          إلغاء ✕
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex gap-2 justify-center flex-wrap">
+                        <button
+                          onClick={() => startEditPermissions(u)}
+                          className="text-blue-600 hover:text-blue-800 font-medium border border-blue-200 px-2 py-1 rounded-lg transition text-sm"
+                        >
+                          تعديل الصلاحيات
+                        </button>
+                        <button
+                          onClick={() => confirmDeleteUser(u._id, u.username)}
+                          className="text-red-600 hover:text-red-800 font-medium border border-red-200 px-2 py-1 rounded-lg transition text-sm"
+                        >
+                          حذف ❌
+                        </button>
+                      </div>
+                    )}
                   </td>
                 </tr>
               );

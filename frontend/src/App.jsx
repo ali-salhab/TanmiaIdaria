@@ -6,8 +6,8 @@ import EmployeeList from "./pages/EmployeeList";
 import EmployeeEdit from "./pages/EmployeeEdit";
 import UploadExcel from "./pages/UploadExcel";
 import PrivateRoute from "./routes/PrivateRoute";
-import ViewerHome from "./pages/ViewerHome"; // 👈 new page for viewer users
-import Unauthorized from "./pages/Unauthorized"; // 👈 optional
+import ViewerHome from "./pages/ViewerHome";
+import Unauthorized from "./pages/Unauthorized";
 import EmployeeVacations from "./pages/EmployeeVacations";
 import EmployeeRewards from "./pages/EmployeeRewards";
 import EmployeeIncidents from "./pages/EmployeeIncidents";
@@ -15,6 +15,8 @@ import Users from "./pages/Users";
 import { Toaster } from "react-hot-toast";
 import Notifications from "./pages/Notifications";
 import { SocketProvider } from "./context/SocketContext";
+import Dywan from "./pages/Dywan";
+import HomepageBuilder from "./pages/HomepageBuilder";
 function ProtectedRoute({ children, allowedRoles }) {
   const token = localStorage.getItem("token");
   const role = localStorage.getItem("role");
@@ -68,11 +70,13 @@ function App() {
           >
             {" "}
             <Route path="notifications" element={<Notifications />} />
+            <Route path="dywan" element={<Dywan />} />
             <Route path="employees/:id" element={<EmployeeEdit />} />
             <Route index element={<EmployeeList />} />
             <Route path="users" element={<Users />} />
             <Route path="employees" element={<EmployeeList />} />
             <Route path="upload" element={<UploadExcel />} />
+            <Route path="homepage-builder" element={<HomepageBuilder />} />
           </Route>
 
           <Route

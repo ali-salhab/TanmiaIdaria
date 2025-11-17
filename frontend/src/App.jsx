@@ -11,7 +11,6 @@ import Unauthorized from "./pages/Unauthorized";
 import EmployeeVacations from "./pages/EmployeeVacations";
 import EmployeeRewards from "./pages/EmployeeRewards";
 import EmployeeIncidents from "./pages/EmployeeIncidents";
-import Users from "./pages/Users";
 import { Toaster } from "react-hot-toast";
 import Notifications from "./pages/Notifications";
 import { SocketProvider } from "./context/SocketContext";
@@ -82,7 +81,6 @@ function App() {
             <Route path="dywan" element={<Dywan />} />
             <Route path="employees/:id" element={<EmployeeEdit />} />
             <Route index element={<EmployeeList />} />
-            <Route path="users" element={<Users />} />
             <Route path="employees" element={<EmployeeList />} />
             <Route path="upload" element={<UploadExcel />} />
             <Route path="homepage-builder" element={<HomepageBuilder />} />

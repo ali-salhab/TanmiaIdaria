@@ -30,7 +30,6 @@ export default function Sidebar({ onLogout, isOpen, onClose }) {
   const menuItems = [
     { label: "📋 الموظفين", to: "/dashboard/employees" },
     { label: "📤 قاعدة البيانات", to: "/dashboard/upload" },
-    { label: "⚙️ المستخدمين", to: "/dashboard/users" },
     { label: "🎨 تخصيص الصفحة الرئيسية", to: "/dashboard/homepage-builder" },
     { label: "📃 الديوان", to: "/dashboard/dywan" },
     { label: "🖨️ الأرشيف", to: "/dashboard" },

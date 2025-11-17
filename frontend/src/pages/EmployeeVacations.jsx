@@ -127,7 +127,7 @@ export default function EmployeeVacations() {
         <p>إدارة الإجازات الخاصة بالموظف رقم: {id}</p>
         <button
           onClick={handleAdd}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800 transition"
         >
           + إضافة إجازة جديدة
         </button>
@@ -152,7 +152,7 @@ export default function EmployeeVacations() {
               <td className="p-2 border">
                 <button
                   onClick={() => handleEdit(v)}
-                  className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 ml-2"
+                  className="bg-gray-600 text-white px-3 py-1 rounded hover:bg-gray-700 ml-2 transition"
                 >
                   تعديل
                 </button>
@@ -262,13 +262,13 @@ export default function EmployeeVacations() {
                 <button
                   type="button"
                   onClick={() => setModalOpen(false)}
-                  className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400"
+                  className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500 transition"
                 >
                   إلغاء
                 </button>
                 <button
                   type="submit"
-                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                  className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800 transition"
                 >
                   حفظ
                 </button>

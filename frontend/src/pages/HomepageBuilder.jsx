@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
-import { FaEdit, FaEye, FaEyeSlash, Settings } from "react-icons/fa";
+import { FaEdit, FaEye, FaEyeSlash } from "react-icons/fa";
+import { Settings } from "lucide-react";
 import API from "../api/api";
 
 export default function HomepageBuilder() {

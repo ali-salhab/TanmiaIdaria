@@ -291,7 +291,7 @@ export default function EmployeeList() {
                   <td className="border p-2 text-center">
                     <Link
                       to={`${emp._id}`}
-                      className="text-indigo-600 hover:underline"
+                      className="text-gray-700 hover:text-gray-900 hover:underline transition"
                     >
                       تعديل
                     </Link>

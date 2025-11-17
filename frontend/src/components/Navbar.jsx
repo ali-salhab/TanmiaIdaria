@@ -82,17 +82,20 @@ export default function Navbar({ userInfo, sidebarOpen, onToggleSidebar, onOpenC
             )}
           </button>
           
-          {/* Animated Message */}
+          {/* Animated Message with 3D Flip */}
           <div className="hidden sm:flex items-center gap-3 flex-1 max-w-md">
-            <div className="relative h-10 flex-1 overflow-hidden">
+            <div className="relative h-10 flex-1 overflow-hidden perspective">
               <div
-                className={`absolute inset-0 flex items-center px-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-teal-200/50 transition-all duration-500 transform ${
+                className={`absolute inset-0 flex items-center justify-center px-4 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 rounded-lg border border-blue-300/50 transition-all duration-700 transform ${
                   isFlipping
-                    ? "scale-95 opacity-0"
+                    ? "scale-y-0 opacity-0"
                     : "scale-100 opacity-100"
                 }`}
+                style={{
+                  transformStyle: 'preserve-3d'
+                }}
               >
-                <p className="text-sm font-semibold text-gray-700 truncate">
+                <p className="text-sm font-bold text-white truncate drop-shadow-lg">
                   {navbarMessages[currentMessageIndex]}
                 </p>
               </div>
@@ -198,6 +201,17 @@ export default function Navbar({ userInfo, sidebarOpen, onToggleSidebar, onOpenC
       }
       .animate-spin-slow {
         animation: spin-slow 1s linear infinite;
+      }
+      
+      @keyframes flip-3d {
+        0% { transform: rotateY(0deg) scaleY(1); opacity: 1; }
+        50% { transform: rotateY(90deg) scaleY(0); opacity: 0; }
+        51% { transform: rotateY(-90deg) scaleY(0); opacity: 0; }
+        100% { transform: rotateY(0deg) scaleY(1); opacity: 1; }
+      }
+      
+      .perspective {
+        perspective: 1000px;
       }
     `}</style>
     </>

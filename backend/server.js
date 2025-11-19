@@ -16,6 +16,8 @@ import users from "./routes/users.js";
 import homepageRoutes from "./routes/homepage.js";
 import notificationRoutes from "./routes/notifications.js";
 import appSettingsRoutes from "./routes/appSettings.js";
+import dropdownOptionsRoutes from "./routes/dropdownOptions.js";
+import permissionsRoutes from "./routes/permissions.js";
 import { fileURLToPath } from "url";
 import http from "http";
 import { Server } from "socket.io";
@@ -62,6 +64,8 @@ app.use("/api/users", users);
 app.use("/api/homepage", homepageRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/app-settings", appSettingsRoutes);
+app.use("/api/dropdown-options", dropdownOptionsRoutes);
+app.use("/api/permissions", permissionsRoutes);
 app.use("/api/operations", operationRoutes);
 app.get("/api/test", (req, res) => {
   res.send("connected successfully");
@@ -177,7 +181,9 @@ mongoose
     const User = (await import("./models/User.js")).default;
     const bcrypt = (await import("bcryptjs")).default;
 
-    const adminExists = await User.findOne({ username: process.env.ADMIN_USERNAME });
+    const adminExists = await User.findOne({
+      username: process.env.ADMIN_USERNAME,
+    });
     if (!adminExists) {
       const hashedPassword = await bcrypt.hash(process.env.ADMIN_PASSWORD, 10);
       const adminUser = new User({

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Bell, User, Search, Menu, X, MessageCircle } from "lucide-react";
 import { useSocket } from "../context/SocketContext";
 
@@ -9,7 +9,16 @@ const navbarMessages = [
   "🚀 تطبيق حديث وآمن",
 ];
 
-export default function Navbar({ userInfo, sidebarOpen, onToggleSidebar, onOpenChat }) {
+export default function Navbar({
+  userInfo,
+  sidebarOpen,
+  onToggleSidebar,
+  onOpenChat,
+}) {
+  const [showSearchModal, setShowSearchModal] = useState(false);
+  const notifRef = useRef(null);
+  const notifBtnRef = useRef(null);
+
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -17,14 +26,29 @@ export default function Navbar({ userInfo, sidebarOpen, onToggleSidebar, onOpenC
   const [isFlipping, setIsFlipping] = useState(false);
   const { socket } = useSocket();
   const isAdmin = userInfo?.role === "admin";
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (
+        notifRef.current &&
+        !notifRef.current.contains(e.target) &&
+        notifBtnRef.current &&
+        !notifBtnRef.current.contains(e.target)
+      ) {
+        setShowNotifications(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   useEffect(() => {
     const messageInterval = setInterval(() => {
       setIsFlipping(true);
       setTimeout(() => {
-        setCurrentMessageIndex(
-          (prev) => (prev + 1) % navbarMessages.length
-        );
+        setCurrentMessageIndex((prev) => (prev + 1) % navbarMessages.length);
         setIsFlipping(false);
       }, 500);
     }, 3000);
@@ -41,7 +65,12 @@ export default function Navbar({ userInfo, sidebarOpen, onToggleSidebar, onOpenC
 
     const handlePermissionUpdate = (data) => {
       const message = data.changes
-        .map((c) => `${c.name}: ${c.oldValue ? "مفعل" : "معطل"} → ${c.newValue ? "مفعل" : "معطل"}`)
+        .map(
+          (c) =>
+            `${c.name}: ${c.oldValue ? "مفعل" : "معطل"} → ${
+              c.newValue ? "مفعل" : "معطل"
+            }`
+        )
         .join(", ");
       setNotifications((prev) =>
         [
@@ -81,18 +110,16 @@ export default function Navbar({ userInfo, sidebarOpen, onToggleSidebar, onOpenC
               <Menu className="w-5 h-5 text-gray-600 animate-pulse" />
             )}
           </button>
-          
+
           {/* Animated Message with 3D Flip */}
           <div className="hidden sm:flex items-center gap-3 flex-1 max-w-md">
             <div className="relative h-10 flex-1 overflow-hidden perspective">
               <div
                 className={`absolute inset-0 flex items-center justify-center px-4 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 rounded-lg border border-blue-300/50 transition-all duration-700 transform ${
-                  isFlipping
-                    ? "scale-y-0 opacity-0"
-                    : "scale-100 opacity-100"
+                  isFlipping ? "scale-y-0 opacity-0" : "scale-100 opacity-100"
                 }`}
                 style={{
-                  transformStyle: 'preserve-3d'
+                  transformStyle: "preserve-3d",
                 }}
               >
                 <p className="text-sm font-bold text-white truncate drop-shadow-lg">
@@ -101,15 +128,16 @@ export default function Navbar({ userInfo, sidebarOpen, onToggleSidebar, onOpenC
               </div>
             </div>
           </div>
-
-          <div className="relative flex-1 max-w-md hidden md:block">
+          {/* search container */}
+          <div className="relative rounded  flex-1 max-w-md hidden md:block">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
               type="text"
               placeholder="ابحث..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
+              onFocus={() => setShowSearchModal(true)}
+              className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-200 border-r-8 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm text-black"
               dir="rtl"
             />
           </div>
@@ -118,6 +146,7 @@ export default function Navbar({ userInfo, sidebarOpen, onToggleSidebar, onOpenC
         <div className="flex items-center gap-4">
           <div className="relative">
             <button
+              ref={notifBtnRef}
               onClick={() => setShowNotifications(!showNotifications)}
               className="relative p-2 hover:bg-gray-100 rounded-lg transition"
               title="الإشعارات"
@@ -130,8 +159,14 @@ export default function Navbar({ userInfo, sidebarOpen, onToggleSidebar, onOpenC
               )}
             </button>
 
-            {showNotifications && (
-              <div className="absolute top-full left-0 mt-2 w-96 bg-white border border-gray-200 rounded-xl shadow-2xl p-3 space-y-2 max-h-80 overflow-y-auto z-50">
+            {
+              <div
+                ref={notifRef}
+                className={`absolute top-full right-0 mt-2 w-80 md:w-96 bg-white border border-gray-200 rounded-xl shadow-xl p-3 space-y-2 max-h-96 overflow-y-auto z-50 transform transition-all duration-300 origin-top-right
+    ${showNotifications ? "animate-slideIn" : "animate-slideOut"}
+  `}
+              >
+                {" "}
                 <div className="font-semibold text-gray-800 pb-2 border-b border-gray-200">
                   الإشعارات ({notifications.length})
                 </div>
@@ -145,8 +180,15 @@ export default function Navbar({ userInfo, sidebarOpen, onToggleSidebar, onOpenC
                           : "bg-gray-50 border-gray-200"
                       }`}
                     >
-                      <p className={`font-medium ${notif.type === "permission_change" ? "text-blue-700" : "text-teal-600"}`}>
-                        {notif.type === "permission_change" ? "🔐" : "📢"} {notif.message || notif}
+                      <p
+                        className={`font-medium ${
+                          notif.type === "permission_change"
+                            ? "text-blue-700"
+                            : "text-teal-600"
+                        }`}
+                      >
+                        {notif.type === "permission_change" ? "🔐" : "📢"}{" "}
+                        {notif.message || notif}
                       </p>
                       <p className="text-gray-500 text-xs mt-1">
                         {new Date(
@@ -161,7 +203,7 @@ export default function Navbar({ userInfo, sidebarOpen, onToggleSidebar, onOpenC
                   </p>
                 )}
               </div>
-            )}
+            }
           </div>
 
           {isAdmin && (
@@ -213,6 +255,36 @@ export default function Navbar({ userInfo, sidebarOpen, onToggleSidebar, onOpenC
       .perspective {
         perspective: 1000px;
       }
+        @keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes slideOut {
+  from {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(20px) scale(0.95);
+  }
+}
+
+.animate-slideIn {
+  animation: slideIn 0.25s ease-out forwards;
+}
+
+.animate-slideOut {
+  animation: slideOut 0.25s ease-in forwards;
+}
+
     `}</style>
     </>
   );

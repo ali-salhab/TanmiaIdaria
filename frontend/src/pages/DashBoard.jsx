@@ -18,9 +18,14 @@ export default function Dashboard() {
 
   useEffect(() => {
     const handleResize = () => {
+      console.log(
+        "handle size function -------------------",
+        window.innerWidth
+      );
+
       const mobile = window.innerWidth < 1024;
       setIsMobile(mobile);
-      if (!mobile) setSidebarOpen(true);
+      if (mobile) setSidebarOpen(true);
     };
 
     window.addEventListener("resize", handleResize);
@@ -87,7 +92,7 @@ export default function Dashboard() {
 
       {sidebarOpen && isMobile && (
         <div
-          className="fixed inset-0 bg-black/50 z-30"
+          className="fixed inset-0 bg-black/50 z-100"
           onClick={() => setSidebarOpen(false)}
         ></div>
       )}
@@ -101,7 +106,9 @@ export default function Dashboard() {
           <h1 className="text-xl sm:text-2xl font-bold text-white drop-shadow">
             التنمية الإدارية
           </h1>
-          <p className="text-xs sm:text-sm md:text-gray-300 text-gray-200 mt-1">لوحة التحكم</p>
+          <p className="text-xs sm:text-sm md:text-gray-300 text-gray-200 mt-1">
+            لوحة التحكم
+          </p>
         </div>
 
         <nav className="flex-1 p-3 sm:p-4 space-y-2 overflow-y-auto" dir="rtl">
@@ -119,19 +126,34 @@ export default function Dashboard() {
           >
             📤 ادارة قاعدة البيانات
           </Link>
-          <Link
-            to="/dashboard/users"
-            onClick={closeSidebarOnMobile}
-            className="block py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg md:bg-gray-700 md:hover:bg-gray-600 bg-white/10 hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105 text-sm sm:text-base"
-          >
-            ⚙️ ادارة المستخدمين
-          </Link>
+
           <Link
             to="/dashboard/dywan"
             onClick={closeSidebarOnMobile}
             className="block py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg md:bg-gray-700 md:hover:bg-gray-600 bg-white/10 hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105 text-sm sm:text-base"
           >
             الديوان 📃
+          </Link>
+          <Link
+            to="/dashboard/permissions"
+            onClick={closeSidebarOnMobile}
+            className="block py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg md:bg-gray-700 md:hover:bg-gray-600 bg-white/10 hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105 text-sm sm:text-base"
+          >
+            الديوان 📃
+          </Link>
+          <Link
+            to="/dashboard/dywan"
+            onClick={closeSidebarOnMobile}
+            className="block py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg md:bg-gray-700 md:hover:bg-gray-600 bg-white/10 hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105 text-sm sm:text-base"
+          >
+            القانونية 📃
+          </Link>
+          <Link
+            to="/dashboard/dywan"
+            onClick={closeSidebarOnMobile}
+            className="block py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg md:bg-gray-700 md:hover:bg-gray-600 bg-white/10 hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105 text-sm sm:text-base"
+          >
+            📃 الشكاوى
           </Link>
           <Link
             to="/dashboard"

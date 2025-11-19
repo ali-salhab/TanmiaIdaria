@@ -3,6 +3,7 @@ import axios from "axios";
 import { toast } from "react-hot-toast";
 import { FaEdit, FaEye, FaEyeSlash } from "react-icons/fa";
 import API from "../api/api";
+import DropdownWithSettings from "../components/DropdownWithSettings";
 
 export default function Users() {
   const [users, setUsers] = useState([]);
@@ -172,17 +173,20 @@ export default function Users() {
             }
             className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 outline-none"
           />
-          <select
+          <DropdownWithSettings
+            id="users_new_user_role"
             value={newUser.role}
             onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
+            options={[
+              { value: "admin", label: "مدير عام" },
+              { value: "employee", label: "مدير فرعي" },
+              { value: "viewer", label: "مشاهد" },
+              { value: "hr", label: "شؤون الموظفين" },
+              { value: "finance", label: "محاسب" },
+            ]}
+            placeholder="اختر الدور"
             className="border rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-blue-400 outline-none"
-          >
-            <option value="admin">مدير عام</option>
-            <option value="employee">مدير فرعي</option>
-            <option value="viewer">مشاهد</option>
-            <option value="hr">شؤون الموظفين</option>
-            <option value="finance">محاسب</option>
-          </select>
+          />
         </div>
         <button
           onClick={createUser}
@@ -194,15 +198,17 @@ export default function Users() {
 
       {/* فرز المستخدمين */}
       <div className="flex justify-end items-center mb-4">
-        <label className="text-gray-700 font-medium mr-2">ترتيب حسب:</label>
-        <select
+        <DropdownWithSettings
+          id="users_sort_order"
           value={sortOrder}
           onChange={(e) => setSortOrder(e.target.value)}
+          options={[
+            { value: "desc", label: "الأحدث أولاً" },
+            { value: "asc", label: "الأقدم أولاً" },
+          ]}
+          placeholder="ترتيب حسب"
           className="border px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-400 outline-none bg-white"
-        >
-          <option value="desc">الأحدث أولاً</option>
-          <option value="asc">الأقدم أولاً</option>
-        </select>
+        />
       </div>
 
       {/* جدول المستخدمين */}

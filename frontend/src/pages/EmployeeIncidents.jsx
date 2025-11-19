@@ -6,6 +6,7 @@ import API from "../api/api";
 import { FaEdit } from "react-icons/fa";
 import toast from "react-hot-toast";
 import { FileArchive, Settings } from "lucide-react";
+import DropdownWithSettings from "../components/DropdownWithSettings";
 export default function EmployeeIncidents() {
   const { id } = useParams(); // Employee ID
 

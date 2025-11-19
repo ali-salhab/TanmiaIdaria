@@ -14,9 +14,15 @@ import EmployeeIncidents from "./pages/EmployeeIncidents";
 import { Toaster } from "react-hot-toast";
 import Notifications from "./pages/Notifications";
 import { SocketProvider } from "./context/SocketContext";
+import PermissionsManager from "./pages/PermissionsManager";
 import Dywan from "./pages/Dywan";
 import HomepageBuilder from "./pages/HomepageBuilder";
 import Onboarding from "./pages/Onboarding";
+import ViewerEmployeeList from "./pages/ViewerEmployeeList";
+import ViewerDocuments from "./pages/ViewerDocuments";
+import ViewerSalary from "./pages/ViewerSalary";
+import UserProfile from "./pages/UserProfile";
+import DropdownManager from "./pages/DropdownManager";
 function ProtectedRoute({ children, allowedRoles }) {
   const token = localStorage.getItem("token");
   const role = localStorage.getItem("role");
@@ -39,6 +45,7 @@ function App() {
       <BrowserRouter>
         <Toaster position="top-left" reverseOrder={false} />
         <Routes>
+          <Route path="/test" eleme={PermissionsManager} />
           <Route
             path="/dashboard/employees/:id/vacations"
             element={<EmployeeVacations />}
@@ -76,7 +83,6 @@ function App() {
               </ProtectedRoute>
             }
           >
-            {" "}
             <Route path="notifications" element={<Notifications />} />
             <Route path="dywan" element={<Dywan />} />
             <Route path="employees/:id" element={<EmployeeEdit />} />
@@ -84,6 +90,8 @@ function App() {
             <Route path="employees" element={<EmployeeList />} />
             <Route path="upload" element={<UploadExcel />} />
             <Route path="homepage-builder" element={<HomepageBuilder />} />
+            <Route path="dropdown-manager" element={<DropdownManager />} />
+            <Route path="  " element={<PermissionsManager />} />
           </Route>
 
           <Route
@@ -91,6 +99,42 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={["user", "admin"]}>
                 <ViewerHome />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/employees"
+            element={
+              <ProtectedRoute allowedRoles={["user", "admin"]}>
+                <ViewerEmployeeList />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/documents"
+            element={
+              <ProtectedRoute allowedRoles={["user", "admin"]}>
+                <ViewerDocuments />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/salary"
+            element={
+              <ProtectedRoute allowedRoles={["user", "admin"]}>
+                <ViewerSalary />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <UserProfile />
               </ProtectedRoute>
             }
           />

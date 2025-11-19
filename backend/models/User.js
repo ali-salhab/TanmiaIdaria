@@ -10,6 +10,18 @@ const userSchema = new mongoose.Schema(
       enum: ["admin", "employee", "viewer", "user", "hr", "finance"],
       default: "employee",
     },
+    permissionGroups: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "PermissionGroup",
+      },
+    ],
+    directPermissions: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Permission",
+      },
+    ],
     permissions: {
       viewEmployees: {
         type: Boolean,
@@ -50,6 +62,74 @@ const userSchema = new mongoose.Schema(
       managePunischments: {
         type: Boolean,
         default: false,
+      },
+      createEmployee: {
+        type: Boolean,
+        default: false,
+      },
+      deleteEmployee: {
+        type: Boolean,
+        default: false,
+      },
+      createUser: {
+        type: Boolean,
+        default: false,
+      },
+      deleteUser: {
+        type: Boolean,
+        default: false,
+      },
+      managePermissions: {
+        type: Boolean,
+        default: false,
+      },
+      createIncident: {
+        type: Boolean,
+        default: false,
+      },
+      deleteIncident: {
+        type: Boolean,
+        default: false,
+      },
+      createVacation: {
+        type: Boolean,
+        default: false,
+      },
+      approveVacation: {
+        type: Boolean,
+        default: false,
+      },
+      viewAnalytics: {
+        type: Boolean,
+        default: false,
+      },
+      manageDywan: {
+        type: Boolean,
+        default: false,
+      },
+    },
+    profile: {
+      firstName: String,
+      lastName: String,
+      email: String,
+      phone: String,
+      department: String,
+      avatar: String,
+      bio: String,
+      documents: [
+        {
+          name: String,
+          url: String,
+          uploadedAt: { type: Date, default: Date.now },
+        },
+      ],
+      salaryInfo: {
+        image: String,
+        uploadedAt: Date,
+      },
+      employeeList: {
+        image: String,
+        uploadedAt: Date,
       },
     },
   },

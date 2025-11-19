@@ -9,6 +9,7 @@ import ReportsSVG from "../assets/report.svg";
 import Logo from "../assets/logo.png";
 import API from "../api/api";
 import AdminChat from "../components/AdminChat";
+import { checkPermission } from "../utils/permissionHelper";
 const VITE_API_URL = import.meta.env.VITE_API_URL;
 console.log(VITE_API_URL);
 export default function ViewerHome() {
@@ -38,16 +39,21 @@ export default function ViewerHome() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
+  // fettch user data
   const fetchUserData = async (token) => {
     try {
       const me = await API.get(`/auth/me`);
       console.log("📥 Fetched user data:", me.data);
       console.log("📌 User ID:", me.data.user._id);
       console.log("📌 User permissions object:", me.data.user.permissions);
+      console.log("📌 User permission groups:", me.data.user.permissionGroups);
+      console.log(
+        "📌 User direct permissions:",
+        me.data.user.directPermissions
+      );
       console.log("📊 Permission breakdown:");
       Object.entries(me.data.user.permissions || {}).forEach(([key, value]) => {
-        console.log(`   ${key}: ${value ? '✅' : '❌'}`);
+        console.log(`   ${key}: ${value ? "✅" : "❌"}`);
       });
       setUser(me.data.user);
       localStorage.setItem("userId", me.data.user._id);
@@ -57,7 +63,7 @@ export default function ViewerHome() {
       navigate("/login");
     }
   };
-
+  // get notifications
   const fetchNotifications = async () => {
     try {
       const res = await API.get("/notifications");
@@ -89,22 +95,27 @@ export default function ViewerHome() {
           console.log("🔔 Permission update received:", data);
           console.log("📌 Current user ID:", decoded.id);
           console.log("📌 Updated user ID:", data.userId);
-          
-          const isForThisUser = data.userId === decoded.id || data.userId === localStorage.getItem("userId");
+
+          const isForThisUser =
+            data.userId === decoded.id ||
+            data.userId === localStorage.getItem("userId");
           console.log("🎯 Is for this user?", isForThisUser);
-          
+
           if (isForThisUser) {
             console.log("✅ This permission update is for me!");
-            
+
             try {
               await fetchUserData(token);
               console.log("✅ Fetched fresh user data from server");
             } catch (err) {
               console.error("❌ Failed to fetch fresh data:", err);
             }
-            
+
             setPermissionsUpdated((prev) => {
-              console.log("🔄 Triggering re-render, permissionsUpdated:", prev + 1);
+              console.log(
+                "🔄 Triggering re-render, permissionsUpdated:",
+                prev + 1
+              );
               return prev + 1;
             });
           }
@@ -165,11 +176,17 @@ export default function ViewerHome() {
 
   const { permissions } = user;
   console.log("🎨 Rendering ViewerHome with permissions:", permissions);
-  const hasNoPermissions = Object.values(permissions || {}).every((p) => !p);
+
+  const canViewEmployees = checkPermission("viewEmployees", user);
+  const canViewDocuments = checkPermission("viewDocuments", user);
+  const canViewSalary = checkPermission("viewSalary", user);
+
+  const hasNoPermissions =
+    !canViewEmployees && !canViewDocuments && !canViewSalary;
   console.log("🔒 Has no permissions (show lock message):", hasNoPermissions);
-  console.log("📋 viewEmployees:", permissions?.viewEmployees);
-  console.log("📋 viewDocuments:", permissions?.viewDocuments);
-  console.log("📋 viewSalary:", permissions?.viewSalary);
+  console.log("📋 canViewEmployees:", canViewEmployees);
+  console.log("📋 canViewDocuments:", canViewDocuments);
+  console.log("📋 canViewSalary:", canViewSalary);
 
   return (
     <div
@@ -257,15 +274,22 @@ export default function ViewerHome() {
             </div>
           </div>
         </div>
-        <img src={Logo} alt="App Logo" className="w-10 md:w-16 h-10 md:h-16 object-contain" />
+        <img
+          src={Logo}
+          alt="App Logo"
+          className="w-10 md:w-16 h-10 md:h-16 object-contain"
+        />
       </header>
 
       {/* === Spacer to avoid content under fixed header === */}
       <div className="h-16 md:h-24"></div>
 
       {/* === Dashboard Main === */}
-      <main key={permissionsUpdated} className="flex-1 p-4 md:p-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-        {permissions?.viewEmployees && (
+      <main
+        key={permissionsUpdated}
+        className="flex-1 p-4 md:p-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6"
+      >
+        {canViewEmployees && (
           <DashboardCard
             title="الموظفين"
             subtitle="عرض وتحديث بيانات الموظفين"
@@ -275,7 +299,7 @@ export default function ViewerHome() {
           />
         )}
 
-        {permissions?.viewDocuments && (
+        {canViewDocuments && (
           <DashboardCard
             title="الوثائق"
             subtitle="استعراض وأرشفة المستندات"
@@ -285,7 +309,7 @@ export default function ViewerHome() {
           />
         )}
 
-        {permissions?.viewSalary && (
+        {canViewSalary && (
           <DashboardCard
             title="الرواتب والمكافآت"
             subtitle="تتبع الأداء والمكافآت الشهرية"
@@ -309,11 +333,11 @@ export default function ViewerHome() {
       </main>
 
       {/* === Send Message Section === */}
-      <section className="p-4 md:p-6 bg-gradient-to-r from-slate-50 to-blue-50 shadow-inner mt-auto border-t border-slate-200">
+      {/* <section className="p-4 md:p-6 bg-gradient-to-r from-slate-50 to-blue-50 shadow-inner mt-auto border-t border-slate-200">
         <MessageBox
           onSend={(msg) => notifyAdmin(`رسالة من ${user?.username}: ${msg}`)}
         />
-      </section>
+      </section> */}
 
       {/* === Footer === */}
       <footer className="bg-gradient-to-r from-emerald-600 to-emerald-700 text-white text-center py-3 md:py-4 mt-auto space-y-2 shadow-lg">
@@ -328,7 +352,7 @@ export default function ViewerHome() {
           🔔 اختبار الإشعار
         </button>
       </footer>
-      
+
       <style>
         {`
           @keyframes scaleIn {
@@ -366,7 +390,11 @@ function DashboardCard({ title, subtitle, svg, color, onClick }) {
       ></div>
       <div className="relative z-10 flex items-center gap-3 md:gap-4">
         <div className="w-12 md:w-16 h-12 md:h-16 bg-emerald-100 flex items-center justify-center rounded-lg md:rounded-xl flex-shrink-0 group-hover:bg-white/20 transition-colors">
-          <img src={svg} alt={title} className="w-8 md:w-10 h-8 md:h-10 animate-fadeIn" />
+          <img
+            src={svg}
+            alt={title}
+            className="w-8 md:w-10 h-8 md:h-10 animate-fadeIn"
+          />
         </div>
         <div className="flex-1 min-w-0">
           <h3 className="text-base md:text-lg font-semibold text-slate-800 group-hover:text-white transition-colors truncate">
@@ -383,35 +411,6 @@ function DashboardCard({ title, subtitle, svg, color, onClick }) {
 }
 
 /* === Message Box === */
-function MessageBox({ onSend }) {
-  const [msg, setMsg] = useState("");
-
-  const handleSend = () => {
-    if (!msg.trim()) return;
-    onSend(msg.trim());
-    setMsg("");
-  };
-
-  return (
-    <div className="max-w-2xl mx-auto flex flex-col sm:flex-row items-center gap-2 md:gap-3">
-      <input
-        type="text"
-        placeholder="اكتب رسالة إلى المشرف..."
-        className="flex-1 border border-emerald-300 rounded-lg px-3 md:px-4 py-2 text-sm md:text-base text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
-        value={msg}
-        onChange={(e) => setMsg(e.target.value)}
-        onKeyDown={(e) => e.key === "Enter" && handleSend()}
-        dir="rtl"
-      />
-      <button
-        onClick={handleSend}
-        className="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white px-4 md:px-6 py-2 rounded-lg shadow-md hover:shadow-lg transition-all transform hover:scale-105 font-medium text-sm md:text-base"
-      >
-        إرسال
-      </button>
-    </div>
-  );
-}
 
 /* === User Info Modal === */
 function UserInfoModal({ user, onClose }) {

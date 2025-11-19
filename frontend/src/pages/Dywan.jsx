@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import API from "../api/api";
 import { Upload, File, X, Search, Download, Eye, Trash2, Filter } from "lucide-react";
 import toast from "react-hot-toast";
+import DropdownWithSettings from "../components/DropdownWithSettings";
 
 export default function Dywan() {
   const [file, setFile] = useState(null);
@@ -160,71 +161,65 @@ export default function Dywan() {
             </div>
 
             <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">السنة</label>
-                <select
-                  value={documentYear}
-                  onChange={(e) => setDocumentYear(e.target.value)}
-                  className="w-full border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
-                >
-                  {years.map((year) => (
-                    <option key={year} value={year}>
-                      {year}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <DropdownWithSettings
+                id="dywan_document_year"
+                value={documentYear}
+                onChange={(e) => setDocumentYear(e.target.value)}
+                options={years.map((year) => ({ value: year.toString(), label: year.toString() }))}
+                label="السنة"
+                placeholder="اختر السنة"
+              />
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">القسم *</label>
-                <select
-                  value={department}
-                  onChange={(e) => setDepartment(e.target.value)}
-                  className="w-full border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
-                >
-                  <option value="">اختر</option>
-                  <option value="مديرية المعلوماتية">المعلوماتية</option>
-                  <option value="مديرية التنمية الإدارية">التنمية الإدارية</option>
-                  <option value="مكتب التنمية المحلية">التنمية المحلية</option>
-                  <option value="مديرية إدارة النفايات الصلبة">النفايات الصلبة</option>
-                  <option value="مديرية المجالس المحلية">المجالس المحلية</option>
-                </select>
-              </div>
+              <DropdownWithSettings
+                id="dywan_department"
+                value={department}
+                onChange={(e) => setDepartment(e.target.value)}
+                options={[
+                  { value: "", label: "اختر" },
+                  { value: "مديرية المعلوماتية", label: "المعلوماتية" },
+                  { value: "مديرية التنمية الإدارية", label: "التنمية الإدارية" },
+                  { value: "مكتب التنمية المحلية", label: "التنمية المحلية" },
+                  { value: "مديرية إدارة النفايات الصلبة", label: "النفايات الصلبة" },
+                  { value: "مديرية المجالس المحلية", label: "المجالس المحلية" },
+                ]}
+                label="القسم *"
+                placeholder="اختر"
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">نوع الوثيقة *</label>
-                <select
-                  value={documentType}
-                  onChange={(e) => setDocumentType(e.target.value)}
-                  className="w-full border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
-                >
-                  <option value="">اختر</option>
-                  <option value="تقرير">تقرير</option>
-                  <option value="قرار">قرار</option>
-                  <option value="تعميم">تعميم</option>
-                  <option value="محضر">محضر</option>
-                  <option value="مراسلة">مراسلة</option>
-                  <option value="أخرى">أخرى</option>
-                </select>
-              </div>
+              <DropdownWithSettings
+                id="dywan_document_type"
+                value={documentType}
+                onChange={(e) => setDocumentType(e.target.value)}
+                options={[
+                  { value: "", label: "اختر" },
+                  { value: "تقرير", label: "تقرير" },
+                  { value: "قرار", label: "قرار" },
+                  { value: "تعميم", label: "تعميم" },
+                  { value: "محضر", label: "محضر" },
+                  { value: "مراسلة", label: "مراسلة" },
+                  { value: "أخرى", label: "أخرى" },
+                ]}
+                label="نوع الوثيقة *"
+                placeholder="اختر"
+              />
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">الحالة *</label>
-                <select
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value)}
-                  className="w-full border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
-                >
-                  <option value="">اختر</option>
-                  <option value="جديدة">جديدة</option>
-                  <option value="قيد المراجعة">قيد المراجعة</option>
-                  <option value="موافق عليها">موافق عليها</option>
-                  <option value="مرفوضة">مرفوضة</option>
-                  <option value="مؤرشفة">مؤرشفة</option>
-                </select>
-              </div>
+              <DropdownWithSettings
+                id="dywan_status"
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+                options={[
+                  { value: "", label: "اختر" },
+                  { value: "جديدة", label: "جديدة" },
+                  { value: "قيد المراجعة", label: "قيد المراجعة" },
+                  { value: "موافق عليها", label: "موافق عليها" },
+                  { value: "مرفوضة", label: "مرفوضة" },
+                  { value: "مؤرشفة", label: "مؤرشفة" },
+                ]}
+                label="الحالة *"
+                placeholder="اختر"
+              />
             </div>
           </div>
 
@@ -276,60 +271,66 @@ export default function Dywan() {
             </div>
 
             <div className="grid grid-cols-2 gap-2">
-              <select
+              <DropdownWithSettings
+                id="dywan_filter_year"
                 value={filterYear}
                 onChange={(e) => setFilterYear(e.target.value)}
-                className="border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
-              >
-                <option value="">السنة</option>
-                {years.map((year) => (
-                  <option key={year} value={year}>
-                    {year}
-                  </option>
-                ))}
-              </select>
+                options={years.map((year) => ({ value: year.toString(), label: year.toString() }))}
+                label="السنة"
+                placeholder="السنة"
+                className="text-sm"
+              />
 
-              <select
+              <DropdownWithSettings
+                id="dywan_filter_dept"
                 value={filterDept}
                 onChange={(e) => setFilterDept(e.target.value)}
-                className="border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
-              >
-                <option value="">القسم</option>
-                <option value="مديرية المعلوماتية">المعلوماتية</option>
-                <option value="مديرية التنمية الإدارية">التنمية الإدارية</option>
-                <option value="مكتب التنمية المحلية">التنمية المحلية</option>
-                <option value="مديرية إدارة النفايات الصلبة">النفايات الصلبة</option>
-                <option value="مديرية المجالس المحلية">المجالس المحلية</option>
-              </select>
+                options={[
+                  { value: "", label: "القسم" },
+                  { value: "مديرية المعلوماتية", label: "المعلوماتية" },
+                  { value: "مديرية التنمية الإدارية", label: "التنمية الإدارية" },
+                  { value: "مكتب التنمية المحلية", label: "التنمية المحلية" },
+                  { value: "مديرية إدارة النفايات الصلبة", label: "النفايات الصلبة" },
+                  { value: "مديرية المجالس المحلية", label: "المجالس المحلية" },
+                ]}
+                placeholder="القسم"
+                className="text-sm"
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-2">
-              <select
+              <DropdownWithSettings
+                id="dywan_filter_type"
                 value={filterType}
                 onChange={(e) => setFilterType(e.target.value)}
-                className="border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
-              >
-                <option value="">نوع الوثيقة</option>
-                <option value="تقرير">تقرير</option>
-                <option value="قرار">قرار</option>
-                <option value="تعميم">تعميم</option>
-                <option value="محضر">محضر</option>
-                <option value="مراسلة">مراسلة</option>
-                <option value="أخرى">أخرى</option>
-              </select>
+                options={[
+                  { value: "", label: "نوع الوثيقة" },
+                  { value: "تقرير", label: "تقرير" },
+                  { value: "قرار", label: "قرار" },
+                  { value: "تعميم", label: "تعميم" },
+                  { value: "محضر", label: "محضر" },
+                  { value: "مراسلة", label: "مراسلة" },
+                  { value: "أخرى", label: "أخرى" },
+                ]}
+                placeholder="نوع الوثيقة"
+                className="text-sm"
+              />
 
-              <select
+              <DropdownWithSettings
+                id="dywan_filter_status"
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
-                className="border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
-              >
-                <option value="">الحالة</option>
-                <option value="جديدة">جديدة</option>
-                <option value="قيد المراجعة">قيد المراجعة</option>
-                <option value="موافق عليها">موافق عليها</option>
-                <option value="مرفوضة">مرفوضة</option>
-                <option value="مؤرشفة">مؤرشفة</option>
-              </select>
+                options={[
+                  { value: "", label: "الحالة" },
+                  { value: "جديدة", label: "جديدة" },
+                  { value: "قيد المراجعة", label: "قيد المراجعة" },
+                  { value: "موافق عليها", label: "موافق عليها" },
+                  { value: "مرفوضة", label: "مرفوضة" },
+                  { value: "مؤرشفة", label: "مؤرشفة" },
+                ]}
+                placeholder="الحالة"
+                className="text-sm"
+              />
             </div>
           </div>
 

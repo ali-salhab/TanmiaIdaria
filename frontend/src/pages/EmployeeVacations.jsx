@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import DropdownWithSettings from "../components/DropdownWithSettings";
 
 export default function EmployeeVacations() {
   const { id } = useParams();
@@ -177,39 +178,32 @@ export default function EmployeeVacations() {
 
             <form onSubmit={handleSubmit} className="grid gap-3">
               {/* نوع الإجازة */}
-              <div>
-                <label className="block mb-1 font-medium">نوع الإجازة</label>
-                <select
-                  name="type"
-                  value={formData.type}
-                  onChange={handleChange}
-                  className="border p-2 w-full rounded"
-                >
-                  <option value="">اختر النوع</option>
-                  {vacationTypes.map((t) => (
-                    <option key={t} value={t}>
-                      {t}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <DropdownWithSettings
+                id="vacation_type"
+                value={formData.type}
+                onChange={(e) => handleChange({ target: { name: "type", value: e.target.value } })}
+                options={[{ value: "", label: "اختر النوع" }, ...vacationTypes.map((t) => ({ value: t, label: t }))]}
+                label="نوع الإجازة"
+                placeholder="اختر النوع"
+                className="border p-2 w-full rounded"
+              />
 
               {/* إجازة أمومة → رقم الطفل */}
               {formData.type === "إجازة أمومة" && (
-                <div>
-                  <label className="block mb-1 font-medium">ترتيب الطفل</label>
-                  <select
-                    name="childOrder"
-                    value={formData.childOrder}
-                    onChange={handleChange}
-                    className="border p-2 w-full rounded"
-                  >
-                    <option value="">اختر</option>
-                    <option value="1">الولد الأول (120 يوم)</option>
-                    <option value="2">الولد الثاني (90 يوم)</option>
-                    <option value="3">الولد الثالث (75 يوم)</option>
-                  </select>
-                </div>
+                <DropdownWithSettings
+                  id="child_order"
+                  value={formData.childOrder}
+                  onChange={(e) => handleChange({ target: { name: "childOrder", value: e.target.value } })}
+                  options={[
+                    { value: "", label: "اختر" },
+                    { value: "1", label: "الولد الأول (120 يوم)" },
+                    { value: "2", label: "الولد الثاني (90 يوم)" },
+                    { value: "3", label: "الولد الثالث (75 يوم)" },
+                  ]}
+                  label="ترتيب الطفل"
+                  placeholder="اختر"
+                  className="border p-2 w-full rounded"
+                />
               )}
 
               {/* إجازة ساعية → عدد الساعات */}

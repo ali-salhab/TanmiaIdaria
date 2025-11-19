@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import API from "../api/api";
 import Pagination from "../components/Pagination";
+import DropdownWithSettings from "../components/DropdownWithSettings";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import jsPDF from "jspdf";
@@ -98,7 +99,7 @@ export default function EmployeeList() {
 
   const resetFilters = () => {
     setSearch("");
-    setLevel4level4("");
+    setLevel4("");
     setGender("");
     setAgeMin("");
     setAgeMax("");
@@ -171,41 +172,40 @@ export default function EmployeeList() {
           }}
           className="border p-2 rounded w-full"
         />
-        <select
+        <DropdownWithSettings
+          id="employee_list_department"
           value={level4}
           onChange={(e) => {
             setLevel4(e.target.value);
             console.log(e.target.value);
             setPage(1);
           }}
+          options={[
+            { value: "", label: "كل الاقسام" },
+            { value: "مديرية المعلوماتية", label: "مديرية المعلوماتية" },
+            { value: "مديرية التنمية الإدارية", label: "مديرية التنمية الإدارية" },
+            { value: "مكتب التنمية المحلية", label: "مكتب التنمية المحلية" },
+            { value: "مديرية إدارة النفايات الصلبة", label: "مديرية إدارة النفايات الصلبة" },
+            { value: "مديرية المجالس المحلية", label: "مديرية المجالس المحلية" },
+          ]}
+          placeholder="كل الاقسام"
           className="border p-2 rounded"
-        >
-          <option value="">كل الاقسام</option>
-          <option value="مديرية المعلوماتية">مديرية المعلوماتية</option>
-          <option value="مديرية التنمية الإدارية">
-            مديرية التنمية الإدارية
-          </option>
-          <option value="مكتب التنمية المحلية">مكتب التنمية المحلية</option>
-          <option value="مديرية إدارة النفايات الصلبة">
-            مديرية إدارة النفايات الصلبة
-          </option>
-          <option value="مكتب التنمية المحلية">مكتب التنمية المحلية</option>
-          <option value="   مديرية المجالس المحلية">
-            مديرية المجالس المحلية
-          </option>
-        </select>
-        <select
+        />
+        <DropdownWithSettings
+          id="employee_list_gender"
           value={gender}
           onChange={(e) => {
             setGender(e.target.value);
             setPage(1);
           }}
+          options={[
+            { value: "", label: "الكل" },
+            { value: "انثى", label: "انثى" },
+            { value: "ذكر", label: "ذكر" },
+          ]}
+          placeholder="الكل"
           className="border p-2 rounded"
-        >
-          <option value="">الكل</option>
-          <option value="انثى">انثى</option>
-          <option value="ذكر">ذكر</option>
-        </select>
+        />
         <input
           type="number"
           placeholder="Min Age"

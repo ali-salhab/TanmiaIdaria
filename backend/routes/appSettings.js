@@ -5,13 +5,13 @@ import {
   getAppSettings,
   updateAppSettings,
 } from "../controllers/appSettingsController.js";
-import { authMiddleware } from "../middleware/auth.js";
+import { protect } from "../middleware/auth.js";
 
 const router = express.Router();
 
-router.get("/dropdowns", authMiddleware, getDropdownSettings);
-router.post("/dropdowns", authMiddleware, saveDropdownSettings);
-router.get("/", authMiddleware, getAppSettings);
-router.put("/", authMiddleware, updateAppSettings);
+router.get("/dropdowns", protect, getDropdownSettings);
+router.post("/dropdowns", protect, saveDropdownSettings);
+router.get("/", protect, getAppSettings);
+router.put("/", protect, updateAppSettings);
 
 export default router;

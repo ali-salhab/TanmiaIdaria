@@ -138,3 +138,124 @@ export const deleteUser = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+// ✅ Update user profile
+export const updateUserProfile = async (req, res) => {
+  try {
+    const { firstName, lastName, email, phone, department, bio } = req.body;
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      {
+        "profile.firstName": firstName,
+        "profile.lastName": lastName,
+        "profile.email": email,
+        "profile.phone": phone,
+        "profile.department": department,
+        "profile.bio": bio,
+      },
+      { new: true }
+    ).select("-password");
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// ✅ Upload profile avatar
+export const uploadAvatar = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      { "profile.avatar": `/uploads/${req.file.filename}` },
+      { new: true }
+    ).select("-password");
+    res.json({ message: "Avatar uploaded successfully", user });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// ✅ Upload document
+export const uploadDocument = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+    const { name } = req.body;
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    if (!user.profile.documents) user.profile.documents = [];
+    user.profile.documents.push({
+      name: name || req.file.originalname,
+      url: `/uploads/${req.file.filename}`,
+      uploadedAt: new Date(),
+    });
+
+    await user.save();
+    res.json({ message: "Document uploaded successfully", user });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// ✅ Upload salary info image
+export const uploadSalaryImage = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      {
+        "profile.salaryInfo.image": `/uploads/${req.file.filename}`,
+        "profile.salaryInfo.uploadedAt": new Date(),
+      },
+      { new: true }
+    ).select("-password");
+    res.json({ message: "Salary image uploaded successfully", user });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// ✅ Upload employee list image
+export const uploadEmployeeListImage = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      {
+        "profile.employeeList.image": `/uploads/${req.file.filename}`,
+        "profile.employeeList.uploadedAt": new Date(),
+      },
+      { new: true }
+    ).select("-password");
+    res.json({ message: "Employee list image uploaded successfully", user });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// ✅ Delete document
+export const deleteDocument = async (req, res) => {
+  try {
+    const { documentIndex } = req.params;
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    if (user.profile.documents && documentIndex < user.profile.documents.length) {
+      user.profile.documents.splice(documentIndex, 1);
+      await user.save();
+    }
+
+    res.json({ message: "Document deleted successfully", user });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};

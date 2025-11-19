@@ -175,16 +175,6 @@ export default function Dashboard() {
 
         <div className="lg:border-gray-700 border-t border-white/20 p-3 sm:p-4 space-y-2 sm:space-y-3">
           <button
-            onClick={() => {
-              setShowChat(!showChat);
-              if (isMobile) setSidebarOpen(false);
-            }}
-            className="w-full lg:bg-gray-600 lg:hover:bg-gray-500 bg-blue-600/80 hover:bg-blue-700 text-white py-2 rounded-lg transition transform hover:scale-105 font-medium text-sm sm:text-base"
-          >
-            💬 محادثة
-          </button>
-
-          <button
             onClick={handleLogout}
             className="w-full lg:bg-red-700 lg:hover:bg-red-600 bg-rose-500/80 hover:bg-rose-600 text-white py-2 rounded-lg transition transform hover:scale-105 font-medium text-sm sm:text-base"
           >

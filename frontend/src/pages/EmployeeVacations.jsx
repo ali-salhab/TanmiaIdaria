@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import DropdownWithSettings from "../components/DropdownWithSettings";
+import API from "../api/api";
+import toast from "react-hot-toast";
+import { Download, Printer } from "lucide-react";
 
 export default function EmployeeVacations() {
   const { id } = useParams();
@@ -61,15 +64,16 @@ export default function EmployeeVacations() {
   const calculateDays = (type, childOrder, hours) => {
     switch (type) {
       case "إجازة صحية":
-        return formData.days > 180 ? 180 : formData.days; // حد أقصى 180
+        return formData.days > 180 ? 180 : formData.days;
       case "إجازة أمومة":
         if (childOrder === "1") return 120;
         if (childOrder === "2") return 90;
         if (childOrder === "3") return 75;
         return "";
-      case "إجازة ساعية":
+      case "إجازة ساعية": {
         const totalHours = parseFloat(hours || 0);
-        return (totalHours / 8).toFixed(2); // 8 ساعات = يوم واحد
+        return (totalHours / 8).toFixed(2);
+      }
       default:
         return formData.days;
     }
@@ -120,18 +124,127 @@ export default function EmployeeVacations() {
     setModalOpen(false);
   };
 
+  const handleExportWord = async () => {
+    try {
+      const response = await API.get(`/employees/${id}/vacations/export/word`, {
+        responseType: "blob",
+      });
+      
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `إجازات_الموظف.docx`);
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      toast.success("تم تحميل المستند بنجاح");
+    } catch (error) {
+      console.error(error);
+      toast.error("فشل تحميل المستند");
+    }
+  };
+
+  const handleDownloadTemplate = async (vacationId) => {
+    try {
+      const response = await API.get(`/vacations/${vacationId}/template`, {
+        responseType: "blob",
+      });
+      
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `استمارة_الإجازة_${vacationId}.docx`);
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      toast.success("تم تحميل استمارة الإجازة بنجاح");
+    } catch (error) {
+      console.error(error);
+      toast.error("فشل تحميل الاستمارة");
+    }
+  };
+
+  const handlePrint = () => {
+    const printWindow = window.open("", "", "width=800,height=600");
+    const htmlContent = `
+      <html dir="rtl">
+        <head>
+          <title>إجازات الموظف</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 20px; }
+            h1 { text-align: center; margin-bottom: 20px; }
+            .employee-info { text-align: right; margin-bottom: 20px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            th, td { border: 1px solid #000; padding: 10px; text-align: center; }
+            th { background-color: #f0f0f0; font-weight: bold; }
+            @media print { body { margin: 0; } }
+          </style>
+        </head>
+        <body>
+          <h1>إجازات الموظف</h1>
+          <div class="employee-info">
+            <p><strong>رقم الموظف:</strong> ${id}</p>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>الترتيب</th>
+                <th>نوع الإجازة</th>
+                <th>عدد الأيام</th>
+                <th>تاريخ البداية</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${vacations.map((v, idx) => `
+                <tr>
+                  <td>${idx + 1}</td>
+                  <td>${v.type}</td>
+                  <td>${v.days}</td>
+                  <td>${v.startDate}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </body>
+      </html>
+    `;
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+    printWindow.print();
+  };
+
   return (
     <div className="p-6 font-custom text-right" dir="rtl">
       <h2 className="text-2xl font-bold mb-4">إجازات الموظف</h2>
 
-      <div className="flex justify-between mb-4">
+      <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
         <p>إدارة الإجازات الخاصة بالموظف رقم: {id}</p>
-        <button
-          onClick={handleAdd}
-          className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800 transition"
-        >
-          + إضافة إجازة جديدة
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={handlePrint}
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition flex items-center gap-2"
+          >
+            <Printer size={18} />
+            طباعة
+          </button>
+          <button
+            onClick={handleExportWord}
+            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition flex items-center gap-2"
+          >
+            <Download size={18} />
+            تحميل Word
+          </button>
+          <button
+            onClick={handleAdd}
+            className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800 transition"
+          >
+            + إضافة إجازة جديدة
+          </button>
+        </div>
       </div>
 
       {/* جدول الإجازات */}
@@ -151,6 +264,14 @@ export default function EmployeeVacations() {
               <td className="p-2 border">{v.days}</td>
               <td className="p-2 border">{v.startDate}</td>
               <td className="p-2 border">
+                <button
+                  onClick={() => handleDownloadTemplate(v.id)}
+                  className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 ml-2 transition flex items-center gap-1 text-sm"
+                  title="تحميل استمارة الإجازة"
+                >
+                  <Download size={14} />
+                  استمارة
+                </button>
                 <button
                   onClick={() => handleEdit(v)}
                   className="bg-gray-600 text-white px-3 py-1 rounded hover:bg-gray-700 ml-2 transition"

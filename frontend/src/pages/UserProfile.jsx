@@ -6,7 +6,7 @@ import { FileText, Trash2, Download, Plus } from "lucide-react";
 import { toast } from "react-hot-toast";
 
 export default function UserProfile() {
-  const { user } = useAuth();
+  const { user: authUser } = useAuth();
   const [profile, setProfile] = useState({
     firstName: "",
     lastName: "",
@@ -21,12 +21,14 @@ export default function UserProfile() {
   const [documentName, setDocumentName] = useState("");
 
   useEffect(() => {
-    fetchUserProfile();
-  }, [user?._id]);
+    if (authUser?._id) {
+      fetchUserProfile();
+    }
+  }, [authUser?._id]);
 
   const fetchUserProfile = async () => {
     try {
-      const res = await API.get(`/users/${user?._id}`);
+      const res = await API.get(`/users/${authUser?._id}`);
       setUserData(res.data);
       if (res.data.profile) {
         setProfile(res.data.profile);
@@ -46,7 +48,7 @@ export default function UserProfile() {
   const handleSaveProfile = async () => {
     try {
       setSaving(true);
-      await API.put(`/users/${user?._id}/profile`, profile);
+      await API.put(`/users/${authUser?._id}/profile`, profile);
       toast.success("تم حفظ الملف الشخصي بنجاح");
       fetchUserProfile();
     } catch {
@@ -60,7 +62,7 @@ export default function UserProfile() {
     try {
       const formData = new FormData();
       formData.append("avatar", file);
-      await API.post(`/users/${user?._id}/avatar`, formData, {
+      await API.post(`/users/${authUser?._id}/avatar`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       toast.success("تم تحديث الصورة الشخصية بنجاح");
@@ -75,7 +77,7 @@ export default function UserProfile() {
       const formData = new FormData();
       formData.append("document", file);
       formData.append("name", documentName || file.name);
-      await API.post(`/users/${user?._id}/documents`, formData, {
+      await API.post(`/users/${authUser?._id}/documents`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       toast.success("تم تحميل المستند بنجاح");
@@ -90,7 +92,7 @@ export default function UserProfile() {
     try {
       const formData = new FormData();
       formData.append("image", file);
-      await API.post(`/users/${user?._id}/salary-image`, formData, {
+      await API.post(`/users/${authUser?._id}/salary-image`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       toast.success("تم تحميل صورة الراتب بنجاح");
@@ -104,7 +106,7 @@ export default function UserProfile() {
     try {
       const formData = new FormData();
       formData.append("image", file);
-      await API.post(`/users/${user?._id}/employee-list-image`, formData, {
+      await API.post(`/users/${authUser?._id}/employee-list-image`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       toast.success("تم تحميل صورة قائمة الموظفين بنجاح");
@@ -117,7 +119,7 @@ export default function UserProfile() {
   const handleDeleteDocument = async (index) => {
     try {
       if (window.confirm("هل أنت متأكد من حذف هذا المستند؟")) {
-        await API.delete(`/users/${user?._id}/documents/${index}`);
+        await API.delete(`/users/${authUser?._id}/documents/${index}`);
         toast.success("تم حذف المستند بنجاح");
         fetchUserProfile();
       }
@@ -303,7 +305,7 @@ export default function UserProfile() {
         </div>
 
         {/* إدارة المستندات */}
-        {user?.permissions?.viewDocuments && (
+        {authUser?.permissions?.viewDocuments && (
           <div className="bg-white rounded-2xl shadow-lg p-8 mt-8">
             <h2 className="text-2xl font-bold text-gray-800 mb-6">
               📄 المستندات

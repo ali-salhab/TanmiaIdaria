@@ -4,14 +4,13 @@ import {
   deleteIncident,
   updateIncident,
   getIncidentsByEmployee,
+  generateEmployeeCV,
 } from "../controllers/incidentController.js";
 
 const router = express.Router();
-// get all incidents for employee
 router.post("/", createIncident);
-//
-router.get("/:employeeId", getIncidentsByEmployee);
+router.get("/:id/generate-cv", generateEmployeeCV);
 router.delete("/:id/", deleteIncident);
 router.put("/:id/", updateIncident);
+router.get("/:employeeId", getIncidentsByEmployee);
 export default router;
-// work on incident to generate word file

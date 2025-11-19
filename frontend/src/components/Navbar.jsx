@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Bell, User, Search, Menu, X, MessageCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useSocket } from "../context/SocketContext";
 
 const navbarMessages = [
@@ -15,35 +16,15 @@ export default function Navbar({
   onToggleSidebar,
   onOpenChat,
 }) {
+  const navigate = useNavigate();
   const [showSearchModal, setShowSearchModal] = useState(false);
-  const notifRef = useRef(null);
-  const notifBtnRef = useRef(null);
 
   const [notifications, setNotifications] = useState([]);
-  const [showNotifications, setShowNotifications] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
   const [isFlipping, setIsFlipping] = useState(false);
   const { socket } = useSocket();
   const isAdmin = userInfo?.role === "admin";
-  useEffect(() => {
-    function handleClickOutside(e) {
-      if (
-        notifRef.current &&
-        !notifRef.current.contains(e.target) &&
-        notifBtnRef.current &&
-        !notifBtnRef.current.contains(e.target)
-      ) {
-        setShowNotifications(false);
-      }
-    }
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-
   useEffect(() => {
     const messageInterval = setInterval(() => {
       setIsFlipping(true);
@@ -146,64 +127,23 @@ export default function Navbar({
         <div className="flex items-center gap-4">
           <div className="relative">
             <button
-              ref={notifBtnRef}
-              onClick={() => setShowNotifications(!showNotifications)}
-              className="relative p-2 hover:bg-gray-100 rounded-lg transition"
+              onClick={() => {
+                if (isAdmin) {
+                  navigate("/dashboard/notifications");
+                } else {
+                  navigate("/notifications");
+                }
+              }}
+              className="relative p-2 hover:bg-gray-100 rounded-lg transition group"
               title="الإشعارات"
             >
-              <Bell className="w-5 h-5 text-gray-600" />
+              <Bell className="w-5 h-5 text-gray-600 group-hover:text-teal-600 transition" />
               {notifications.length > 0 && (
                 <span className="absolute top-0 right-0 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center animate-pulse font-bold shadow-lg">
                   {notifications.length > 9 ? "9+" : notifications.length}
                 </span>
               )}
             </button>
-
-            {
-              <div
-                ref={notifRef}
-                className={`absolute top-full right-0 mt-2 w-80 md:w-96 bg-white border border-gray-200 rounded-xl shadow-xl p-3 space-y-2 max-h-96 overflow-y-auto z-50 transform transition-all duration-300 origin-top-right
-    ${showNotifications ? "animate-slideIn" : "animate-slideOut"}
-  `}
-              >
-                {" "}
-                <div className="font-semibold text-gray-800 pb-2 border-b border-gray-200">
-                  الإشعارات ({notifications.length})
-                </div>
-                {notifications.length > 0 ? (
-                  notifications.map((notif, idx) => (
-                    <div
-                      key={idx}
-                      className={`border rounded-lg p-3 text-sm hover:shadow-md transition cursor-pointer ${
-                        notif.type === "permission_change"
-                          ? "bg-blue-50 border-blue-200"
-                          : "bg-gray-50 border-gray-200"
-                      }`}
-                    >
-                      <p
-                        className={`font-medium ${
-                          notif.type === "permission_change"
-                            ? "text-blue-700"
-                            : "text-teal-600"
-                        }`}
-                      >
-                        {notif.type === "permission_change" ? "🔐" : "📢"}{" "}
-                        {notif.message || notif}
-                      </p>
-                      <p className="text-gray-500 text-xs mt-1">
-                        {new Date(
-                          notif.time || Date.now()
-                        ).toLocaleTimeString()}
-                      </p>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-sm text-gray-500 text-center italic p-2">
-                    لا توجد إشعارات
-                  </p>
-                )}
-              </div>
-            }
           </div>
 
           {isAdmin && (

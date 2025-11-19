@@ -8,7 +8,7 @@ import EmployeeDocuments from "../components/EmployeeDocuments";
 import EmployeeIncidents from "../pages/EmployeeIncidents";
 import EmployeeVacations from "../pages/EmployeeVacations";
 import EmployeeRewards from "../pages/EmployeeRewards";
-
+import EmployeePenalties from "../pages/EmployeePenalties";
 export default function EmployeeEdit() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -188,6 +188,7 @@ export default function EmployeeEdit() {
             { key: "incidents", label: "الوقوعات" },
             { key: "vacations", label: "الإجازات" },
             { key: "rewards", label: "المكافآت" },
+            { key: "Penalties", label: "العقوبات" },
           ].map((tab) => (
             <button
               key={tab.key}
@@ -234,6 +235,7 @@ export default function EmployeeEdit() {
 
           {activeTab === "incidents" && <EmployeeIncidents />}
           {activeTab === "vacations" && <EmployeeVacations />}
+          {activeTab === "Penalties" && <EmployeePenalties />}
           {activeTab === "rewards" && <EmployeeRewards />}
         </div>
       </div>

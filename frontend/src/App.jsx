@@ -7,6 +7,7 @@ import EmployeeEdit from "./pages/EmployeeEdit";
 import UploadExcel from "./pages/UploadExcel";
 import PrivateRoute from "./routes/PrivateRoute";
 import ViewerHome from "./pages/ViewerHome";
+import Home from "./pages/Home";
 import Unauthorized from "./pages/Unauthorized";
 import EmployeeVacations from "./pages/EmployeeVacations";
 import EmployeeRewards from "./pages/EmployeeRewards";
@@ -23,6 +24,10 @@ import ViewerDocuments from "./pages/ViewerDocuments";
 import ViewerSalary from "./pages/ViewerSalary";
 import UserProfile from "./pages/UserProfile";
 import DropdownManager from "./pages/DropdownManager";
+import FileSharing from "./pages/FileSharing";
+import UserNotifications from "./pages/UserNotifications";
+import Circulars from "./pages/Circulars";
+
 function ProtectedRoute({ children, allowedRoles }) {
   const token = localStorage.getItem("token");
   const role = localStorage.getItem("role");
@@ -98,7 +103,7 @@ function App() {
             path="/home"
             element={
               <ProtectedRoute allowedRoles={["user", "admin"]}>
-                <ViewerHome />
+                <Home />
               </ProtectedRoute>
             }
           />
@@ -135,6 +140,33 @@ function App() {
             element={
               <ProtectedRoute>
                 <UserProfile />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/file-sharing"
+            element={
+              <ProtectedRoute>
+                <FileSharing />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/notifications"
+            element={
+              <ProtectedRoute>
+                <UserNotifications />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/circulars"
+            element={
+              <ProtectedRoute>
+                <Circulars />
               </ProtectedRoute>
             }
           />

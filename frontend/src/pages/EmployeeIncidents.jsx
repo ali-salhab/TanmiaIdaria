@@ -237,6 +237,9 @@ export default function EmployeeIncidents() {
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
           <div className="bg-white rounded-lg p-6 max-w-md w-full transform transition-all duration-300 animate-fadeInUp overflow-y-auto max-h-[90vh]">
             <h3 className="text-xl font-bold mb-4 text-center text-gray-800">البطاقة الداتية للموظف</h3>
+            <p className="text-gray-600 text-sm mb-4 text-center">
+              يتم إنشاء ملف Excel يتضمن بيانات الموظف والوقوعات الخاصة به
+            </p>
             <div className="flex flex-col justify-between mt-4 gap-2">
               <button
                 type="button"
@@ -246,10 +249,32 @@ export default function EmployeeIncidents() {
                 إلغاء
               </button>
               <button
-                type="submit"
+                type="button"
+                onClick={async () => {
+                  try {
+                    const response = await API.get(`/incidents/${id}/generate-cv`, {
+                      responseType: "blob",
+                    });
+                    
+                    const url = window.URL.createObjectURL(new Blob([response.data]));
+                    const link = document.createElement("a");
+                    link.href = url;
+                    link.setAttribute("download", `البطاقة_الداتية.xlsx`);
+                    document.body.appendChild(link);
+                    link.click();
+                    link.parentNode.removeChild(link);
+                    window.URL.revokeObjectURL(url);
+                    
+                    setcvModalOpen(false);
+                    toast.success("تم تحميل البطاقة الداتية بنجاح");
+                  } catch (error) {
+                    console.error(error);
+                    toast.error("فشل تحميل البطاقة الداتية");
+                  }
+                }}
                 className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800 transition"
               >
-                تحميل
+                تحميل البطاقة الداتية
               </button>
             </div>
           </div>

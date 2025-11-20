@@ -1,6 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Download, Eye, Trash2, ArrowLeft, X, FileText, Image } from "lucide-react";
+import {
+  Plus,
+  Download,
+  Eye,
+  Trash2,
+  ArrowLeft,
+  X,
+  FileText,
+  Image,
+} from "lucide-react";
 import API from "../api/api";
 import { toast } from "react-hot-toast";
 import { useAuth } from "../hooks/useAuth";
@@ -30,6 +39,7 @@ export default function Circulars() {
     try {
       setLoading(true);
       const response = await API.get("/circulars");
+      console.log(response.data, "-----< Circulars");
       setCirculars(response.data);
     } catch (error) {
       console.error("Error fetching circulars:", error);
@@ -104,7 +114,11 @@ export default function Circulars() {
 
   const handleViewViewers = async (circular) => {
     try {
+      console.log("viewed circular", circular);
       const response = await API.get(`/circulars/${circular._id}/viewers`);
+      console.log("====================================");
+      console.log(response);
+      console.log("====================================");
       setViewers(response.data.viewers);
       setShowViewersModal(true);
     } catch (error) {
@@ -129,7 +143,10 @@ export default function Circulars() {
   }
 
   return (
-    <div dir="rtl" className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 p-4 md:p-8">
+    <div
+      dir="rtl"
+      className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 p-4 md:p-8"
+    >
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
@@ -141,7 +158,9 @@ export default function Circulars() {
             >
               <ArrowLeft className="w-6 h-6 text-gray-600" />
             </button>
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-800">📢 التعاميم</h1>
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-800">
+              📢 التعاميم
+            </h1>
           </div>
           <button
             onClick={() => setShowCreateModal(true)}
@@ -163,7 +182,9 @@ export default function Circulars() {
               key={tab.key}
               onClick={() => setFilter(tab.key)}
               className={`px-4 py-2 rounded-lg transition ${
-                filter === tab.key ? "bg-blue-600 text-white" : "bg-white text-gray-700 hover:shadow-md"
+                filter === tab.key
+                  ? "bg-blue-600 text-white"
+                  : "bg-white text-gray-700 hover:shadow-md"
               }`}
             >
               {tab.label}
@@ -191,13 +212,19 @@ export default function Circulars() {
               >
                 <div className="p-4">
                   <div className="flex items-start justify-between mb-2">
-                    <h3 className="font-semibold text-lg text-gray-800 flex-1 line-clamp-2">{circular.title}</h3>
+                    <h3 className="font-semibold text-lg text-gray-800 flex-1 line-clamp-2">
+                      {circular.title}
+                    </h3>
                     {!circular.isViewed && (
-                      <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full ml-2 flex-shrink-0">جديد</span>
+                      <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full ml-2 flex-shrink-0">
+                        جديد
+                      </span>
                     )}
                   </div>
 
-                  <p className="text-gray-600 text-sm mb-3 line-clamp-2">{circular.content}</p>
+                  <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                    {circular.content}
+                  </p>
 
                   <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
                     <span>👤 {circular.createdBy?.username}</span>
@@ -245,11 +272,15 @@ export default function Circulars() {
 
             <form onSubmit={handleCreateCircular} className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">العنوان *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  العنوان *
+                </label>
                 <input
                   type="text"
                   value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, title: e.target.value })
+                  }
                   className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
                   placeholder="أدخل عنوان التعميم"
                   required
@@ -257,10 +288,14 @@ export default function Circulars() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">المحتوى</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  المحتوى
+                </label>
                 <textarea
                   value={formData.content}
-                  onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, content: e.target.value })
+                  }
                   rows={5}
                   className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
                   placeholder="أدخل نص التعميم"
@@ -268,7 +303,9 @@ export default function Circulars() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">الصور</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  الصور
+                </label>
                 <input
                   type="file"
                   name="images"
@@ -279,7 +316,9 @@ export default function Circulars() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">الملفات</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  الملفات
+                </label>
                 <input
                   type="file"
                   name="files"
@@ -316,7 +355,9 @@ export default function Circulars() {
             <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 flex items-center justify-between">
               <div className="flex-1">
                 <h2 className="text-2xl font-bold">{selectedCircular.title}</h2>
-                <p className="text-blue-100 text-sm">👤 {selectedCircular.createdBy?.username}</p>
+                <p className="text-blue-100 text-sm">
+                  👤 {selectedCircular.createdBy?.username}
+                </p>
               </div>
               <button
                 onClick={() => setSelectedCircular(null)}
@@ -327,7 +368,9 @@ export default function Circulars() {
             </div>
 
             <div className="p-6 space-y-4">
-              <p className="text-gray-700 whitespace-pre-wrap">{selectedCircular.content}</p>
+              <p className="text-gray-700 whitespace-pre-wrap">
+                {selectedCircular.content}
+              </p>
 
               {selectedCircular.images?.length > 0 && (
                 <div>
@@ -340,7 +383,11 @@ export default function Circulars() {
                         download
                         className="relative group rounded-lg overflow-hidden border hover:shadow-lg transition"
                       >
-                        <img src={image.path} alt={image.originalName} className="w-full h-32 object-cover" />
+                        <img
+                          src={image.path}
+                          alt={image.originalName}
+                          className="w-full h-32 object-cover"
+                        />
                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition">
                           <Download className="w-5 h-5 text-white" />
                         </div>
@@ -352,7 +399,9 @@ export default function Circulars() {
 
               {selectedCircular.files?.length > 0 && (
                 <div>
-                  <h3 className="font-semibold text-gray-800 mb-3">📄 الملفات</h3>
+                  <h3 className="font-semibold text-gray-800 mb-3">
+                    📄 الملفات
+                  </h3>
                   <div className="space-y-2">
                     {selectedCircular.files.map((file, idx) => (
                       <a
@@ -363,8 +412,12 @@ export default function Circulars() {
                       >
                         <FileText className="w-5 h-5 text-blue-600" />
                         <div className="flex-1">
-                          <p className="font-medium text-gray-800">{file.originalName}</p>
-                          <p className="text-xs text-gray-500">{(file.size / 1024).toFixed(2)} KB</p>
+                          <p className="font-medium text-gray-800">
+                            {file.originalName}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {(file.size / 1024).toFixed(2)} KB
+                          </p>
                         </div>
                         <Download className="w-5 h-5 text-gray-400" />
                       </a>
@@ -375,8 +428,11 @@ export default function Circulars() {
 
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-gray-700 font-medium">👁️ المشاهدات: {selectedCircular.viewerCount}</span>
-                  {(selectedCircular.createdBy._id === user?._id || user?.role === "admin") && (
+                  <span className="text-gray-700 font-medium">
+                    👁️ المشاهدات: {selectedCircular.viewerCount}
+                  </span>
+                  {(selectedCircular.createdBy._id === user?._id ||
+                    user?.role === "admin") && (
                     <button
                       onClick={() => handleViewViewers(selectedCircular)}
                       className="text-blue-600 hover:text-blue-700 text-sm font-medium"
@@ -385,12 +441,14 @@ export default function Circulars() {
                     </button>
                   )}
                 </div>
+
                 <p className="text-xs text-gray-500">
                   {new Date(selectedCircular.createdAt).toLocaleString("ar-EG")}
                 </p>
               </div>
 
-              {(selectedCircular.createdBy._id === user?._id || user?.role === "admin") && (
+              {(selectedCircular.createdBy._id === user?._id ||
+                user?.role === "admin") && (
                 <div className="flex gap-2 justify-end pt-4">
                   <button
                     onClick={() => handleDeleteCircular(selectedCircular._id)}
@@ -428,18 +486,27 @@ export default function Circulars() {
 
             <div className="p-6">
               {viewers.length === 0 ? (
-                <p className="text-center text-gray-600 py-8">لم يشاهد أحد هذا التعميم حتى الآن</p>
+                <p className="text-center text-gray-600 py-8">
+                  لم يشاهد أحد هذا التعميم حتى الآن
+                </p>
               ) : (
                 <div className="space-y-2">
                   {viewers.map((viewer, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
+                    <div
+                      key={idx}
+                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border"
+                    >
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-green-200 flex items-center justify-center text-green-700 font-bold">
                           {viewer.userId?.username?.charAt(0).toUpperCase()}
                         </div>
                         <div>
-                          <p className="font-medium text-gray-800">{viewer.userId?.username}</p>
-                          <p className="text-xs text-gray-500">{viewer.userId?.email}</p>
+                          <p className="font-medium text-gray-800">
+                            {viewer.userId?.username}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {viewer.userId?.email}
+                          </p>
                         </div>
                       </div>
                       <p className="text-xs text-gray-600">

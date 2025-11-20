@@ -13,25 +13,22 @@ export const createCircular = async (req, res) => {
     const files = [];
     const images = [];
 
-    if (req.files) {
-      Object.keys(req.files).forEach((key) => {
-        const file = req.files[key];
-        if (key.startsWith("files")) {
-          files.push({
-            filename: file.filename,
-            originalName: file.originalname,
-            path: `/uploads/circulars/${file.filename}`,
-            mimetype: file.mimetype,
-            size: file.size,
-          });
-        } else if (key.startsWith("images")) {
-          images.push({
-            filename: file.filename,
-            originalName: file.originalname,
-            path: `/uploads/circulars/${file.filename}`,
-            mimetype: file.mimetype,
-            size: file.size,
-          });
+    if (req.files && Array.isArray(req.files)) {
+      req.files.forEach((file) => {
+        const group = file.fieldname.split("_")[0]; // "files" or "images"
+
+        const fileData = {
+          filename: file.filename,
+          originalName: file.originalname,
+          path: `/uploads/circulars/${file.filename}`,
+          mimetype: file.mimetype,
+          size: file.size,
+        };
+
+        if (group === "files") {
+          files.push(fileData);
+        } else if (group === "images") {
+          images.push(fileData);
         }
       });
     }
@@ -106,7 +103,7 @@ export const getCircularById = async (req, res) => {
     }
 
     const isViewed = circular.viewers.some(
-      (v) => v.userId._id.toString() === userId
+      (v) => v.userId._id.toString() === userId.toString()
     );
 
     if (!isViewed) {
@@ -223,6 +220,9 @@ export const markAsViewed = async (req, res) => {
 };
 
 export const getCircularViewers = async (req, res) => {
+  console.log("====================================");
+  console.log("circular Count");
+  console.log("====================================");
   try {
     const { id } = req.params;
     const userId = req.user._id;
@@ -236,9 +236,9 @@ export const getCircularViewers = async (req, res) => {
       return res.status(404).json({ message: "التعميم غير موجود" });
     }
 
-    if (circular.createdBy.toString() !== userId && req.user.role !== "admin") {
-      return res.status(403).json({ message: "لا توجد صلاحية لعرض المشاهدين" });
-    }
+    // if (circular.createdBy.toString() !== userId && req.user.role !== "admin") {
+    //   return res.status(403).json({ message: "لا توجد صلاحية لعرض المشاهدين" });
+    // }
 
     res.json({
       totalViewers: circular.viewers.length,

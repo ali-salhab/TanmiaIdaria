@@ -4,7 +4,7 @@ import { FaEdit, FaEye, FaEyeSlash } from "react-icons/fa";
 import { Settings } from "lucide-react";
 import API from "../api/api";
 import DropdownWithSettings from "../components/DropdownWithSettings";
-import PermissionsManager from "./PermissionsManager";
+
 export default function HomepageBuilder() {
   const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
@@ -176,6 +176,7 @@ export default function HomepageBuilder() {
       await API.put(`/users/${id}/permissions`, {
         permissions: tempPermissions,
       });
+
       toast.success("✅ تم تحديث الصلاحيات بنجاح!");
       setEditingPermissions(null);
       setTempPermissions({});
@@ -227,7 +228,10 @@ export default function HomepageBuilder() {
 
   const updateGroupPermissions = async (groupId, permissionIds) => {
     try {
-      await API.put(`/permissions/groups/${groupId}/permissions`, {
+      // await API.put(`/permissions/groups/${groupId}/permissions`, {
+      //   permissions: permissionIds,
+      // });
+      await API.put(`/permissions/groups/${groupId}`, {
         permissions: permissionIds,
       });
       toast.success("✅ تم تحديث صلاحيات المجموعة!");
@@ -406,15 +410,16 @@ export default function HomepageBuilder() {
                 🔐 مجموعات الصلاحيات
               </button>
               <button
-                onClick={() => setActiveTab("permissions-managment")}
+                onClick={() => setActiveTab("permission-manager")}
                 className={`px-4 py-2 rounded-lg font-medium transition ${
-                  activeTab === "permissions-managment"
+                  activeTab === "permission-manager"
                     ? "bg-blue-600 text-white"
                     : "bg-gray-200 text-gray-800 hover:bg-gray-300"
                 }`}
               >
-                ادارة الصلاحيات
+                🛡️ إدارة الصلاحيات
               </button>
+
               <button
                 onClick={() => setActiveTab("users")}
                 className={`px-4 py-2 rounded-lg font-medium transition ${
@@ -431,6 +436,12 @@ export default function HomepageBuilder() {
       </div>
 
       {/* Homepage Builder Tab */}
+      {activeTab === "permission-manager" && (
+        <PermissionManagerComponent
+          allPermissions={allPermissions}
+          users={users}
+        />
+      )}
       {activeTab === "homepage" && (
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Users List - Only for Admins */}
@@ -1064,6 +1075,160 @@ export default function HomepageBuilder() {
               </div>
             </div>
           )}
+        </div>
+      )}
+    </div>
+  );
+}
+function PermissionManagerComponent({ allPermissions, users }) {
+  const [newPermission, setNewPermission] = useState({
+    name: "",
+    label: "",
+    category: "",
+  });
+
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [userPermissions, setUserPermissions] = useState([]);
+
+  const createPermission = async () => {
+    try {
+      await API.post("/permissions", newPermission);
+      toast.success("تم إضافة صلاحية جديدة");
+      setNewPermission({ name: "", label: "", category: "" });
+    } catch (err) {
+      toast.error("فشل في إضافة الصلاحية");
+    }
+  };
+
+  const loadUserPermissions = async (userId) => {
+    try {
+      // const res = await API.get(`/permissions/user/${userId}`);
+      await API.get(`/permissions/user/${userId}/permissions`);
+
+      setSelectedUser(userId);
+      setUserPermissions(res.data || []);
+    } catch {
+      toast.error("فشل في تحميل صلاحيات المستخدم");
+    }
+  };
+
+  const toggleUserPermission = async (permName) => {
+    try {
+      await API.put(`/permissions/user/${selectedUser}`, {
+        permission: permName,
+      });
+      loadUserPermissions(selectedUser);
+    } catch {
+      toast.error("فشل تعديل الصلاحيات");
+    }
+  };
+
+  return (
+    <div className="p-6 bg-white rounded-xl shadow">
+      <h3 className="text-xl font-semibold mb-4 text-blue-700">
+        🛡️ إدارة الصلاحيات
+      </h3>
+
+      {/* Add Permission */}
+      <div className="mb-6 bg-gray-50 p-4 rounded-lg border">
+        <h4 className="font-semibold mb-3">➕ إضافة صلاحية جديدة</h4>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <input
+            type="text"
+            placeholder="Permission Name"
+            value={newPermission.name}
+            onChange={(e) =>
+              setNewPermission({ ...newPermission, name: e.target.value })
+            }
+            className="border px-3 py-2 rounded-lg"
+          />
+
+          <input
+            type="text"
+            placeholder="Label"
+            value={newPermission.label}
+            onChange={(e) =>
+              setNewPermission({ ...newPermission, label: e.target.value })
+            }
+            className="border px-3 py-2 rounded-lg"
+          />
+
+          <input
+            type="text"
+            placeholder="Category"
+            value={newPermission.category}
+            onChange={(e) =>
+              setNewPermission({ ...newPermission, category: e.target.value })
+            }
+            className="border px-3 py-2 rounded-lg"
+          />
+        </div>
+
+        <button
+          onClick={createPermission}
+          className="mt-3 px-4 py-2 bg-green-600 text-white rounded-lg"
+        >
+          إضافة صلاحية
+        </button>
+      </div>
+
+      {/* Permissions table */}
+      <h4 className="font-semibold mb-3">📌 جميع الصلاحيات</h4>
+      <table className="w-full bg-white rounded-lg shadow mb-6">
+        <thead className="bg-blue-100 text-right">
+          <tr>
+            <th className="p-2">الاسم</th>
+            <th className="p-2">التسمية</th>
+            <th className="p-2">الفئة</th>
+          </tr>
+        </thead>
+        <tbody>
+          {allPermissions.map((p) => (
+            <tr key={p._id} className="border-b hover:bg-gray-50">
+              <td className="p-2">{p.name}</td>
+              <td className="p-2">{p.label}</td>
+              <td className="p-2">{p.category}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      {/* User Permission Management */}
+      <h4 className="font-semibold mb-3">👤 تخصيص صلاحيات مستخدم</h4>
+
+      <select
+        onChange={(e) => loadUserPermissions(e.target.value)}
+        className="border px-3 py-2 rounded-lg mb-4"
+      >
+        <option>اختر مستخدم...</option>
+        {users.map((u) => (
+          <option key={u._id} value={u._id}>
+            {u.username}
+          </option>
+        ))}
+      </select>
+
+      {selectedUser && (
+        <div className="p-4 bg-gray-50 rounded-lg border">
+          <h4 className="font-semibold mb-3">صلاحيات المستخدم</h4>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+            {allPermissions.map((perm) => (
+              <label
+                key={perm._id}
+                className="flex items-center gap-2 p-2 bg-white rounded-lg border"
+              >
+                <input
+                  type="checkbox"
+                  checked={userPermissions.includes(perm.name)}
+                  onChange={() => toggleUserPermission(perm.name)}
+                  className="accent-blue-600 h-4 w-4"
+                />
+                {perm.label}
+              </label>
+            ))}
+          </div>
         </div>
       )}
     </div>

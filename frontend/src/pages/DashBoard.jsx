@@ -132,13 +132,35 @@ export default function Dashboard() {
           >
             الديوان 📃
           </Link>
-          <Link
-            to="/dashboard/permissions"
-            onClick={closeSidebarOnMobile}
-            className="block py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg lg:bg-gray-700 lg:hover:bg-gray-600 bg-white hover:bg-white transition transform hover:translate-x-1 hover:scale-105 text-sm sm:text-base"
-          >
-            الديوان 📃
-          </Link>
+          {/* --- Permissions Section --- */}
+          <div className="mt-4">
+            <p className="text-white/70 text-sm mb-2">⚙️ إدارة الصلاحيات</p>
+
+            <Link
+              to="/dashboard/permissions/users"
+              onClick={closeSidebarOnMobile}
+              className="block py-2 px-4 rounded-lg lg:bg-gray-700 lg:hover:bg-gray-600 bg-white/10 hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105 text-sm sm:text-base"
+            >
+              👥 صلاحيات المستخدمين
+            </Link>
+
+            <Link
+              to="/dashboard/permissions/groups"
+              onClick={closeSidebarOnMobile}
+              className="block py-2 px-4 rounded-lg lg:bg-gray-700 lg:hover:bg-gray-600 bg-white/10 hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105 text-sm sm:text-base"
+            >
+              🗂️ مجموعات الصلاحيات
+            </Link>
+
+            <Link
+              to="/dashboard/permissions/manage"
+              onClick={closeSidebarOnMobile}
+              className="block py-2 px-4 rounded-lg lg:bg-gray-700 lg:hover:bg-gray-600 bg-white/10 hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105 text-sm sm:text-base"
+            >
+              🔧 إدارة جميع الصلاحيات
+            </Link>
+          </div>
+
           <Link
             to="/dashboard/dywan"
             onClick={closeSidebarOnMobile}

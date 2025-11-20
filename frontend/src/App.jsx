@@ -27,7 +27,9 @@ import DropdownManager from "./pages/DropdownManager";
 import FileSharing from "./pages/FileSharing";
 import UserNotifications from "./pages/UserNotifications";
 import Circulars from "./pages/Circulars";
-
+import PermissionGroupsPage from "./pages/PermissionGroupsPage";
+import PermissionManager from "./pages/PermissionsManager";
+import PermissionsPage from "./pages/PermissionsPage";
 function ProtectedRoute({ children, allowedRoles }) {
   const token = localStorage.getItem("token");
   const role = localStorage.getItem("role");
@@ -88,6 +90,13 @@ function App() {
               </ProtectedRoute>
             }
           >
+            {" "}
+            <Route path="permissions/users" element={<PermissionsPage />} />
+            <Route
+              path="permissions/groups"
+              element={<PermissionGroupsPage />}
+            />
+            <Route path="permissions/manage" element={<PermissionManager />} />
             <Route path="notifications" element={<Notifications />} />
             <Route path="dywan" element={<Dywan />} />
             <Route path="employees/:id" element={<EmployeeEdit />} />

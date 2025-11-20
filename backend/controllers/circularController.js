@@ -71,7 +71,7 @@ export const getAllCirculars = async (req, res) => {
 
     const circularWithViewStatus = circulars.map((circular) => {
       const isViewed = circular.viewers.some(
-        (v) => v.userId.toString() === userId
+        (v) => v.userId.toString() === userId.toString()
       );
       return {
         ...circular,
@@ -199,8 +199,11 @@ export const markAsViewed = async (req, res) => {
     }
 
     const isViewed = circular.viewers.some((v) => {
-      console.log(v.userId.toString() === userId?.toString(), "<----------");
-      return v.userId.toString() === userId?.toString();
+      const viewerId = v.userId?._id
+        ? v.userId._id.toString()
+        : v.userId.toString();
+
+      return viewerId === userId.toString();
     });
     console.log("-------------------->");
     console.log(isViewed);

@@ -4,7 +4,7 @@ import { FaEdit, FaEye, FaEyeSlash } from "react-icons/fa";
 import { Settings } from "lucide-react";
 import API from "../api/api";
 import DropdownWithSettings from "../components/DropdownWithSettings";
-
+import PermissionsManager from "./PermissionsManager";
 export default function HomepageBuilder() {
   const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
@@ -406,14 +406,14 @@ export default function HomepageBuilder() {
                 🔐 مجموعات الصلاحيات
               </button>
               <button
-                onClick={() => setActiveTab("permissions")}
+                onClick={() => setActiveTab("permissions-managment")}
                 className={`px-4 py-2 rounded-lg font-medium transition ${
-                  activeTab === "permissions"
+                  activeTab === "permissions-managment"
                     ? "bg-blue-600 text-white"
                     : "bg-gray-200 text-gray-800 hover:bg-gray-300"
                 }`}
               >
-                🔐 مجموعات الصلاحيات
+                ادارة الصلاحيات
               </button>
               <button
                 onClick={() => setActiveTab("users")}
@@ -590,7 +590,7 @@ export default function HomepageBuilder() {
           </div>
         </div>
       )}
-
+      {activeTab == "managment-permissions" && <PermissionsManager />}
       {/* Permission Groups Tab */}
       {activeTab === "permissions" && (
         <div dir="rtl" className="min-h-screen bg-gray-100 p-6">

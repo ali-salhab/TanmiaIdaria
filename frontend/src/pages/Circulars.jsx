@@ -152,7 +152,7 @@ export default function Circulars() {
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
             <button
-              onClick={() => navigate("/home")}
+              onClick={() => navigate("/dashboard")}
               className="p-2 hover:bg-white rounded-lg transition"
               title="العودة"
             >

@@ -96,7 +96,7 @@ function App() {
             <Route path="upload" element={<UploadExcel />} />
             <Route path="homepage-builder" element={<HomepageBuilder />} />
             <Route path="dropdown-manager" element={<DropdownManager />} />
-            <Route path="  " element={<PermissionsManager />} />
+            <Route path="test" element={<PermissionsManager />} />
           </Route>
 
           <Route

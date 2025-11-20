@@ -1,8 +1,15 @@
 import { useState, useRef, useEffect } from "react";
-import { Bell, User, Search, Menu, X, MessageCircle } from "lucide-react";
+import {
+  Bell,
+  User,
+  Megaphone,
+  Search,
+  Menu,
+  X,
+  MessageCircle,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useSocket } from "../context/SocketContext";
-
 const navbarMessages = [
   "🎯 مرحباً بك في نظام إدارة التنمية الإدارية",
   "📊 إدارة فعالة للموارد البشرية",
@@ -93,7 +100,7 @@ export default function Navbar({
           </button>
 
           {/* Animated Message with 3D Flip */}
-          <div className="hidden sm:flex items-center gap-3 flex-1 max-w-md">
+          {/* <div className="relative  sm:flex items-center gap-3 flex-1 max-w-md hidden">
             <div className="relative h-10 flex-1 overflow-hidden perspective">
               <div
                 className={`absolute inset-0 flex items-center justify-center px-4 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 rounded-lg border border-blue-300/50 transition-all duration-700 transform ${
@@ -108,7 +115,7 @@ export default function Navbar({
                 </p>
               </div>
             </div>
-          </div>
+          </div> */}
           {/* search container */}
           <div className="relative rounded  flex-1 max-w-md hidden md:block">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -125,7 +132,7 @@ export default function Navbar({
         </div>
 
         <div className="flex items-center gap-4">
-          <div className="relative">
+          <div className="relative bg-black gap-2 rounded-lg p-1 flex">
             <button
               onClick={() => {
                 if (isAdmin) {
@@ -143,6 +150,13 @@ export default function Navbar({
                   {notifications.length > 9 ? "9+" : notifications.length}
                 </span>
               )}
+            </button>
+            <button
+              onClick={() => navigate("/circulars")}
+              className="p-1.5 md:p-2 hover:bg-gray-100 rounded-lg transition"
+              title="التعاميم"
+            >
+              <Megaphone className="w-5 h-5 text-gray-600 group-hover:text-teal-600 transition" />
             </button>
           </div>
 

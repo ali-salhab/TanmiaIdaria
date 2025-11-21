@@ -14,7 +14,6 @@ const permissionSchema = new mongoose.Schema(
     description: String,
     category: {
       type: String,
-      enum: ["view", "create", "edit", "delete", "manage", "admin"],
       default: "view",
     },
   },

@@ -93,9 +93,9 @@ export default function Dashboard() {
       )}
 
       <aside
-        className={`fixed lg:relative left-0 top-0 h-screen w-56 sm:w-64 lg:bg-gray-800 bg-white/15 border-r lg:border-gray-700 border-white/20 flex flex-col shadow-2xl animate-slideInLeft z-40 transition-transform duration-300 ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } lg:translate-x-0`}
+        className={`fixed  lg:relative left-0 top-0 h-screen w-56 sm:w-64 lg:bg-gray-800 bg-white/15 border-r lg:border-gray-700 border-white/20 flex flex-col shadow-2xl z-40 transition-transform duration-300 ${
+          sidebarOpen ? " sm:mt-12 lg:mt-0" : " hidden"
+        } z-100`}
       >
         <div className="p-4 sm:p-6 lg:border-gray-700 border-b border-white/20 bg-gradient-to-r lg:from-gray-700 lg:to-gray-800 text-center">
           <h1 className="text-xl sm:text-2xl font-bold text-white drop-shadow">
@@ -106,18 +106,21 @@ export default function Dashboard() {
           </p>
         </div>
 
-        <nav className="flex-1 p-3 sm:p-4 space-y-2 overflow-y-auto" dir="rtl">
+        <nav
+          className="flex-1 bg-black z-111 p-3 sm:p-4 space-y-2 overflow-y-auto"
+          dir="rtl"
+        >
           <Link
             to="/dashboard/employees"
             onClick={closeSidebarOnMobile}
-            className="block py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg lg:bg-gray-700 lg:hover:bg-gray-600 bg-white/10 hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105 text-sm sm:text-base"
+            className="block py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg  lg:bg-gray-700 lg:hover:bg-gray-600 bg-white hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105 text-sm sm:text-base"
           >
             📋 الموظفين
           </Link>
           <Link
             to="/dashboard/upload"
             onClick={closeSidebarOnMobile}
-            className="block py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg lg:bg-gray-700 lg:hover:bg-gray-600 bg-white/10 hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105 text-sm sm:text-base"
+            className="block py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg lg:bg-gray-700 lg:hover:bg-gray-600 bg-white hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105 text-sm sm:text-base"
           >
             📤 ادارة قاعدة البيانات
           </Link>
@@ -125,35 +128,57 @@ export default function Dashboard() {
           <Link
             to="/dashboard/dywan"
             onClick={closeSidebarOnMobile}
-            className="block py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg lg:bg-gray-700 lg:hover:bg-gray-600 bg-white/10 hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105 text-sm sm:text-base"
+            className="block py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg lg:bg-gray-700 lg:hover:bg-gray-600 bg-white hover:bg-white transition transform hover:translate-x-1 hover:scale-105 text-sm sm:text-base"
           >
             الديوان 📃
           </Link>
-          <Link
-            to="/dashboard/permissions"
-            onClick={closeSidebarOnMobile}
-            className="block py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg lg:bg-gray-700 lg:hover:bg-gray-600 bg-white/10 hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105 text-sm sm:text-base"
-          >
-            الديوان 📃
-          </Link>
+          {/* --- Permissions Section --- */}
+          <div className="mt-4">
+            <p className="text-white/70 text-sm mb-2">⚙️ إدارة الصلاحيات</p>
+
+            <Link
+              to="/dashboard/permissions/users"
+              onClick={closeSidebarOnMobile}
+              className="block py-2 px-4 rounded-lg lg:bg-gray-700 lg:hover:bg-gray-600 bg-white/10 hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105 text-sm sm:text-base"
+            >
+              👥 صلاحيات المستخدمين
+            </Link>
+
+            <Link
+              to="/dashboard/permissions/groups"
+              onClick={closeSidebarOnMobile}
+              className="block py-2 px-4 rounded-lg lg:bg-gray-700 lg:hover:bg-gray-600 bg-white/10 hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105 text-sm sm:text-base"
+            >
+              🗂️ مجموعات الصلاحيات
+            </Link>
+
+            <Link
+              to="/dashboard/permissions/manage"
+              onClick={closeSidebarOnMobile}
+              className="block py-2 px-4 rounded-lg lg:bg-gray-700 lg:hover:bg-gray-600 bg-white/10 hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105 text-sm sm:text-base"
+            >
+              🔧 إدارة جميع الصلاحيات
+            </Link>
+          </div>
+
           <Link
             to="/dashboard/dywan"
             onClick={closeSidebarOnMobile}
-            className="block py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg lg:bg-gray-700 lg:hover:bg-gray-600 bg-white/10 hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105 text-sm sm:text-base"
+            className="block py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg lg:bg-gray-700 lg:hover:bg-gray-600 bg-white hover:bg-white transition transform hover:translate-x-1 hover:scale-105 text-sm sm:text-base"
           >
             القانونية 📃
           </Link>
           <Link
             to="/dashboard/dywan"
             onClick={closeSidebarOnMobile}
-            className="block py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg lg:bg-gray-700 lg:hover:bg-gray-600 bg-white/10 hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105 text-sm sm:text-base"
+            className="block py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg lg:bg-gray-700 lg:hover:bg-gray-600 bg-white hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105 text-sm sm:text-base"
           >
             📃 الشكاوى
           </Link>
           <Link
             to="/dashboard"
             onClick={closeSidebarOnMobile}
-            className="block py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg lg:bg-gray-700 lg:hover:bg-gray-600 bg-white/10 hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105 text-sm sm:text-base"
+            className="block py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg lg:bg-gray-700 lg:hover:bg-gray-600 bg-white/10 hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105 text-sm "
           >
             الأرشيف 🖨️
           </Link>
@@ -176,7 +201,7 @@ export default function Dashboard() {
         <div className="lg:border-gray-700 border-t border-white/20 p-3 sm:p-4 space-y-2 sm:space-y-3">
           <button
             onClick={handleLogout}
-            className="w-full lg:bg-red-700 lg:hover:bg-red-600 bg-rose-500/80 hover:bg-rose-600 text-white py-2 rounded-lg transition transform hover:scale-105 font-medium text-sm sm:text-base"
+            className="w-full lg:bg-red-700 lg:hover:bg-red-600 bg-rose-500/80 hover:bg-rose-600 text-red-500 py-2 rounded-lg transition transform hover:scale-105 font-medium text-sm sm:text-base"
           >
             تسجيل الخروج 📤
           </button>

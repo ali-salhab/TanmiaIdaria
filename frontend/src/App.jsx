@@ -15,7 +15,7 @@ import EmployeeIncidents from "./pages/EmployeeIncidents";
 import { Toaster } from "react-hot-toast";
 import Notifications from "./pages/Notifications";
 import { SocketProvider } from "./context/SocketContext";
-import PermissionsManager from "./pages/PermissionsManager";
+import PermissionsManager from "./pages/permissions/PermissionsManager";
 import Dywan from "./pages/Dywan";
 import HomepageBuilder from "./pages/HomepageBuilder";
 import Onboarding from "./pages/Onboarding";
@@ -27,7 +27,9 @@ import DropdownManager from "./pages/DropdownManager";
 import FileSharing from "./pages/FileSharing";
 import UserNotifications from "./pages/UserNotifications";
 import Circulars from "./pages/Circulars";
-
+import PermissionGroupsPage from "./pages/permissions/PermissionGroupsPage";
+import PermissionManager from "./pages/permissions/PermissionsManager";
+import PermissionsPage from "./pages/permissions/PermissionsPage";
 function ProtectedRoute({ children, allowedRoles }) {
   const token = localStorage.getItem("token");
   const role = localStorage.getItem("role");
@@ -88,6 +90,13 @@ function App() {
               </ProtectedRoute>
             }
           >
+            {" "}
+            <Route path="permissions/users" element={<PermissionsPage />} />
+            <Route
+              path="permissions/groups"
+              element={<PermissionGroupsPage />}
+            />
+            <Route path="permissions/manage" element={<PermissionManager />} />
             <Route path="notifications" element={<Notifications />} />
             <Route path="dywan" element={<Dywan />} />
             <Route path="employees/:id" element={<EmployeeEdit />} />
@@ -96,7 +105,7 @@ function App() {
             <Route path="upload" element={<UploadExcel />} />
             <Route path="homepage-builder" element={<HomepageBuilder />} />
             <Route path="dropdown-manager" element={<DropdownManager />} />
-            <Route path="  " element={<PermissionsManager />} />
+            <Route path="test" element={<PermissionsManager />} />
           </Route>
 
           <Route

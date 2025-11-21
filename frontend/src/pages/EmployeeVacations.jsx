@@ -30,10 +30,18 @@ export default function EmployeeVacations() {
   ];
 
   useEffect(() => {
-    setVacations([
-      { id: 1, type: "إجازة صحية", days: 10, startDate: "2025-11-01" },
-      { id: 2, type: "إجازة إدارية", days: 5, startDate: "2025-09-10" },
-    ]);
+    const fetchVacations = async () => {
+      try {
+        const res = await API.get(`/employees/${id}/vacations`);
+        console.log("employee vacations response:");
+        console.log(res.data);
+        setVacations(res.data);
+      } catch (err) {
+        toast.error("فشل تحميل الإجازات");
+      }
+    };
+
+    fetchVacations();
   }, [id]);
 
   const handleAdd = () => {
@@ -99,29 +107,30 @@ export default function EmployeeVacations() {
 
     setFormData(newData);
   };
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (selectedVacation) {
-      // تعديل
-      setVacations(
-        vacations.map((v) =>
-          v.id === selectedVacation.id ? { ...v, ...formData } : v
-        )
-      );
-    } else {
-      // إضافة جديدة
-      const newVac = {
-        id: Date.now(),
-        type: formData.type,
-        days: formData.days,
-        startDate: formData.startDate,
-      };
-      setVacations([...vacations, newVac]);
-    }
+    try {
+      if (selectedVacation) {
+        // تحديث
+        const res = await API.put(
+          `/vacations/${selectedVacation._id}`,
+          formData
+        );
+        setVacations(
+          vacations.map((v) => (v._id === selectedVacation._id ? res.data : v))
+        );
+      } else {
+        // إضافة
+        const res = await API.post(`/employees/${id}/vacations`, formData);
+        setVacations([...vacations, res.data]);
+      }
 
-    setModalOpen(false);
+      setModalOpen(false);
+      toast.success("تم الحفظ بنجاح");
+    } catch (err) {
+      toast.error("خطأ أثناء الحفظ");
+    }
   };
 
   const handleExportWord = async () => {
@@ -129,7 +138,7 @@ export default function EmployeeVacations() {
       const response = await API.get(`/employees/${id}/vacations/export/word`, {
         responseType: "blob",
       });
-      
+
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
       link.href = url;
@@ -138,7 +147,7 @@ export default function EmployeeVacations() {
       link.click();
       link.parentNode.removeChild(link);
       window.URL.revokeObjectURL(url);
-      
+
       toast.success("تم تحميل المستند بنجاح");
     } catch (error) {
       console.error(error);
@@ -151,7 +160,7 @@ export default function EmployeeVacations() {
       const response = await API.get(`/vacations/${vacationId}/template`, {
         responseType: "blob",
       });
-      
+
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
       link.href = url;
@@ -160,7 +169,7 @@ export default function EmployeeVacations() {
       link.click();
       link.parentNode.removeChild(link);
       window.URL.revokeObjectURL(url);
-      
+
       toast.success("تم تحميل استمارة الإجازة بنجاح");
     } catch (error) {
       console.error(error);
@@ -199,14 +208,18 @@ export default function EmployeeVacations() {
               </tr>
             </thead>
             <tbody>
-              ${vacations.map((v, idx) => `
+              ${vacations
+                .map(
+                  (v, idx) => `
                 <tr>
                   <td>${idx + 1}</td>
                   <td>${v.type}</td>
                   <td>${v.days}</td>
                   <td>${v.startDate}</td>
                 </tr>
-              `).join("")}
+              `
+                )
+                .join("")}
             </tbody>
           </table>
         </body>
@@ -264,20 +277,23 @@ export default function EmployeeVacations() {
               <td className="p-2 border">{v.days}</td>
               <td className="p-2 border">{v.startDate}</td>
               <td className="p-2 border">
-                <button
-                  onClick={() => handleDownloadTemplate(v.id)}
-                  className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 ml-2 transition flex items-center gap-1 text-sm"
-                  title="تحميل استمارة الإجازة"
-                >
-                  <Download size={14} />
-                  استمارة
-                </button>
-                <button
-                  onClick={() => handleEdit(v)}
-                  className="bg-gray-600 text-white px-3 py-1 rounded hover:bg-gray-700 ml-2 transition"
-                >
-                  تعديل
-                </button>
+                <div className="flex flex-row">
+                  {" "}
+                  <button
+                    onClick={() => handleDownloadTemplate(v.id)}
+                    className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 ml-2 transition flex items-center gap-1 text-sm"
+                    title="تحميل استمارة الإجازة"
+                  >
+                    <Download size={14} />
+                    استمارة
+                  </button>
+                  <button
+                    onClick={() => handleEdit(v)}
+                    className="bg-gray-600 text-white px-3 py-1 rounded hover:bg-gray-700 ml-2 transition"
+                  >
+                    تعديل
+                  </button>
+                </div>
               </td>
             </tr>
           ))}
@@ -302,8 +318,15 @@ export default function EmployeeVacations() {
               <DropdownWithSettings
                 id="vacation_type"
                 value={formData.type}
-                onChange={(e) => handleChange({ target: { name: "type", value: e.target.value } })}
-                options={[{ value: "", label: "اختر النوع" }, ...vacationTypes.map((t) => ({ value: t, label: t }))]}
+                onChange={(e) =>
+                  handleChange({
+                    target: { name: "type", value: e.target.value },
+                  })
+                }
+                options={[
+                  { value: "", label: "اختر النوع" },
+                  ...vacationTypes.map((t) => ({ value: t, label: t })),
+                ]}
                 label="نوع الإجازة"
                 placeholder="اختر النوع"
                 className="border p-2 w-full rounded"
@@ -314,7 +337,11 @@ export default function EmployeeVacations() {
                 <DropdownWithSettings
                   id="child_order"
                   value={formData.childOrder}
-                  onChange={(e) => handleChange({ target: { name: "childOrder", value: e.target.value } })}
+                  onChange={(e) =>
+                    handleChange({
+                      target: { name: "childOrder", value: e.target.value },
+                    })
+                  }
                   options={[
                     { value: "", label: "اختر" },
                     { value: "1", label: "الولد الأول (120 يوم)" },

@@ -8,3 +8,5 @@ frontend/build/
 npm
 yarn.lock
 pnpm-lock.yaml
+dist/
+backend/assets/

@@ -4,7 +4,9 @@ import { FaEdit, FaEye, FaEyeSlash } from "react-icons/fa";
 import { Settings } from "lucide-react";
 import API from "../api/api";
 import DropdownWithSettings from "../components/DropdownWithSettings";
-
+import PermissionGroupsPage from "./permissions/PermissionGroupsPage";
+import PermissionManager from "./permissions/PermissionsManager";
+import PermissionPage from "./permissions/PermissionsPage";
 export default function HomepageBuilder() {
   const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
@@ -406,15 +408,16 @@ export default function HomepageBuilder() {
                 🔐 مجموعات الصلاحيات
               </button>
               <button
-                onClick={() => setActiveTab("permissions")}
+                onClick={() => setActiveTab("permission-manager")}
                 className={`px-4 py-2 rounded-lg font-medium transition ${
-                  activeTab === "permissions"
+                  activeTab === "permission-manager"
                     ? "bg-blue-600 text-white"
                     : "bg-gray-200 text-gray-800 hover:bg-gray-300"
                 }`}
               >
-                🔐 مجموعات الصلاحيات
+                🛡️ إدارة الصلاحيات
               </button>
+
               <button
                 onClick={() => setActiveTab("users")}
                 className={`px-4 py-2 rounded-lg font-medium transition ${
@@ -431,6 +434,12 @@ export default function HomepageBuilder() {
       </div>
 
       {/* Homepage Builder Tab */}
+      {activeTab === "permission-manager" && (
+        <PermissionManagerComponent
+          allPermissions={allPermissions}
+          users={users}
+        />
+      )}
       {activeTab === "homepage" && (
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Users List - Only for Admins */}
@@ -590,481 +599,304 @@ export default function HomepageBuilder() {
           </div>
         </div>
       )}
-
+      {activeTab == "managment-permissions" && <PermissionManagerComponent />}
       {/* Permission Groups Tab */}
-      {activeTab === "permissions" && (
-        <div dir="rtl" className="min-h-screen bg-gray-100 p-6">
-          <div className="max-w-6xl mx-auto">
-            {/* Create New Group */}
-            <div className="bg-white p-6 rounded-2xl shadow mb-8">
-              <h3 className="text-lg font-semibold mb-4 text-gray-800">
-                ➕ إنشاء مجموعة صلاحيات جديدة
-              </h3>
-              <div className="flex gap-3">
-                <input
-                  type="text"
-                  placeholder="اسم المجموعة (مثال: موظفي الموارد البشرية)"
-                  value={newGroupName}
-                  onChange={(e) => setNewGroupName(e.target.value)}
-                  className="flex-1 border border-gray-300 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <button
-                  onClick={createPermissionGroup}
-                  className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition"
-                >
-                  إنشاء
-                </button>
-              </div>
-            </div>
-
-            {/* Permission Groups List */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {permissionGroups.length > 0 ? (
-                permissionGroups.map((group) => (
-                  <div
-                    key={group._id}
-                    className="bg-white rounded-xl shadow-md p-6 border-l-4 border-blue-600"
-                  >
-                    <div className="flex items-start justify-between mb-4">
-                      {editingGroupId === group._id ? (
-                        <div className="flex-1 flex gap-2">
-                          <input
-                            type="text"
-                            value={editingGroupName}
-                            onChange={(e) =>
-                              setEditingGroupName(e.target.value)
-                            }
-                            className="flex-1 border border-gray-300 px-3 py-1 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                          />
-                          <button
-                            onClick={() => updateGroupName(group._id)}
-                            className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700"
-                          >
-                            ✓
-                          </button>
-                          <button
-                            onClick={() => {
-                              setEditingGroupId(null);
-                              setEditingGroupName("");
-                            }}
-                            className="px-3 py-1 bg-gray-400 text-white rounded text-sm hover:bg-gray-500"
-                          >
-                            ✕
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="flex-1">
-                          <h4 className="text-lg font-semibold text-gray-800">
-                            {group.name}
-                          </h4>
-                          <p className="text-sm text-gray-500 mt-1">
-                            {group.permissions?.length || 0} صلاحيات
-                          </p>
-                        </div>
-                      )}
-                    </div>
-
-                    {editingGroupId === group._id && (
-                      <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200 max-h-64 overflow-y-auto">
-                        <h5 className="text-sm font-semibold text-gray-700 mb-3">
-                          اختر الصلاحيات:
-                        </h5>
-                        <div className="space-y-2">
-                          {allPermissions.map((perm) => (
-                            <label
-                              key={perm._id}
-                              className="flex items-center gap-2 text-sm cursor-pointer hover:bg-white p-2 rounded transition"
-                            >
-                              <input
-                                type="checkbox"
-                                checked={selectedGroupPermissions.includes(
-                                  perm._id
-                                )}
-                                onChange={(e) => {
-                                  if (e.target.checked) {
-                                    setSelectedGroupPermissions([
-                                      ...selectedGroupPermissions,
-                                      perm._id,
-                                    ]);
-                                  } else {
-                                    setSelectedGroupPermissions(
-                                      selectedGroupPermissions.filter(
-                                        (id) => id !== perm._id
-                                      )
-                                    );
-                                  }
-                                }}
-                                className="accent-blue-600 h-4 w-4"
-                              />
-                              <span className="text-gray-700">
-                                {perm.label}
-                              </span>
-                              <span className="text-xs text-gray-500 ml-auto">
-                                {perm.category}
-                              </span>
-                            </label>
-                          ))}
-                        </div>
-                        <button
-                          onClick={() => {
-                            updateGroupPermissions(
-                              group._id,
-                              selectedGroupPermissions
-                            );
-                            setEditingGroupId(null);
-                          }}
-                          className="w-full mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition"
-                        >
-                          حفظ الصلاحيات
-                        </button>
-                      </div>
-                    )}
-
-                    {!editingGroupId && group.permissions && (
-                      <div className="mb-4">
-                        <p className="text-xs font-semibold text-gray-600 mb-2">
-                          الصلاحيات:
-                        </p>
-                        <div className="flex flex-wrap gap-1">
-                          {group.permissions.slice(0, 3).map((perm) => (
-                            <span
-                              key={perm._id}
-                              className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs"
-                            >
-                              {perm.label}
-                            </span>
-                          ))}
-                          {group.permissions.length > 3 && (
-                            <span className="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs">
-                              +{group.permissions.length - 3}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    {!editingGroupId && (
-                      <div className="flex gap-2 pt-4 border-t">
-                        <button
-                          onClick={() => {
-                            setEditingGroupId(group._id);
-                            setEditingGroupName(group.name);
-                            setSelectedGroupPermissions(
-                              group.permissions?.map((p) => p._id) || []
-                            );
-                          }}
-                          className="flex-1 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition"
-                        >
-                          تعديل
-                        </button>
-                        <button
-                          onClick={() => deletePermissionGroup(group._id)}
-                          className="flex-1 px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition"
-                        >
-                          حذف
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                ))
-              ) : (
-                <div className="col-span-full text-center py-12 text-gray-500">
-                  <p className="text-lg mb-2">لا توجد مجموعات صلاحيات حالياً</p>
-                  <p className="text-sm">قم بإنشاء مجموعة أولى لتبدأ</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      {activeTab === "permissions" && <PermissionGroupsPage />}
 
       {/* Users Management Tab */}
       {activeTab === "users" && (
-        <div dir="rtl" className="min-h-screen bg-gray-100">
-          {/* إنشاء مستخدم جديد */}
-          <div className="bg-white p-6 rounded-2xl shadow mb-10 max-w-2xl">
-            <h3 className="text-lg font-medium mb-4 text-gray-700">
-              ➕ إنشاء مستخدم جديد
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <input
-                type="text"
-                placeholder="اسم المستخدم"
-                value={newUser.username}
-                onChange={(e) =>
-                  setNewUser({ ...newUser, username: e.target.value })
-                }
-                className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 outline-none"
-              />
-              <input
-                type="password"
-                placeholder="كلمة المرور"
-                value={newUser.password}
-                onChange={(e) =>
-                  setNewUser({ ...newUser, password: e.target.value })
-                }
-                className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 outline-none"
-              />
+        <>
+          <PermissionManager />
+          <div dir="rtl" className="min-h-screen bg-gray-100">
+            {/* إنشاء مستخدم جديد */}
+            <div className="bg-white p-6 rounded-2xl shadow mb-10 max-w-2xl">
+              <h3 className="text-lg font-medium mb-4 text-gray-700">
+                ➕ إنشاء مستخدم جديد
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <input
+                  type="text"
+                  placeholder="اسم المستخدم"
+                  value={newUser.username}
+                  onChange={(e) =>
+                    setNewUser({ ...newUser, username: e.target.value })
+                  }
+                  className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 outline-none"
+                />
+                <input
+                  type="password"
+                  placeholder="كلمة المرور"
+                  value={newUser.password}
+                  onChange={(e) =>
+                    setNewUser({ ...newUser, password: e.target.value })
+                  }
+                  className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 outline-none"
+                />
+                <DropdownWithSettings
+                  id="homepage_new_user_role"
+                  value={newUser.role}
+                  onChange={(e) =>
+                    setNewUser({ ...newUser, role: e.target.value })
+                  }
+                  options={[
+                    { value: "admin", label: "مدير عام" },
+                    { value: "employee", label: "مدير فرعي" },
+                    { value: "viewer", label: "مشاهد" },
+                    { value: "hr", label: "شؤون الموظفين" },
+                    { value: "finance", label: "محاسب" },
+                  ]}
+                  placeholder="اختر الدور"
+                  className="border rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-blue-400 outline-none"
+                />
+              </div>
+              <button
+                onClick={createUser}
+                className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition"
+              >
+                إنشاء
+              </button>
+            </div>
+
+            {/* فرز المستخدمين */}
+            <div className="flex justify-end items-center mb-4">
               <DropdownWithSettings
-                id="homepage_new_user_role"
-                value={newUser.role}
-                onChange={(e) =>
-                  setNewUser({ ...newUser, role: e.target.value })
-                }
+                id="homepage_sort_order"
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value)}
                 options={[
-                  { value: "admin", label: "مدير عام" },
-                  { value: "employee", label: "مدير فرعي" },
-                  { value: "viewer", label: "مشاهد" },
-                  { value: "hr", label: "شؤون الموظفين" },
-                  { value: "finance", label: "محاسب" },
+                  { value: "desc", label: "الأحدث أولاً" },
+                  { value: "asc", label: "الأقدم أولاً" },
                 ]}
-                placeholder="اختر الدور"
-                className="border rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-blue-400 outline-none"
+                placeholder="ترتيب حسب"
+                className="border px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-400 outline-none bg-white"
               />
             </div>
-            <button
-              onClick={createUser}
-              className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition"
-            >
-              إنشاء
-            </button>
-          </div>
 
-          {/* فرز المستخدمين */}
-          <div className="flex justify-end items-center mb-4">
-            <DropdownWithSettings
-              id="homepage_sort_order"
-              value={sortOrder}
-              onChange={(e) => setSortOrder(e.target.value)}
-              options={[
-                { value: "desc", label: "الأحدث أولاً" },
-                { value: "asc", label: "الأقدم أولاً" },
-              ]}
-              placeholder="ترتيب حسب"
-              className="border px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-400 outline-none bg-white"
-            />
-          </div>
-
-          {/* جدول المستخدمين */}
-          <div className="bg-white rounded-2xl shadow overflow-x-auto">
-            <table className="min-w-[700px] w-full border-collapse">
-              <thead className="bg-blue-50 border-b">
-                <tr>
-                  <th className="py-3 px-4 text-right text-gray-700 font-semibold">
-                    اسم المستخدم
-                  </th>
-                  <th className="py-3 px-4 text-right text-gray-700 font-semibold">
-                    الدور
-                  </th>
-                  <th className="py-3 px-4 text-right text-gray-700 font-semibold">
-                    كلمة المرور
-                  </th>
-                  <th className="py-3 px-4 text-right text-gray-700 font-semibold">
-                    الصلاحيات
-                  </th>
-                  <th className="py-3 px-4 text-right text-gray-700 font-semibold">
-                    تاريخ الإنشاء
-                  </th>
-                  <th className="py-3 px-4 text-center text-gray-700 font-semibold">
-                    الإجراءات
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {users.map((u) => (
-                  <tr
-                    key={u._id}
-                    className="border-b hover:bg-gray-50 transition"
-                  >
-                    <td className="py-3 px-4 font-medium text-gray-800">
-                      {editUserId === u._id ? (
-                        <input
-                          value={editedUser.username}
-                          onChange={(e) =>
-                            setEditedUser({
-                              ...editedUser,
-                              username: e.target.value,
-                            })
-                          }
-                          className="border rounded-lg px-2 py-1 w-full"
-                        />
-                      ) : (
-                        u.username
-                      )}
-                      <button
-                        onClick={() =>
-                          editUserId === u._id ? saveEdit(u._id) : startEdit(u)
-                        }
-                        className="ml-2 text-blue-600 hover:text-blue-800"
-                      >
-                        <FaEdit />
-                      </button>
-                    </td>
-
-                    <td className="py-3 px-4 text-gray-700 capitalize">
-                      {editUserId === u._id ? (
-                        <select
-                          value={editedUser.role}
-                          onChange={(e) =>
-                            setEditedUser({
-                              ...editedUser,
-                              role: e.target.value,
-                            })
-                          }
-                          className="border rounded-lg px-2 py-1"
-                        >
-                          <option value="admin">مدير عام</option>
-                          <option value="employee">مدير فرعي</option>
-                          <option value="viewer">مشاهد</option>
-                          <option value="hr">شؤون الموظفين</option>
-                          <option value="finance">محاسب</option>
-                        </select>
-                      ) : (
-                        u.role
-                      )}
-                    </td>
-
-                    <td className="py-3 px-4 text-gray-700 text-center">
-                      <div className="flex justify-center items-center gap-2">
-                        <span>
-                          {showPasswords[u._id]
-                            ? u.password || "••••••"
-                            : "••••••"}
-                        </span>
-                        <button
-                          onClick={() => togglePassword(u._id)}
-                          className="text-gray-600 hover:text-blue-600"
-                        >
-                          {showPasswords[u._id] ? <FaEyeSlash /> : <FaEye />}
-                        </button>
-                      </div>
-                    </td>
-
-                    <td className="py-3 px-4">
-                      {editingPermissions === u._id ? (
-                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
-                          {Object.keys(tempPermissions || {}).map((key) => (
-                            <label
-                              key={key}
-                              className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer"
-                            >
-                              <input
-                                type="checkbox"
-                                checked={tempPermissions[key]}
-                                onChange={() => togglePermission(key)}
-                                className="accent-blue-600 h-4 w-4"
-                              />
-                              {key.replace(/([A-Z])/g, " $1")}
-                            </label>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
-                          {Object.keys(u.permissions || {}).map((key) => (
-                            <label
-                              key={key}
-                              className="flex items-center gap-2 text-sm text-gray-600"
-                            >
-                              <input
-                                type="checkbox"
-                                checked={u.permissions[key]}
-                                disabled
-                                className="accent-blue-600 h-4 w-4"
-                              />
-                              {key.replace(/([A-Z])/g, " $1")}
-                            </label>
-                          ))}
-                        </div>
-                      )}
-                    </td>
-
-                    <td className="py-3 px-4 text-gray-700">
-                      {new Date(u.createdAt).toLocaleDateString("ar-EG")}
-                    </td>
-
-                    <td className="py-3 px-4 text-center">
-                      {editingPermissions === u._id ? (
-                        <div className="flex gap-2 justify-center flex-wrap">
-                          <button
-                            onClick={() => savePermissions(u._id)}
-                            className="text-green-600 hover:text-green-800 font-medium border border-green-200 px-2 py-1 rounded-lg transition text-sm"
-                          >
-                            حفظ ✓
-                          </button>
-                          <button
-                            onClick={cancelEditPermissions}
-                            className="text-gray-600 hover:text-gray-800 font-medium border border-gray-200 px-2 py-1 rounded-lg transition text-sm"
-                          >
-                            إلغاء ✕
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="flex gap-2 justify-center flex-wrap">
-                          <button
-                            onClick={() => startEditPermissions(u)}
-                            className="text-blue-600 hover:text-blue-800 font-medium border border-blue-200 px-2 py-1 rounded-lg transition text-sm"
-                          >
-                            تعديل الصلاحيات
-                          </button>
-                          <button
-                            onClick={() => confirmDeleteUser(u._id, u.username)}
-                            className="text-red-600 hover:text-red-800 font-medium border border-red-200 px-2 py-1 rounded-lg transition text-sm"
-                          >
-                            حذف ❌
-                          </button>
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-
-                {users.length === 0 && (
+            {/* جدول المستخدمين */}
+            <div className="bg-white rounded-2xl shadow overflow-x-auto">
+              <table className="min-w-[700px] w-full border-collapse">
+                <thead className="bg-blue-50 border-b">
                   <tr>
-                    <td
-                      colSpan="6"
-                      className="text-center py-6 text-gray-500 italic"
-                    >
-                      لا يوجد مستخدمون حالياً.
-                    </td>
+                    <th className="py-3 px-4 text-right text-gray-700 font-semibold">
+                      اسم المستخدم
+                    </th>
+                    <th className="py-3 px-4 text-right text-gray-700 font-semibold">
+                      الدور
+                    </th>
+                    <th className="py-3 px-4 text-right text-gray-700 font-semibold">
+                      كلمة المرور
+                    </th>
+                    <th className="py-3 px-4 text-right text-gray-700 font-semibold">
+                      الصلاحيات
+                    </th>
+                    <th className="py-3 px-4 text-right text-gray-700 font-semibold">
+                      تاريخ الإنشاء
+                    </th>
+                    <th className="py-3 px-4 text-center text-gray-700 font-semibold">
+                      الإجراءات
+                    </th>
                   </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {users.map((u) => (
+                    <tr
+                      key={u._id}
+                      className="border-b hover:bg-gray-50 transition"
+                    >
+                      <td className="py-3 px-4 font-medium text-gray-800">
+                        {editUserId === u._id ? (
+                          <input
+                            value={editedUser.username}
+                            onChange={(e) =>
+                              setEditedUser({
+                                ...editedUser,
+                                username: e.target.value,
+                              })
+                            }
+                            className="border rounded-lg px-2 py-1 w-full"
+                          />
+                        ) : (
+                          u.username
+                        )}
+                        <button
+                          onClick={() =>
+                            editUserId === u._id
+                              ? saveEdit(u._id)
+                              : startEdit(u)
+                          }
+                          className="ml-2 text-blue-600 hover:text-blue-800"
+                        >
+                          <FaEdit />
+                        </button>
+                      </td>
 
-          {/* نافذة تأكيد الحذف */}
-          {deleteModal.show && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center">
-              <div className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm transition-opacity duration-300 opacity-100"></div>
-              <div className="relative bg-white rounded-xl shadow-lg p-6 w-96 text-center transform transition-all duration-300 ease-out scale-100 opacity-100">
-                <h3 className="text-lg font-semibold mb-2 text-gray-800">
-                  تأكيد الحذف
-                </h3>
-                <p className="text-gray-600 mb-6">
-                  هل أنت متأكد من حذف{" "}
-                  <span className="font-semibold text-red-600">
-                    {deleteModal.username}
-                  </span>
-                  ؟
-                </p>
-                <div className="flex justify-center gap-4">
-                  <button
-                    onClick={cancelDelete}
-                    className="px-4 py-2 rounded-lg bg-gray-300 hover:bg-gray-400 text-gray-800"
-                  >
-                    إلغاء
-                  </button>
-                  <button
-                    onClick={deleteUser}
-                    className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white"
-                  >
-                    تأكيد
-                  </button>
+                      <td className="py-3 px-4 text-gray-700 capitalize">
+                        {editUserId === u._id ? (
+                          <select
+                            value={editedUser.role}
+                            onChange={(e) =>
+                              setEditedUser({
+                                ...editedUser,
+                                role: e.target.value,
+                              })
+                            }
+                            className="border rounded-lg px-2 py-1"
+                          >
+                            <option value="admin">مدير عام</option>
+                            <option value="employee">مدير فرعي</option>
+                            <option value="viewer">مشاهد</option>
+                            <option value="hr">شؤون الموظفين</option>
+                            <option value="finance">محاسب</option>
+                          </select>
+                        ) : (
+                          u.role
+                        )}
+                      </td>
+
+                      <td className="py-3 px-4 text-gray-700 text-center">
+                        <div className="flex justify-center items-center gap-2">
+                          <span>
+                            {showPasswords[u._id]
+                              ? u.password || "••••••"
+                              : "••••••"}
+                          </span>
+                          <button
+                            onClick={() => togglePassword(u._id)}
+                            className="text-gray-600 hover:text-blue-600"
+                          >
+                            {showPasswords[u._id] ? <FaEyeSlash /> : <FaEye />}
+                          </button>
+                        </div>
+                      </td>
+
+                      <td className="py-3 px-4">
+                        {editingPermissions === u._id ? (
+                          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+                            {Object.keys(tempPermissions || {}).map((key) => (
+                              <label
+                                key={key}
+                                className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer"
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={tempPermissions[key]}
+                                  onChange={() => togglePermission(key)}
+                                  className="accent-blue-600 h-4 w-4"
+                                />
+                                {key.replace(/([A-Z])/g, " $1")}
+                              </label>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+                            {Object.keys(u.permissions || {}).map((key) => (
+                              <label
+                                key={key}
+                                className="flex items-center gap-2 text-sm text-gray-600"
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={u.permissions[key]}
+                                  disabled
+                                  className="accent-blue-600 h-4 w-4"
+                                />
+                                {key.replace(/([A-Z])/g, " $1")}
+                              </label>
+                            ))}
+                          </div>
+                        )}
+                      </td>
+
+                      <td className="py-3 px-4 text-gray-700">
+                        {new Date(u.createdAt).toLocaleDateString("ar-EG")}
+                      </td>
+
+                      <td className="py-3 px-4 text-center">
+                        {editingPermissions === u._id ? (
+                          <div className="flex gap-2 justify-center flex-wrap">
+                            <button
+                              onClick={() => savePermissions(u._id)}
+                              className="text-green-600 hover:text-green-800 font-medium border border-green-200 px-2 py-1 rounded-lg transition text-sm"
+                            >
+                              حفظ ✓
+                            </button>
+                            <button
+                              onClick={cancelEditPermissions}
+                              className="text-gray-600 hover:text-gray-800 font-medium border border-gray-200 px-2 py-1 rounded-lg transition text-sm"
+                            >
+                              إلغاء ✕
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex gap-2 justify-center flex-wrap">
+                            <button
+                              onClick={() => startEditPermissions(u)}
+                              className="text-blue-600 hover:text-blue-800 font-medium border border-blue-200 px-2 py-1 rounded-lg transition text-sm"
+                            >
+                              تعديل الصلاحيات
+                            </button>
+                            <button
+                              onClick={() =>
+                                confirmDeleteUser(u._id, u.username)
+                              }
+                              className="text-red-600 hover:text-red-800 font-medium border border-red-200 px-2 py-1 rounded-lg transition text-sm"
+                            >
+                              حذف ❌
+                            </button>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+
+                  {users.length === 0 && (
+                    <tr>
+                      <td
+                        colSpan="6"
+                        className="text-center py-6 text-gray-500 italic"
+                      >
+                        لا يوجد مستخدمون حالياً.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* نافذة تأكيد الحذف */}
+            {deleteModal.show && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center">
+                <div className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm transition-opacity duration-300 opacity-100"></div>
+                <div className="relative bg-white rounded-xl shadow-lg p-6 w-96 text-center transform transition-all duration-300 ease-out scale-100 opacity-100">
+                  <h3 className="text-lg font-semibold mb-2 text-gray-800">
+                    تأكيد الحذف
+                  </h3>
+                  <p className="text-gray-600 mb-6">
+                    هل أنت متأكد من حذف{" "}
+                    <span className="font-semibold text-red-600">
+                      {deleteModal.username}
+                    </span>
+                    ؟
+                  </p>
+                  <div className="flex justify-center gap-4">
+                    <button
+                      onClick={cancelDelete}
+                      className="px-4 py-2 rounded-lg bg-gray-300 hover:bg-gray-400 text-gray-800"
+                    >
+                      إلغاء
+                    </button>
+                    <button
+                      onClick={deleteUser}
+                      className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white"
+                    >
+                      تأكيد
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        </>
       )}
     </div>
   );

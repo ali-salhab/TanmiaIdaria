@@ -3,17 +3,21 @@ import {
   Document,
   Packer,
   Paragraph,
+  TextRun,
   Table,
   TableRow,
   TableCell,
   WidthType,
-  TextRun,
   AlignmentType,
-  BorderStyle,
+  Header,
+  HeadingLevel,
+  Footer,
   VerticalAlign,
+  ImageRun,
 } from "docx";
 import fs from "fs";
 import path from "path";
+
 import { fileURLToPath } from "url";
 import Employee from "../models/Employee.js";
 
@@ -24,96 +28,122 @@ const __dirname = path.dirname(__filename);
 export const getVacationsByEmployee = async (req, res) => {
   try {
     const vacations = await Vacation.find({ employeeId: req.params.id });
+    console.log("Vacations fetched:", vacations);
     res.json(vacations);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
 
-// Generate Word document for vacations
 export const generateVacationDocument = async (req, res) => {
   try {
     const { id } = req.params;
-
-    const vacations = await Vacation.find({ employeeId: id });
+    console.log(id);
     const employee = await Employee.findById(id);
-    
     if (!employee) {
       return res.status(404).json({ message: "Employee not found" });
     }
+    const vacations = await Vacation.find({ employeeId: employee._id });
 
+    console.log("Employee._id =", employee._id);
+    console.log("Vacations = ", vacations);
+    console.log("Vacations:", vacations);
+
+    // ----- Header (logo) -----
+    const header = new Header({
+      children: [
+        new Paragraph({
+          alignment: AlignmentType.RIGHT,
+          children: [
+            new ImageRun({
+              data: fs.readFileSync("assets/logo.png"),
+              transformation: { width: 120, height: 100 },
+            }),
+          ],
+        }),
+      ],
+    });
+
+    // ----- Footer -----
+    const footer = new Footer({
+      children: [
+        new Paragraph({
+          alignment: AlignmentType.CENTER,
+          children: [new TextRun("سري — إدارة تنمية إدارية")],
+        }),
+      ],
+    });
+
+    // ----- Table -----
     const tableRows = [
       new TableRow({
-        cells: [
+        children: [
           new TableCell({
-            children: [new Paragraph({ text: "الترتيب", bold: true, alignment: AlignmentType.CENTER })],
+            children: [new Paragraph("الترتيب")],
             shading: { fill: "D3D3D3" },
-            verticalAlign: VerticalAlign.CENTER,
           }),
           new TableCell({
-            children: [new Paragraph({ text: "نوع الإجازة", bold: true, alignment: AlignmentType.CENTER })],
+            children: [new Paragraph("نوع الإجازة")],
             shading: { fill: "D3D3D3" },
-            verticalAlign: VerticalAlign.CENTER,
           }),
           new TableCell({
-            children: [new Paragraph({ text: "عدد الأيام", bold: true, alignment: AlignmentType.CENTER })],
+            children: [new Paragraph("عدد الأيام")],
             shading: { fill: "D3D3D3" },
-            verticalAlign: VerticalAlign.CENTER,
           }),
           new TableCell({
-            children: [new Paragraph({ text: "تاريخ البداية", bold: true, alignment: AlignmentType.CENTER })],
+            children: [new Paragraph("تاريخ البداية")],
             shading: { fill: "D3D3D3" },
-            verticalAlign: VerticalAlign.CENTER,
           }),
         ],
-        height: { value: 400, rule: "atLeast" },
       }),
     ];
 
-    vacations.forEach((vacation, index) => {
+    vacations.forEach((v, idx) =>
       tableRows.push(
         new TableRow({
-          cells: [
+          children: [
+            new TableCell({ children: [new Paragraph(String(idx + 1))] }),
+            new TableCell({ children: [new Paragraph(v.type || "")] }),
+            new TableCell({ children: [new Paragraph(String(v.days))] }),
             new TableCell({
-              children: [new Paragraph({ text: String(index + 1), alignment: AlignmentType.CENTER })],
-            }),
-            new TableCell({
-              children: [new Paragraph({ text: vacation.type || "", alignment: AlignmentType.CENTER })],
-            }),
-            new TableCell({
-              children: [new Paragraph({ text: String(vacation.days || 0), alignment: AlignmentType.CENTER })],
-            }),
-            new TableCell({
-              children: [new Paragraph({ text: vacation.startDate?.split("T")[0] || "", alignment: AlignmentType.CENTER })],
+              children: [new Paragraph(v.startDate?.split("T")[0] || "")],
             }),
           ],
         })
-      );
-    });
+      )
+    );
 
+    // ----- Document -----
     const doc = new Document({
       sections: [
         {
+          properties: {
+            page: {
+              margin: { top: 720, bottom: 720, left: 720, right: 720 },
+            },
+          },
+          headers: { default: header },
+          footers: { default: footer },
           children: [
             new Paragraph({
               text: "إجازات الموظف",
-              bold: true,
-              size: 32,
               alignment: AlignmentType.CENTER,
-              spacing: { after: 200 },
+              heading: HeadingLevel.TITLE,
+              spacing: { after: 300 },
             }),
+
             new Paragraph({
               text: `الموظف: ${employee.fullName}`,
-              size: 24,
               alignment: AlignmentType.RIGHT,
               spacing: { after: 100 },
             }),
+
             new Paragraph({
               text: `رقم الموظف: ${employee._id}`,
-              size: 24,
               alignment: AlignmentType.RIGHT,
               spacing: { after: 300 },
             }),
+
             new Table({
               width: { size: 100, type: WidthType.PERCENTAGE },
               rows: tableRows,
@@ -123,21 +153,180 @@ export const generateVacationDocument = async (req, res) => {
       ],
     });
 
-    const safeName = employee.fullName.replace(/[<>:"/\\|?*]+/g, "_");
-    const outputPath = path.join(__dirname, `إجازات_${safeName}.docx`);
-
+    // -------- Send doc as download --------
     const buffer = await Packer.toBuffer(doc);
-    fs.writeFileSync(outputPath, buffer);
 
-    res.download(outputPath, (err) => {
-      if (err) console.error("Download error:", err);
-      fs.unlinkSync(outputPath);
-    });
+    const fileName = `إجازات_${employee.fullName}.docx`;
+    const encoded = encodeURIComponent(fileName);
+
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${encoded}.docx"; filename*=UTF-8''${encoded}.docx`
+    );
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    );
+
+    return res.send(buffer);
   } catch (error) {
-    console.error("Error generating vacation document:", error);
-    res.status(500).json({ message: "Server error while generating document" });
+    console.error("Word generation error:", error);
+    return res.status(500).json({ message: "Error generating file" });
   }
 };
+
+// Generate Word document for vacations
+// export const generateVacationDocument = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+
+//     const vacations = await Vacation.find({ employeeId: id });
+//     const employee = await Employee.findById(id);
+
+//     if (!employee) {
+//       return res.status(404).json({ message: "Employee not found" });
+//     }
+
+//     const tableRows = [
+//       new TableRow({
+//         cells: [
+//           new TableCell({
+//             children: [
+//               new Paragraph({
+//                 text: "الترتيب",
+//                 bold: true,
+//                 alignment: AlignmentType.CENTER,
+//               }),
+//             ],
+//             shading: { fill: "D3D3D3" },
+//             verticalAlign: VerticalAlign.CENTER,
+//           }),
+//           new TableCell({
+//             children: [
+//               new Paragraph({
+//                 text: "نوع الإجازة",
+//                 bold: true,
+//                 alignment: AlignmentType.CENTER,
+//               }),
+//             ],
+//             shading: { fill: "D3D3D3" },
+//             verticalAlign: VerticalAlign.CENTER,
+//           }),
+//           new TableCell({
+//             children: [
+//               new Paragraph({
+//                 text: "عدد الأيام",
+//                 bold: true,
+//                 alignment: AlignmentType.CENTER,
+//               }),
+//             ],
+//             shading: { fill: "D3D3D3" },
+//             verticalAlign: VerticalAlign.CENTER,
+//           }),
+//           new TableCell({
+//             children: [
+//               new Paragraph({
+//                 text: "تاريخ البداية",
+//                 bold: true,
+//                 alignment: AlignmentType.CENTER,
+//               }),
+//             ],
+//             shading: { fill: "D3D3D3" },
+//             verticalAlign: VerticalAlign.CENTER,
+//           }),
+//         ],
+//         height: { value: 400, rule: "atLeast" },
+//       }),
+//     ];
+
+//     vacations.forEach((vacation, index) => {
+//       tableRows.push(
+//         new TableRow({
+//           cells: [
+//             new TableCell({
+//               children: [
+//                 new Paragraph({
+//                   text: String(index + 1),
+//                   alignment: AlignmentType.CENTER,
+//                 }),
+//               ],
+//             }),
+//             new TableCell({
+//               children: [
+//                 new Paragraph({
+//                   text: vacation.type || "",
+//                   alignment: AlignmentType.CENTER,
+//                 }),
+//               ],
+//             }),
+//             new TableCell({
+//               children: [
+//                 new Paragraph({
+//                   text: String(vacation.days || 0),
+//                   alignment: AlignmentType.CENTER,
+//                 }),
+//               ],
+//             }),
+//             new TableCell({
+//               children: [
+//                 new Paragraph({
+//                   text: vacation.startDate?.split("T")[0] || "",
+//                   alignment: AlignmentType.CENTER,
+//                 }),
+//               ],
+//             }),
+//           ],
+//         })
+//       );
+//     });
+
+//     const doc = new Document({
+//       sections: [
+//         {
+//           children: [
+//             new Paragraph({
+//               text: "إجازات الموظف",
+//               bold: true,
+//               size: 32,
+//               alignment: AlignmentType.CENTER,
+//               spacing: { after: 200 },
+//             }),
+//             new Paragraph({
+//               text: `الموظف: ${employee.fullName}`,
+//               size: 24,
+//               alignment: AlignmentType.RIGHT,
+//               spacing: { after: 100 },
+//             }),
+//             new Paragraph({
+//               text: `رقم الموظف: ${employee._id}`,
+//               size: 24,
+//               alignment: AlignmentType.RIGHT,
+//               spacing: { after: 300 },
+//             }),
+//             new Table({
+//               width: { size: 100, type: WidthType.PERCENTAGE },
+//               rows: tableRows,
+//             }),
+//           ],
+//         },
+//       ],
+//     });
+
+//     const safeName = employee.fullName.replace(/[<>:"/\\|?*]+/g, "_");
+//     const outputPath = path.join(__dirname, `إجازات_${safeName}.docx`);
+
+//     const buffer = await Packer.toBuffer(doc);
+//     fs.writeFileSync(outputPath, buffer);
+
+//     res.download(outputPath, (err) => {
+//       if (err) console.error("Download error:", err);
+//       fs.unlinkSync(outputPath);
+//     });
+//   } catch (error) {
+//     console.error("Error generating vacation document:", error);
+//     res.status(500).json({ message: "Server error while generating document" });
+//   }
+// };
 
 // Add a new vacation
 export const addVacation = async (req, res) => {
@@ -195,8 +384,10 @@ export const updateVacation = async (req, res) => {
 };
 
 export const generateSingleVacationTemplate = async (req, res) => {
+  console.log("Generating single vacation template...");
   try {
     const { vacationId } = req.params;
+    console.log("Vacation ID:", vacationId);
 
     const vacation = await Vacation.findById(vacationId);
     if (!vacation) {

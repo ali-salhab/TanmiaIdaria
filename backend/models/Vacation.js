@@ -24,6 +24,7 @@ const vacationSchema = new mongoose.Schema(
     hours: { type: Number, required: false },
     childOrder: { type: Number, required: false }, // for maternity leave
     startDate: { type: Date, required: true },
+    endDate: { type: Date, required: true },
   },
   { timestamps: true }
 );

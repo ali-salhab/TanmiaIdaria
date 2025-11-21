@@ -1,201 +1,298 @@
-import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import API from "../api/api";
+import { useEffect, useState } from "react";
+import API from "../api/api.js"; // ← عدل المسار حسب مشروعك
+import { toast } from "react-hot-toast";
 
-export default function Register() {
-  const [form, setForm] = useState({
-    username: "",
-    password: "",
-    confirmPassword: "",
-    role: "user",
+export default function PermissionsPage() {
+  const [permissions, setPermissions] = useState([]);
+  const [groups, setGroups] = useState([]);
+  const [users, setUsers] = useState([]);
+
+  const [newGroupName, setNewGroupName] = useState("");
+  const [newGroupDescription, setNewGroupDescription] = useState("");
+  const [selectedGroupPermissions, setSelectedGroupPermissions] = useState([]);
+
+  const [assignData, setAssignData] = useState({
+    userId: "",
+    groupId: "",
   });
 
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
+  // ────────────────────────────────────────────────
+  // FETCH ALL DATA
+  // ────────────────────────────────────────────────
+  const loadData = async () => {
+    try {
+      const [p, g, u] = await Promise.all([
+        API.get("/permissions"), // GET ALL PERMISSIONS
+        API.get("/groups"), // GET ALL GROUPS
+        API.get("/users"), // GET ALL USERS
+      ]);
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+      setPermissions(p.data.permissions || []);
+      setGroups(g.data.groups || []);
+      setUsers(u.data.users || []);
+    } catch (err) {
+      toast.error("Failed to load permissions data");
+    }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
+  useEffect(() => {
+    loadData();
+  }, []);
 
-    if (form.password !== form.confirmPassword) {
-      setError("Passwords do not match");
+  // ────────────────────────────────────────────────
+  // CREATE NEW GROUP
+  // ────────────────────────────────────────────────
+  const createGroup = async () => {
+    if (!newGroupName.trim()) {
+      toast.error("Group name required");
       return;
     }
 
     try {
-      setLoading(true);
-      console.log("====================================");
-      console.log("register function");
-      console.log("====================================");
-      const res = await API.post("/api/auth/register", {
-        username: form.username.trim(),
-        password: form.password.trim(),
-        role: form.role.toLowerCase(),
+      await API.post("/groups", {
+        name: newGroupName,
+        description: newGroupDescription,
+        permissions: selectedGroupPermissions,
       });
 
-      const { token, user } = res.data;
-      localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(user));
-
-      alert("Registration successful!");
-      navigate("/login");
+      toast.success("Group created!");
+      setNewGroupName("");
+      setNewGroupDescription("");
+      setSelectedGroupPermissions([]);
+      loadData();
     } catch (err) {
-      console.log("====================================");
-      console.log(err);
-      console.log("====================================");
-      setError(err.response?.data?.message || "Registration failed");
-    } finally {
-      setLoading(false);
+      toast.error("Failed to create group");
     }
   };
 
+  // ────────────────────────────────────────────────
+  // DELETE GROUP
+  // ────────────────────────────────────────────────
+  const deleteGroup = async (groupId) => {
+    if (!window.confirm("Are you sure?")) return;
+
+    try {
+      await API.delete(`/groups/${groupId}`);
+      toast.success("Group deleted");
+      loadData();
+    } catch (err) {
+      toast.error("Failed to delete group");
+    }
+  };
+
+  // ────────────────────────────────────────────────
+  // ASSIGN USER TO GROUP
+  // ────────────────────────────────────────────────
+  const assignUserToGroup = async () => {
+    if (!assignData.userId || !assignData.groupId) {
+      toast.error("Select user + group");
+      return;
+    }
+
+    try {
+      await API.post("/groups/add-user", assignData);
+      toast.success("User assigned to group");
+      loadData();
+    } catch (err) {
+      toast.error("Failed to assign");
+    }
+  };
+
+  // ────────────────────────────────────────────────
+  // REMOVE USER FROM GROUP
+  // ────────────────────────────────────────────────
+  const removeUser = async (userId, groupId) => {
+    try {
+      await API.post("/groups/remove-user", { userId, groupId });
+      toast.success("User removed");
+      loadData();
+    } catch (err) {
+      toast.error("Failed to remove user");
+    }
+  };
+
+  // ────────────────────────────────────────────────
+  // RENDER UI
+  // ────────────────────────────────────────────────
   return (
-    <div className="relative flex items-center justify-center min-h-screen overflow-hidden font-custom bg-gradient-to-br from-blue-900 via-indigo-900 to-gray-900">
-      {/* background blur overlay */}
+    <div className="p-6 space-y-10">
+      <h1 className="text-2xl font-bold">🔐 إدارة الصلاحيات</h1>
 
-      <div className="absolute inset-0 backdrop-blur-3xl bg-white/5"></div>
-      <div
-        dir="rtl"
-        className="fixed flex-col p-4 r items-start justify-start backdrop-blur-3xl   right-0 font-extrabold text-yellow-50 z-0 top-0 w-max "
-      >
-        <p>الجمهورية العربية السورية</p>
-        <p>الامانة العامة لمحافطة طرطوس</p>
-        <p>مديرية التنيمية الادارية</p>
+      {/* ─────────────────────────────── */}
+      {/* Create Permission Group */}
+      {/* ─────────────────────────────── */}
+      <div className="bg-white p-6 rounded-xl shadow space-y-4">
+        <h2 className="text-xl font-semibold">➕ إنشاء مجموعة صلاحيات</h2>
+
+        <input
+          type="text"
+          placeholder="اسم المجموعة"
+          value={newGroupName}
+          onChange={(e) => setNewGroupName(e.target.value)}
+          className="w-full border rounded-lg px-3 py-2"
+        />
+
+        <textarea
+          placeholder="وصف المجموعة (اختياري)"
+          value={newGroupDescription}
+          onChange={(e) => setNewGroupDescription(e.target.value)}
+          className="w-full border rounded-lg px-3 py-2"
+        />
+
+        {/* Select permissions */}
+        <div className="max-h-60 overflow-y-auto border rounded-lg p-3">
+          <h3 className="font-medium mb-2">اختر الصلاحيات:</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            {permissions.map((perm) => (
+              <label key={perm._id} className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={selectedGroupPermissions.includes(perm._id)}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setSelectedGroupPermissions([
+                        ...selectedGroupPermissions,
+                        perm._id,
+                      ]);
+                    } else {
+                      setSelectedGroupPermissions(
+                        selectedGroupPermissions.filter((id) => id !== perm._id)
+                      );
+                    }
+                  }}
+                />
+                {perm.label}
+              </label>
+            ))}
+          </div>
+        </div>
+
+        <button
+          onClick={createGroup}
+          className="bg-green-600 text-white px-4 py-2 rounded-lg"
+        >
+          إنشاء المجموعة
+        </button>
       </div>
-      <div className="fixed flex-col p-4  items-start   left-0   z-0 bottom-0 w-max ">
-        <p>&copy; copy right </p>
-        {/* <p>alisalhab@gmail.com</p> */}
-      </div>
-      {/* glassy register form */}
-      <div
-        dir="rtl"
-        className="relative z-10 backdrop-blur-xl bg-white/20 border border-white/30 text-white rounded-2xl shadow-2xl p-10 w-full max-w-sm animate-fadeSlide"
-      >
-        <h2 className="text-3xl font-bold mb-8 text-center tracking-wide">
-          انشاء حساب
-        </h2>
 
-        {error && (
-          <p className="text-red-200 bg-red-500/20 border border-red-400/50 rounded-lg p-3 text-center mb-4 animate-scaleUp shadow-lg shadow-red-500/20">
-            {error}
-          </p>
-        )}
+      {/* ─────────────────────────────── */}
+      {/* Assign User to Group */}
+      {/* ─────────────────────────────── */}
+      <div className="bg-white p-6 rounded-xl shadow space-y-4">
+        <h2 className="text-xl font-semibold">👥 ربط مستخدم بمجموعة</h2>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block mb-1 text-sm text-gray-200">
-              اسم المستخدم
-            </label>
-            <input
-              type="text"
-              name="username"
-              value={form.username}
-              onChange={handleChange}
-              required
-              className="w-full p-3 rounded-lg bg-white/20 border border-white/40 placeholder-gray-200 text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
-            />
-          </div>
-
-          <div>
-            <label className="block mb-1 text-sm text-gray-200">
-              كلمة المرور
-            </label>
-            <input
-              type="password"
-              name="password"
-              value={form.password}
-              onChange={handleChange}
-              required
-              className="w-full p-3 rounded-lg bg-white/20 border border-white/40 placeholder-gray-200 text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
-            />
-          </div>
-
-          <div>
-            <label className="block mb-1 text-sm text-gray-200">
-              تاكيد كلمة المرور
-            </label>
-            <input
-              type="password"
-              name="confirmPassword"
-              value={form.confirmPassword}
-              onChange={handleChange}
-              required
-              className="w-full p-3 rounded-lg bg-white/20 border border-white/40 placeholder-gray-200 text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
-            />
-          </div>
-
-          <div>
-            <label className="block mb-1 text-sm text-gray-200">الدور</label>
-            <select
-              name="role"
-              value={form.role}
-              onChange={handleChange}
-              className="w-full p-3 rounded-lg bg-white/20 border border-white/40 text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
-            >
-              <option value="user" className="text-black">
-                مستخدم عادي
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <select
+            className="border rounded-lg px-3 py-2"
+            value={assignData.userId}
+            onChange={(e) =>
+              setAssignData({ ...assignData, userId: e.target.value })
+            }
+          >
+            <option value="">اختر مستخدم</option>
+            {users.map((u) => (
+              <option key={u._id} value={u._id}>
+                {u.username}
               </option>
-              <option value="admin" className="text-black">
-                مدير
+            ))}
+          </select>
+
+          <select
+            className="border rounded-lg px-3 py-2"
+            value={assignData.groupId}
+            onChange={(e) =>
+              setAssignData({ ...assignData, groupId: e.target.value })
+            }
+          >
+            <option value="">اختر مجموعة</option>
+            {groups.map((g) => (
+              <option key={g._id} value={g._id}>
+                {g.name}
               </option>
-            </select>
-          </div>
+            ))}
+          </select>
 
           <button
-            type="submit"
-            disabled={loading}
-            className={`w-full py-3 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2 ${
-              loading
-                ? "bg-blue-500/50 cursor-not-allowed opacity-75"
-                : "bg-blue-500/70 hover:bg-blue-500 cursor-pointer"
-            }`}
+            onClick={assignUserToGroup}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg"
           >
-            {loading ? (
-              <>
-                <span className="animate-spin">⏳</span>
-                جاري انشاء حساب ...
-              </>
-            ) : (
-              "انشاء حساب"
-            )}
+            ربط
           </button>
-        </form>
-
-        <p className="text-gray-200 text-sm text-center mt-6">
-          لديك حساب فعلا
-          <Link
-            to="/login"
-            className="text-blue-300 hover:text-blue-400 transition"
-          >
-            <span className="p-2">تسجيل الدخول</span>
-          </Link>
-        </p>
+        </div>
       </div>
 
-      {/* custom animations */}
-      <style>
-        {`
-          @keyframes fadeSlide {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-          }
-          @keyframes scaleUp {
-            from { transform: scale(0.8); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-          }
-          .animate-fadeSlide {
-            animation: fadeSlide 0.6s ease-out forwards;
-          }
-          .animate-scaleUp {
-            animation: scaleUp 0.3s ease-out forwards;
-          }
-        `}
-      </style>
+      {/* ─────────────────────────────── */}
+      {/* Groups List */}
+      {/* ─────────────────────────────── */}
+      <div className="bg-white p-6 rounded-xl shadow">
+        <h2 className="text-xl font-semibold mb-4">📦 المجموعات</h2>
+
+        <div className="space-y-4">
+          {groups.map((group) => (
+            <div
+              key={group._id}
+              className="border rounded-lg p-4 space-y-3 bg-gray-50"
+            >
+              <div className="flex justify-between items-center">
+                <h3 className="font-semibold text-lg">{group.name}</h3>
+                <button
+                  onClick={() => deleteGroup(group._id)}
+                  className="text-red-600"
+                >
+                  حذف
+                </button>
+              </div>
+
+              {group.description && (
+                <p className="text-sm text-gray-600">{group.description}</p>
+              )}
+
+              {/* Permissions */}
+              <div>
+                <h4 className="font-medium mb-2">الصلاحيات:</h4>
+                <div className="flex flex-wrap gap-2">
+                  {group.permissions.length === 0 && (
+                    <p className="text-sm text-gray-500">لا يوجد</p>
+                  )}
+                  {group.permissions.map((perm) => (
+                    <span
+                      key={perm._id}
+                      className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs"
+                    >
+                      {perm.label}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Users */}
+              <div>
+                <h4 className="font-medium mb-2">الأعضاء:</h4>
+                <div className="flex flex-wrap gap-2">
+                  {group.members.length === 0 && (
+                    <p className="text-sm text-gray-500">لا يوجد</p>
+                  )}
+                  {group.members.map((user) => (
+                    <span
+                      key={user._id}
+                      className="flex items-center gap-2 bg-green-100 text-green-700 px-2 py-1 rounded text-xs"
+                    >
+                      {user.username}
+
+                      <button
+                        onClick={() => removeUser(user._id, group._id)}
+                        className="text-red-500 ml-1"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

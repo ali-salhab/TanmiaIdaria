@@ -22,92 +22,7 @@ const userSchema = new mongoose.Schema(
         ref: "Permission",
       },
     ],
-    permissions: {
-      viewEmployees: {
-        type: Boolean,
-        default: false,
-      },
-      viewIncidents: {
-        type: Boolean,
-        default: false,
-      },
-      viewUsers: {
-        type: Boolean,
-        default: false,
-      },
-      viewDocuments: {
-        type: Boolean,
-        default: false,
-      },
-      viewSalary: {
-        type: Boolean,
-        default: false,
-      },
-      viewReports: {
-        type: Boolean,
-        default: false,
-      },
-      editEmployee: {
-        type: Boolean,
-        default: false,
-      },
-      manageLeaves: {
-        type: Boolean,
-        default: false,
-      },
-      manageReawards: {
-        type: Boolean,
-        default: false,
-      },
-      managePunischments: {
-        type: Boolean,
-        default: false,
-      },
-      createEmployee: {
-        type: Boolean,
-        default: false,
-      },
-      deleteEmployee: {
-        type: Boolean,
-        default: false,
-      },
-      createUser: {
-        type: Boolean,
-        default: false,
-      },
-      deleteUser: {
-        type: Boolean,
-        default: false,
-      },
-      managePermissions: {
-        type: Boolean,
-        default: false,
-      },
-      createIncident: {
-        type: Boolean,
-        default: false,
-      },
-      deleteIncident: {
-        type: Boolean,
-        default: false,
-      },
-      createVacation: {
-        type: Boolean,
-        default: false,
-      },
-      approveVacation: {
-        type: Boolean,
-        default: false,
-      },
-      viewAnalytics: {
-        type: Boolean,
-        default: false,
-      },
-      manageDywan: {
-        type: Boolean,
-        default: false,
-      },
-    },
+
     profile: {
       firstName: String,
       lastName: String,
@@ -141,6 +56,8 @@ userSchema.pre("save", async function (next) {
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
   next();
+  // console.log(this);
+  // console.log(this);
 });
 
 userSchema.methods.comparePassword = async function (candidate) {

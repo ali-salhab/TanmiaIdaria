@@ -1,6 +1,6 @@
 // src/pages/PermissionGroupsPage.jsx
 import React, { useEffect, useState } from "react";
-import API from "../api/api";
+import API from "../../api/api";
 import { toast } from "react-hot-toast";
 
 export default function PermissionGroupsPage() {

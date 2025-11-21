@@ -27,6 +27,8 @@ import DropdownManager from "./pages/DropdownManager";
 import FileSharing from "./pages/FileSharing";
 import UserNotifications from "./pages/UserNotifications";
 import Circulars from "./pages/Circulars";
+import EmployeePenalties from "./pages/EmployeePenalties";
+import EmployeeDetailPage from "./pages/EmployeeDetailPage";
 import PermissionGroupsPage from "./pages/permissions/PermissionGroupsPage";
 import PermissionManager from "./pages/permissions/PermissionsManager";
 import PermissionsPage from "./pages/permissions/PermissionsPage";
@@ -127,6 +129,15 @@ function App() {
           />
 
           <Route
+            path="/employee/:id"
+            element={
+              <ProtectedRoute allowedRoles={["user", "admin"]}>
+                <EmployeeDetailPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
             path="/documents"
             element={
               <ProtectedRoute allowedRoles={["user", "admin"]}>
@@ -176,6 +187,51 @@ function App() {
             element={
               <ProtectedRoute>
                 <Circulars />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/incidents"
+            element={
+              <ProtectedRoute allowedRoles={["user", "admin"]}>
+                <EmployeeIncidents />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/vacations"
+            element={
+              <ProtectedRoute allowedRoles={["user", "admin"]}>
+                <EmployeeVacations />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/rewards"
+            element={
+              <ProtectedRoute allowedRoles={["user", "admin"]}>
+                <EmployeeRewards />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/punishments"
+            element={
+              <ProtectedRoute allowedRoles={["user", "admin"]}>
+                <EmployeePenalties />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/users"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <EmployeeList />
               </ProtectedRoute>
             }
           />

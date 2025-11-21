@@ -435,7 +435,7 @@ export default function HomepageBuilder() {
 
       {/* Homepage Builder Tab */}
       {activeTab === "permission-manager" && (
-        <PermissionManagerComponent
+        <PermissionManager
           allPermissions={allPermissions}
           users={users}
         />
@@ -599,7 +599,7 @@ export default function HomepageBuilder() {
           </div>
         </div>
       )}
-      {activeTab == "managment-permissions" && <PermissionManagerComponent />}
+      {activeTab == "managment-permissions" && <PermissionManager />}
       {/* Permission Groups Tab */}
       {activeTab === "permissions" && <PermissionGroupsPage />}
 

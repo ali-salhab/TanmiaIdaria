@@ -17,7 +17,7 @@ export default function ViewerEmployeeList() {
       try {
         const res = await API.get("/auth/me");
         setUser(res.data.user);
-        if (!checkPermission("viewEmployees", res.data.user)) {
+        if (!checkPermission("employees.view", res.data.user)) {
           toast.error("❌ ليس لديك صلاحية لعرض الموظفين");
           navigate("/home");
         }
@@ -49,7 +49,7 @@ export default function ViewerEmployeeList() {
   }, [search]);
 
   useEffect(() => {
-    if (user && checkPermission("viewEmployees", user)) {
+    if (user && checkPermission("employees.view", user)) {
       fetchEmployees();
     }
   }, [user, fetchEmployees]);
@@ -99,7 +99,8 @@ export default function ViewerEmployeeList() {
                   {employees.map((emp, idx) => (
                     <tr
                       key={emp._id || idx}
-                      className="border-b border-gray-200 hover:bg-emerald-50 transition"
+                      onClick={() => navigate(`/employee/${emp._id}`)}
+                      className="border-b border-gray-200 hover:bg-emerald-100 transition cursor-pointer"
                     >
                       <td className="px-4 py-3">{emp.fullName || "-"}</td>
                       <td className="px-4 py-3">{emp.selfNumber || "-"}</td>

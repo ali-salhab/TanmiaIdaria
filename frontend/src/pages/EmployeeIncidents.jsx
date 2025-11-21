@@ -1,14 +1,15 @@
-// /api/employees/\
-
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import API from "../api/api";
 import { FaEdit } from "react-icons/fa";
 import toast from "react-hot-toast";
 import { FileArchive, Settings } from "lucide-react";
 import DropdownWithSettings from "../components/DropdownWithSettings";
+import { checkPermission } from "../utils/permissionHelper";
+
 export default function EmployeeIncidents() {
-  const { id } = useParams(); // Employee ID
+  const { id } = useParams();
+  const navigate = useNavigate();
 
   const [incidents, setIncidents] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
@@ -16,16 +17,32 @@ export default function EmployeeIncidents() {
   const [selectedIncident, setSelectedIncident] = useState(null);
   const [currentEmployee, setCurrentEmployee] = useState(null);
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
+  const [user, setUser] = useState(null);
   const [dropdownSettings, setDropdownSettings] = useState({
     category: ["أولى", "تانية", "تالتة", "رابعة", "خامسة"],
     reason: ["زيادة أجر", "تجديد عقد", "تثبيت", "ترفيع"],
     document_type: ["مرسوم", "قرار"],
   });
+
   useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await API.get("/auth/me");
+        setUser(res.data.user);
+        if (!checkPermission("incidents.view", res.data.user)) {
+          toast.error("❌ ليس لديك صلاحية لعرض الوقوعات");
+          navigate("/home");
+        }
+      } catch (error) {
+        console.error("Error fetching user:", error);
+        navigate("/home");
+      }
+    };
+    fetchUser();
     fetchIncidents();
     fetchCurrentEmployee();
     fetchDropdownSettings();
-  }, []);
+  }, [navigate]);
 
   const fetchDropdownSettings = async () => {
     try {

@@ -177,9 +177,9 @@ export default function ViewerHome() {
   const { permissions } = user;
   console.log("🎨 Rendering ViewerHome with permissions:", permissions);
 
-  const canViewEmployees = checkPermission("viewEmployees", user);
-  const canViewDocuments = checkPermission("viewDocuments", user);
-  const canViewSalary = checkPermission("viewSalary", user);
+  const canViewEmployees = checkPermission("employees.view", user);
+  const canViewDocuments = checkPermission("documents.view", user);
+  const canViewSalary = checkPermission("salary.view", user);
 
   const hasNoPermissions =
     !canViewEmployees && !canViewDocuments && !canViewSalary;

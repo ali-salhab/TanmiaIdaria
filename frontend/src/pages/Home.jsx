@@ -5,6 +5,7 @@ import { Bell, MessageCircle, Megaphone } from "lucide-react";
 import API from "../api/api";
 import AdminChat from "../components/AdminChat";
 import { checkPermission } from "../utils/permissionHelper";
+import { getAvailableSections } from "../utils/homeSectionsConfig";
 import Logo from "../assets/logo.png";
 
 const VITE_API_URL = import.meta.env.VITE_API_URL;
@@ -105,13 +106,7 @@ export default function Home() {
     );
   }
 
-  const userPermissions = [
-    { key: "viewEmployees", label: "الموظفين", icon: "👥", color: "from-green-400 to-emerald-500", path: "/employees" },
-    { key: "viewDocuments", label: "الوثائق", icon: "📄", color: "from-blue-400 to-sky-500", path: "/documents" },
-    { key: "viewSalary", label: "الرواتب", icon: "💰", color: "from-orange-400 to-amber-500", path: "/salary" },
-  ];
-
-  const allowedSections = userPermissions.filter((section) => checkPermission(section.key, user));
+  const allowedSections = getAvailableSections(user);
 
   return (
     <div dir="rtl" className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex flex-col">
@@ -193,17 +188,21 @@ export default function Home() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-8">
               {allowedSections.map((section) => (
-                <div
-                  key={section.key}
-                  onClick={() => navigate(section.path)}
-                  className={`relative group bg-white shadow-md rounded-xl md:rounded-2xl p-4 md:p-6 cursor-pointer overflow-hidden border border-slate-200 transition-all transform hover:-translate-y-1 md:hover:-translate-y-2 hover:shadow-xl`}
+                <button
+                  key={section.category}
+                  onClick={() => {
+                    console.log(`Navigating to ${section.path}`);
+                    navigate(section.path);
+                  }}
+                  className={`relative group bg-white shadow-md rounded-xl md:rounded-2xl p-4 md:p-6 cursor-pointer overflow-hidden border border-slate-200 transition-all transform hover:-translate-y-1 md:hover:-translate-y-2 hover:shadow-xl text-left w-full`}
                 >
                   <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-br ${section.color}`}></div>
                   <div className="relative z-10 text-center">
                     <div className="text-4xl md:text-5xl mb-3">{section.icon}</div>
                     <h3 className="text-base md:text-lg font-semibold text-slate-800 group-hover:text-white transition-colors">{section.label}</h3>
+                    <p className="text-xs text-slate-500 group-hover:text-white/80 mt-2 transition-colors">{section.description}</p>
                   </div>
-                </div>
+                </button>
               ))}
             </div>
           </>

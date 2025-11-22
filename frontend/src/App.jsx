@@ -32,6 +32,7 @@ import EmployeeDetailPage from "./pages/EmployeeDetailPage";
 import PermissionGroupsPage from "./pages/permissions/PermissionGroupsPage";
 import PermissionManager from "./pages/permissions/PermissionsManager";
 import PermissionsPage from "./pages/permissions/PermissionsPage";
+import EmployeeUserDetails from "./pages/user/EmployeeDetails";
 function ProtectedRoute({ children, allowedRoles }) {
   const token = localStorage.getItem("token");
   const role = localStorage.getItem("role");
@@ -54,8 +55,7 @@ function App() {
       <BrowserRouter>
         <Toaster position="top-left" reverseOrder={false} />
         <Routes>
-          <Route path="/test" eleme={PermissionsManager} />
-          <Route
+          {/* <Route
             path="/dashboard/employees/:id/vacations"
             element={<EmployeeVacations />}
           />
@@ -66,7 +66,7 @@ function App() {
           <Route
             path="/dashboard/employees/:id/incidents"
             element={<EmployeeIncidents />}
-          />
+          /> */}
 
           {/* Redirect root to login */}
           <Route path="/" element={<Navigate to="/login" />} />
@@ -92,13 +92,6 @@ function App() {
               </ProtectedRoute>
             }
           >
-            {" "}
-            <Route path="permissions/users" element={<PermissionsPage />} />
-            <Route
-              path="permissions/groups"
-              element={<PermissionGroupsPage />}
-            />
-            <Route path="permissions/manage" element={<PermissionManager />} />
             <Route path="notifications" element={<Notifications />} />
             <Route path="dywan" element={<Dywan />} />
             <Route path="employees/:id" element={<EmployeeEdit />} />
@@ -118,21 +111,27 @@ function App() {
               </ProtectedRoute>
             }
           />
-
           <Route
-            path="/employees"
+            path="/user/employee/:id"
             element={
               <ProtectedRoute allowedRoles={["user", "admin"]}>
-                <ViewerEmployeeList />
+                <EmployeeUserDetails />
               </ProtectedRoute>
             }
           />
-
           <Route
             path="/employee/:id"
             element={
               <ProtectedRoute allowedRoles={["user", "admin"]}>
                 <EmployeeDetailPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/employees"
+            element={
+              <ProtectedRoute allowedRoles={["user", "admin"]}>
+                <ViewerEmployeeList />
               </ProtectedRoute>
             }
           />

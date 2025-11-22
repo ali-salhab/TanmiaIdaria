@@ -84,24 +84,25 @@ export const homeSectionsConfig = [
 
 export const getAvailableSections = (user) => {
   if (!user) return [];
-  
+  console.log(user.permissions);
+
   if (user.role === "admin") {
     return homeSectionsConfig;
   }
-  
+
   return homeSectionsConfig.filter((section) => {
     if (!user.permissions) return false;
-    
+
     return user.permissions[section.requiredPermission] === true;
   });
 };
 
 export const getSectionPermissionStats = (user) => {
   if (!user) return null;
-  
+
   const total = homeSectionsConfig.length;
   const available = getAvailableSections(user).length;
-  
+
   return {
     total,
     available,

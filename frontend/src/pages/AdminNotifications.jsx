@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import { useSocket } from "../context/SocketContext";
+import { useSettings } from "../context/SettingsContext";
 import API from "../api/api";
 import {
   Search,
@@ -20,6 +21,7 @@ import UserAvatar from "../components/common/UserAvatar";
 export default function AdminNotifications() {
   const navigate = useNavigate();
   const { socket } = useSocket();
+  const { playNotification } = useSettings();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
@@ -50,6 +52,7 @@ export default function AdminNotifications() {
     const handleNewNotification = (notification) => {
       setNotifications((prev) => [notification, ...prev]);
       setPagination((prev) => ({ ...prev, total: prev.total + 1 }));
+      playNotification();
       toast.success(`🔔 ${notification.title || "إشعار جديد"}`);
     };
 

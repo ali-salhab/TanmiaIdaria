@@ -2,7 +2,7 @@ import AppSettings from "../models/AppSettings.js";
 
 export const getDropdownSettings = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user._id || req.user.id;
     let settings = await AppSettings.findOne({ userId });
 
     if (!settings) {
@@ -25,7 +25,7 @@ export const getDropdownSettings = async (req, res) => {
 
 export const saveDropdownSettings = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user._id || req.user.id;
     const { category, reason, document_type } = req.body;
 
     let settings = await AppSettings.findOne({ userId });
@@ -56,11 +56,19 @@ export const saveDropdownSettings = async (req, res) => {
 
 export const getAppSettings = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user._id || req.user.id;
     let settings = await AppSettings.findOne({ userId });
 
     if (!settings) {
-      settings = new AppSettings({ userId });
+      settings = new AppSettings({ 
+        userId,
+        theme: "light",
+        language: "ar",
+        sounds: {
+          notifications: { enabled: true, volume: 0.7 },
+          messages: { enabled: true, volume: 0.7 },
+        },
+      });
       await settings.save();
     }
 
@@ -72,8 +80,8 @@ export const getAppSettings = async (req, res) => {
 
 export const updateAppSettings = async (req, res) => {
   try {
-    const userId = req.user.id;
-    const { theme, dropdowns } = req.body;
+    const userId = req.user._id || req.user.id;
+    const { theme, language, sounds, dropdowns } = req.body;
 
     let settings = await AppSettings.findOne({ userId });
 
@@ -81,8 +89,10 @@ export const updateAppSettings = async (req, res) => {
       settings = new AppSettings({ userId });
     }
 
-    if (theme) settings.theme = theme;
-    if (dropdowns) settings.dropdowns = dropdowns;
+    if (theme !== undefined) settings.theme = theme;
+    if (language !== undefined) settings.language = language;
+    if (sounds !== undefined) settings.sounds = sounds;
+    if (dropdowns !== undefined) settings.dropdowns = dropdowns;
 
     await settings.save();
     res.json(settings);

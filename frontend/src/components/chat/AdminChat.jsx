@@ -1,17 +1,23 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSocket } from "../../context/SocketContext";
-import { X, Send, Users as UsersIcon } from "lucide-react";
+import { useSettings } from "../../context/SettingsContext";
+import { X, Send, Users as UsersIcon, Bell } from "lucide-react";
+import { toast } from "react-hot-toast";
 import API from "../../api/api";
 import UserAvatar from "../common/UserAvatar";
 
 export default function AdminChat({ isAdmin, onClose }) {
   const { socket, onlineUsers } = useSocket();
+  const { playMessage } = useSettings();
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [selectedUser, setSelectedUser] = useState(null);
   const [users, setUsers] = useState([]);
   const [usersInfo, setUsersInfo] = useState({});
   const [loadingUsers, setLoadingUsers] = useState(false);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  const messagesEndRef = useRef(null);
+  const { playNotification } = useSettings();
 
   useEffect(() => {
     if (isAdmin && onlineUsers.length > 0) {
@@ -49,15 +55,98 @@ export default function AdminChat({ isAdmin, onClose }) {
     if (!socket) return;
 
     const handlePrivateMessage = ({ from, message, fromUsername, timestamp }) => {
-      setMessages((prev) => [
-        ...prev,
-        { from, message, fromUsername, timestamp: timestamp || new Date() },
-      ]);
+      const currentUserId = localStorage.getItem("userId");
+      
+      // Only add if it's a new message (not already in messages)
+      setMessages((prev) => {
+        const messageExists = prev.some(
+          m => m.message === message && 
+          m.from === from && 
+          new Date(m.timestamp).getTime() === new Date(timestamp).getTime()
+        );
+        if (messageExists) return prev;
+        
+        return [
+          ...prev,
+          { from, message, fromUsername, timestamp: timestamp || new Date() },
+        ];
+      });
+      
+      playMessage();
+      
+      // Show notification if message is from someone else and chat is not focused
+      if (from !== currentUserId) {
+        const senderInfo = usersInfo[from] || { username: fromUsername };
+        playNotification();
+        toast.success(`💬 رسالة جديدة من ${senderInfo.username}`, {
+          icon: <Bell className="w-5 h-5" />,
+        });
+      }
     };
 
     socket.on("private_message", handlePrivateMessage);
     return () => socket.off("private_message", handlePrivateMessage);
-  }, [socket]);
+  }, [socket, playMessage]);
+
+  // Load chat history when user is selected
+  useEffect(() => {
+    if (selectedUser && isAdmin) {
+      loadChatHistory(selectedUser);
+    } else if (!isAdmin) {
+      // For non-admin users, load history with admin
+      loadChatHistoryWithAdmin();
+    }
+  }, [selectedUser, isAdmin]);
+
+  const loadChatHistory = async (otherUserId) => {
+    setLoadingHistory(true);
+    try {
+      const res = await API.get(`/messages/history/${otherUserId}`);
+      const historyMessages = res.data.map(msg => ({
+        from: msg.from,
+        message: msg.message,
+        fromUsername: msg.fromUsername,
+        timestamp: msg.createdAt || msg.timestamp,
+      }));
+      setMessages(historyMessages);
+    } catch (error) {
+      console.error("Error loading chat history:", error);
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
+
+  const loadChatHistoryWithAdmin = async () => {
+    setLoadingHistory(true);
+    try {
+      // Find admin user ID
+      const adminRes = await API.get("/users?role=admin");
+      if (adminRes.data && adminRes.data.length > 0) {
+        const adminId = adminRes.data[0]._id;
+        const res = await API.get(`/messages/history/${adminId}`);
+        const historyMessages = res.data.map(msg => ({
+          from: msg.from,
+          message: msg.message,
+          fromUsername: msg.fromUsername,
+          timestamp: msg.createdAt || msg.timestamp,
+        }));
+        setMessages(historyMessages);
+      }
+    } catch (error) {
+      console.error("Error loading chat history with admin:", error);
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
+
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
   // Filter messages for selected user
   const filteredMessages = isAdmin && selectedUser
@@ -81,6 +170,7 @@ export default function AdminChat({ isAdmin, onClose }) {
         ...prev,
         { from, message: input, fromUsername, timestamp: new Date() },
       ]);
+      playMessage();
       setInput("");
     } else if (!isAdmin) {
       socket.emit("admin_message", {
@@ -92,6 +182,7 @@ export default function AdminChat({ isAdmin, onClose }) {
         ...prev,
         { from, message: input, fromUsername, timestamp: new Date() },
       ]);
+      playMessage();
       setInput("");
     }
   };
@@ -196,7 +287,12 @@ export default function AdminChat({ isAdmin, onClose }) {
 
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gradient-to-b from-gray-50 to-white">
-        {filteredMessages.length === 0 && (
+        {loadingHistory && (
+          <div className="flex items-center justify-center py-4">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+          </div>
+        )}
+        {!loadingHistory && filteredMessages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full py-8">
             <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center mb-4">
               <UsersIcon className="w-8 h-8 text-gray-400" />
@@ -272,6 +368,7 @@ export default function AdminChat({ isAdmin, onClose }) {
             </div>
           );
         })}
+        <div ref={messagesEndRef} />
       </div>
 
       {/* Input Area */}

@@ -143,6 +143,15 @@ export const homeSectionsConfig = [
     path: "/logs",
     description: "عرض سجلات العمليات والأنشطة",
   },
+  {
+    category: "settings",
+    requiredPermissions: [], // Available to all users
+    label: "الإعدادات",
+    icon: "⚙️",
+    color: "from-slate-500 to-gray-600",
+    path: "/settings",
+    description: "إعدادات التطبيق والتفضيلات الشخصية",
+  },
 ];
 
 export const getAvailableSections = (user) => {

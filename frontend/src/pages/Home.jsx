@@ -7,12 +7,14 @@ import AdminChat from "../components/chat/AdminChat";
 import { checkPermission } from "../utils/permissionHelper";
 import { getAvailableSections, getSectionPermissionStats } from "../utils/homeSectionsConfig";
 import { permissionDefinitions } from "../utils/permissionDefinitions";
+import { useSettings } from "../context/SettingsContext";
 import Logo from "../assets/logo.png";
 
 const VITE_API_URL = import.meta.env.VITE_API_URL;
 
 export default function Home() {
   const navigate = useNavigate();
+  const { playNotification } = useSettings();
   const [user, setUser] = useState(null);
   const [showChat, setShowChat] = useState(false);
   const [notifications, setNotifications] = useState([]);
@@ -76,10 +78,12 @@ export default function Home() {
 
         newSocket.on("personal_notification", (data) => {
           setNotifications((prev) => [data, ...prev].slice(0, 15));
+          playNotification();
         });
 
         newSocket.on("notification", (data) => {
           setNotifications((prev) => [data, ...prev].slice(0, 15));
+          playNotification();
         });
 
         return () => {

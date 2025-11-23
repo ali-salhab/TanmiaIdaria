@@ -54,6 +54,11 @@ export default function DashboardSidebar({
       to: "/dashboard/homepage-builder",
       icon: "🎨"
     },
+    { 
+      label: "⚙️ الإعدادات", 
+      to: "/dashboard/settings",
+      icon: "⚙️"
+    },
   ];
 
   const isActive = (path) => {

@@ -16,6 +16,7 @@ import { Toaster } from "react-hot-toast";
 import Notifications from "./pages/Notifications";
 import AdminNotifications from "./pages/AdminNotifications";
 import { SocketProvider } from "./context/SocketContext";
+import { SettingsProvider } from "./context/SettingsContext";
 import PermissionsManager from "./pages/permissions/PermissionsManager";
 import Dywan from "./pages/Dywan";
 import HomepageBuilder from "./pages/HomepageBuilder";
@@ -28,6 +29,7 @@ import DropdownManager from "./pages/DropdownManager";
 import FileSharing from "./pages/FileSharing";
 import UserNotifications from "./pages/UserNotifications";
 import Circulars from "./pages/Circulars";
+import Settings from "./pages/Settings";
 import EmployeePenalties from "./pages/EmployeePenalties";
 import EmployeeDetailPage from "./pages/EmployeeDetailPage";
 import PermissionGroupsPage from "./pages/permissions/PermissionGroupsPage";
@@ -52,9 +54,10 @@ function App() {
   const role = localStorage.getItem("role");
 
   return (
-    <SocketProvider>
-      <BrowserRouter>
-        <Toaster position="top-left" reverseOrder={false} />
+    <SettingsProvider>
+      <SocketProvider>
+        <BrowserRouter>
+          <Toaster position="top-left" reverseOrder={false} />
         <Routes>
           {/* <Route
             path="/dashboard/employees/:id/vacations"
@@ -95,6 +98,7 @@ function App() {
           >
             <Route path="notifications" element={<Notifications />} />
             <Route path="admin-notifications" element={<AdminNotifications />} />
+            <Route path="settings" element={<Settings />} />
             <Route path="dywan" element={<Dywan />} />
             <Route path="employees/:id" element={<EmployeeEdit />} />
             <Route index element={<EmployeeList />} />
@@ -193,6 +197,15 @@ function App() {
           />
 
           <Route
+            path="/settings"
+            element={
+              <ProtectedRoute>
+                <Settings />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
             path="/incidents"
             element={
               <ProtectedRoute allowedRoles={["user", "admin"]}>
@@ -251,6 +264,7 @@ function App() {
         </Routes>
       </BrowserRouter>
     </SocketProvider>
+    </SettingsProvider>
   );
 }
 

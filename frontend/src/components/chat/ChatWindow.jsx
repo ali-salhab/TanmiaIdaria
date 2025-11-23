@@ -1,19 +1,44 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useSocket } from "../../context/SocketContext";
+import { useSettings } from "../../context/SettingsContext";
 import { X, Send } from "lucide-react";
 import API from "../../api/api";
 import UserAvatar from "../common/UserAvatar";
 
 export default function ChatWindow({ userId, onClose, index = 0 }) {
   const { socket } = useSocket();
+  const { playMessage } = useSettings();
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [userInfo, setUserInfo] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  const messagesEndRef = useRef(null);
+  const { playNotification } = useSettings();
 
   useEffect(() => {
     fetchUserInfo();
+    loadChatHistory();
   }, [userId]);
+
+  const loadChatHistory = async () => {
+    if (!userId) return;
+    setLoadingHistory(true);
+    try {
+      const res = await API.get(`/messages/history/${userId}`);
+      const historyMessages = res.data.map(msg => ({
+        from: msg.from,
+        message: msg.message,
+        fromUsername: msg.fromUsername,
+        timestamp: msg.createdAt || msg.timestamp,
+      }));
+      setMessages(historyMessages);
+    } catch (error) {
+      console.error("Error loading chat history:", error);
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
 
   const fetchUserInfo = async () => {
     setLoadingUser(true);
@@ -38,13 +63,24 @@ export default function ChatWindow({ userId, onClose, index = 0 }) {
 
     const handlePrivateMessage = ({ from, message, timestamp }) => {
       if (from === userId) {
-        setMessages((prev) => [...prev, { from, message, timestamp: timestamp || new Date() }]);
+        setMessages((prev) => {
+          const messageExists = prev.some(
+            m => m.message === message && 
+            m.from === from && 
+            new Date(m.timestamp).getTime() === new Date(timestamp).getTime()
+          );
+          if (messageExists) return prev;
+          
+          return [...prev, { from, message, timestamp: timestamp || new Date() }];
+        });
+        playMessage();
+        playNotification();
       }
     };
 
     socket.on("private_message", handlePrivateMessage);
     return () => socket.off("private_message", handlePrivateMessage);
-  }, [socket, userId]);
+  }, [socket, userId, playMessage]);
 
   const sendMessage = () => {
     const from = localStorage.getItem("userId");
@@ -61,7 +97,17 @@ export default function ChatWindow({ userId, onClose, index = 0 }) {
       message: input, 
       timestamp: new Date() 
     }]);
+    playMessage();
     setInput("");
+  };
+
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   const offset = index * 380;
@@ -110,7 +156,12 @@ export default function ChatWindow({ userId, onClose, index = 0 }) {
 
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gradient-to-b from-gray-50 to-white">
-        {messages.length === 0 && (
+        {loadingHistory && (
+          <div className="flex items-center justify-center py-4">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+          </div>
+        )}
+        {!loadingHistory && messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full py-8">
             <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center mb-3">
               <span className="text-2xl">💬</span>
@@ -173,6 +224,7 @@ export default function ChatWindow({ userId, onClose, index = 0 }) {
             </div>
           );
         })}
+        <div ref={messagesEndRef} />
       </div>
 
       {/* Input Area */}

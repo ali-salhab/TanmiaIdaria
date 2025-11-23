@@ -5,107 +5,105 @@ import Permission from "../models/Permission.js";
 dotenv.config();
 
 const permissions = [
-  { key: "viewEmployees", label: "عرض الموظفين", category: "view" },
-  {
-    key: "createEmployee",
-    label: "إضافة موظف",
-    category: "create",
-  },
-  {
-    key: "editEmployee",
-    label: "تعديل بيانات الموظف",
-    category: "edit",
-  },
-  {
-    key: "deleteEmployee",
-    label: "حذف موظف",
-    category: "delete",
-  },
-  {
-    key: "viewIncidents",
-    label: "عرض الحوادث",
-    category: "view",
-  },
-  {
-    key: "createIncident",
-    label: "إضافة حادثة",
-    category: "create",
-  },
-  {
-    key: "deleteIncident",
-    label: "حذف حادثة",
-    category: "delete",
-  },
-  {
-    key: "viewDocuments",
-    label: "عرض الوثائق",
-    category: "view",
-  },
-  {
-    key: "viewSalary",
-    label: "عرض الرواتب",
-    category: "view",
-  },
-  {
-    key: "viewReports",
-    label: "عرض التقارير",
-    category: "view",
-  },
-  {
-    key: "viewAnalytics",
-    label: "عرض التحليلات",
-    category: "view",
-  },
-  {
-    key: "manageLeaves",
-    label: "إدارة الإجازات",
-    category: "manage",
-  },
-  {
-    key: "createVacation",
-    label: "طلب إجازة",
-    category: "create",
-  },
-  {
-    key: "approveVacation",
-    label: "الموافقة على الإجازات",
-    category: "manage",
-  },
-  {
-    key: "manageRewards",
-    label: "إدارة المكافآت",
-    category: "manage",
-  },
-  {
-    key: "managePunishments",
-    label: "إدارة الجزاءات",
-    category: "manage",
-  },
-  {
-    key: "manageDywan",
-    label: "إدارة الديوان",
-    category: "manage",
-  },
-  {
-    key: "viewUsers",
-    label: "عرض المستخدمين",
-    category: "view",
-  },
-  {
-    key: "createUser",
-    label: "إضافة مستخدم",
-    category: "create",
-  },
-  {
-    key: "deleteUser",
-    label: "حذف مستخدم",
-    category: "delete",
-  },
-  {
-    key: "managePermissions",
-    label: "إدارة الصلاحيات",
-    category: "admin",
-  },
+  // الموظفين
+  { key: "employees.view", label: "عرض الموظفين", category: "الموظفين", description: "القدرة على عرض قائمة الموظفين وبياناتهم" },
+  { key: "employees.create", label: "إضافة موظف", category: "الموظفين", description: "القدرة على إضافة موظف جديد" },
+  { key: "employees.edit", label: "تعديل بيانات الموظف", category: "الموظفين", description: "القدرة على تعديل بيانات الموظفين" },
+  { key: "employees.delete", label: "حذف موظف", category: "الموظفين", description: "القدرة على حذف موظف" },
+  { key: "employees.import", label: "استيراد الموظفين", category: "الموظفين", description: "القدرة على استيراد الموظفين من ملفات إكسل" },
+  { key: "employees.export", label: "تصدير بيانات الموظفين", category: "الموظفين", description: "القدرة على تصدير بيانات الموظفين" },
+  { key: "employees.viewDetails", label: "عرض تفاصيل الموظف", category: "الموظفين", description: "القدرة على عرض التفاصيل الكاملة للموظف" },
+
+  // الحوادث
+  { key: "incidents.view", label: "عرض الحوادث", category: "الحوادث", description: "القدرة على عرض قائمة الحوادث" },
+  { key: "incidents.create", label: "إضافة حادثة", category: "الحوادث", description: "القدرة على تسجيل حادثة جديدة" },
+  { key: "incidents.edit", label: "تعديل الحوادث", category: "الحوادث", description: "القدرة على تعديل بيانات الحوادث" },
+  { key: "incidents.delete", label: "حذف حادثة", category: "الحوادث", description: "القدرة على حذف حادثة" },
+  { key: "incidents.export", label: "تصدير الحوادث", category: "الحوادث", description: "القدرة على تصدير بيانات الحوادث" },
+
+  // الإجازات
+  { key: "vacations.view", label: "عرض الإجازات", category: "الإجازات", description: "القدرة على عرض قائمة الإجازات" },
+  { key: "vacations.create", label: "طلب إجازة", category: "الإجازات", description: "القدرة على تقديم طلب إجازة" },
+  { key: "vacations.edit", label: "تعديل الإجازات", category: "الإجازات", description: "القدرة على تعديل بيانات الإجازات" },
+  { key: "vacations.delete", label: "حذف إجازة", category: "الإجازات", description: "القدرة على حذف إجازة" },
+  { key: "vacations.approve", label: "الموافقة على الإجازات", category: "الإجازات", description: "القدرة على الموافقة أو رفض طلبات الإجازات" },
+  { key: "vacations.export", label: "تصدير الإجازات", category: "الإجازات", description: "القدرة على تصدير بيانات الإجازات" },
+
+  // المستخدمين
+  { key: "users.view", label: "عرض المستخدمين", category: "المستخدمين", description: "القدرة على عرض قائمة المستخدمين" },
+  { key: "users.create", label: "إضافة مستخدم", category: "المستخدمين", description: "القدرة على إضافة مستخدم جديد" },
+  { key: "users.edit", label: "تعديل المستخدمين", category: "المستخدمين", description: "القدرة على تعديل بيانات المستخدمين" },
+  { key: "users.delete", label: "حذف مستخدم", category: "المستخدمين", description: "القدرة على حذف مستخدم" },
+
+  // الوثائق والملفات
+  { key: "documents.view", label: "عرض الوثائق", category: "الوثائق", description: "القدرة على عرض الوثائق والملفات" },
+  { key: "documents.upload", label: "رفع الوثائق", category: "الوثائق", description: "القدرة على رفع وثائق وملفات جديدة" },
+  { key: "documents.download", label: "تحميل الوثائق", category: "الوثائق", description: "القدرة على تحميل الوثائق" },
+  { key: "documents.delete", label: "حذف الوثائق", category: "الوثائق", description: "القدرة على حذف الوثائق" },
+
+  // الرواتب
+  { key: "salary.view", label: "عرض الرواتب", category: "الرواتب", description: "القدرة على عرض معلومات الرواتب" },
+  { key: "salary.edit", label: "تعديل الرواتب", category: "الرواتب", description: "القدرة على تعديل معلومات الرواتب" },
+  { key: "salary.export", label: "تصدير الرواتب", category: "الرواتب", description: "القدرة على تصدير بيانات الرواتب" },
+
+  // الحوافز والمكافآت
+  { key: "rewards.view", label: "عرض الحوافز", category: "الحوافز والمكافآت", description: "القدرة على عرض قائمة الحوافز والمكافآت" },
+  { key: "rewards.create", label: "إضافة حوافز", category: "الحوافز والمكافآت", description: "القدرة على إضافة حافز أو مكافأة" },
+  { key: "rewards.edit", label: "تعديل الحوافز", category: "الحوافز والمكافآت", description: "القدرة على تعديل الحوافز والمكافآت" },
+  { key: "rewards.delete", label: "حذف حوافز", category: "الحوافز والمكافآت", description: "القدرة على حذف حافز أو مكافأة" },
+  { key: "rewards.export", label: "تصدير الحوافز", category: "الحوافز والمكافآت", description: "القدرة على تصدير بيانات الحوافز" },
+
+  // الجزاءات
+  { key: "punishments.view", label: "عرض الجزاءات", category: "الجزاءات", description: "القدرة على عرض قائمة الجزاءات" },
+  { key: "punishments.create", label: "إضافة جزاءات", category: "الجزاءات", description: "القدرة على إضافة جزاء" },
+  { key: "punishments.edit", label: "تعديل الجزاءات", category: "الجزاءات", description: "القدرة على تعديل الجزاءات" },
+  { key: "punishments.delete", label: "حذف جزاءات", category: "الجزاءات", description: "القدرة على حذف جزاء" },
+  { key: "punishments.export", label: "تصدير الجزاءات", category: "الجزاءات", description: "القدرة على تصدير بيانات الجزاءات" },
+
+  // التعاميم
+  { key: "circulars.view", label: "عرض التعاميم", category: "التعاميم", description: "القدرة على عرض التعاميم الإدارية" },
+  { key: "circulars.create", label: "إنشاء تعميم", category: "التعاميم", description: "القدرة على إنشاء تعميم جديد" },
+  { key: "circulars.edit", label: "تعديل التعاميم", category: "التعاميم", description: "القدرة على تعديل التعاميم" },
+  { key: "circulars.delete", label: "حذف تعميم", category: "التعاميم", description: "القدرة على حذف تعميم" },
+
+  // مشاركة الملفات
+  { key: "fileshare.view", label: "عرض الملفات المشاركة", category: "مشاركة الملفات", description: "القدرة على عرض الملفات المشاركة" },
+  { key: "fileshare.upload", label: "رفع ومشاركة ملفات", category: "مشاركة الملفات", description: "القدرة على رفع ومشاركة ملفات جديدة" },
+  { key: "fileshare.download", label: "تحميل الملفات المشاركة", category: "مشاركة الملفات", description: "القدرة على تحميل الملفات المشاركة" },
+  { key: "fileshare.delete", label: "حذف الملفات المشاركة", category: "مشاركة الملفات", description: "القدرة على حذف ملف مشارك" },
+
+  // إعدادات التطبيق
+  { key: "appsettings.view", label: "عرض إعدادات التطبيق", category: "إعدادات التطبيق", description: "القدرة على عرض إعدادات التطبيق" },
+  { key: "appsettings.edit", label: "تعديل إعدادات التطبيق", category: "إعدادات التطبيق", description: "القدرة على تعديل إعدادات التطبيق" },
+
+  // إدارة الصلاحيات
+  { key: "permissions.view", label: "عرض الصلاحيات", category: "الصلاحيات", description: "القدرة على عرض قائمة الصلاحيات" },
+  { key: "permissions.manage", label: "إدارة الصلاحيات", category: "الصلاحيات", description: "القدرة على إدارة صلاحيات المستخدمين" },
+  { key: "permissions.groups.view", label: "عرض مجموعات الصلاحيات", category: "الصلاحيات", description: "القدرة على عرض مجموعات الصلاحيات" },
+  { key: "permissions.groups.manage", label: "إدارة مجموعات الصلاحيات", category: "الصلاحيات", description: "القدرة على إنشاء وتعديل مجموعات الصلاحيات" },
+
+  // التقارير والتحليلات
+  { key: "reports.view", label: "عرض التقارير", category: "التقارير", description: "القدرة على عرض التقارير الإدارية" },
+  { key: "reports.export", label: "تصدير التقارير", category: "التقارير", description: "القدرة على تصدير التقارير" },
+  { key: "analytics.view", label: "عرض التحليلات", category: "التحليلات", description: "القدرة على عرض لوحة التحليلات" },
+  { key: "analytics.dashboard", label: "لوحة التحكم الإحصائية", category: "التحليلات", description: "القدرة على الوصول للوحة التحكم الإحصائية" },
+
+  // الديوان
+  { key: "dywan.view", label: "عرض الديوان", category: "الديوان", description: "القدرة على عرض سجلات الديوان" },
+  { key: "dywan.manage", label: "إدارة الديوان", category: "الديوان", description: "القدرة على إدارة وتعديل سجلات الديوان" },
+
+  // الإشعارات
+  { key: "notifications.view", label: "عرض الإشعارات", category: "الإشعارات", description: "القدرة على عرض الإشعارات" },
+  { key: "notifications.send", label: "إرسال الإشعارات", category: "الإشعارات", description: "القدرة على إرسال إشعارات للمستخدمين" },
+  { key: "notifications.manage", label: "إدارة الإشعارات", category: "الإشعارات", description: "القدرة على إدارة جميع الإشعارات" },
+
+  // إدارة القوائم المنسدلة
+  { key: "dropdown.view", label: "عرض القوائم المنسدلة", category: "إعدادات النظام", description: "القدرة على عرض القوائم المنسدلة" },
+  { key: "dropdown.manage", label: "إدارة القوائم المنسدلة", category: "إعدادات النظام", description: "القدرة على إدارة القوائم المنسدلة (الأقسام، المناصب، إلخ)" },
+
+  // الصفحة الرئيسية
+  { key: "homepage.view", label: "عرض الصفحة الرئيسية", category: "إعدادات النظام", description: "القدرة على عرض الصفحة الرئيسية" },
+  { key: "homepage.customize", label: "تخصيص الصفحة الرئيسية", category: "إعدادات النظام", description: "القدرة على تخصيص محتوى الصفحة الرئيسية" },
 ];
 
 async function initPermissions() {

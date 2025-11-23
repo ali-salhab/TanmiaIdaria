@@ -14,6 +14,7 @@ import EmployeeRewards from "./pages/EmployeeRewards";
 import EmployeeIncidents from "./pages/EmployeeIncidents";
 import { Toaster } from "react-hot-toast";
 import Notifications from "./pages/Notifications";
+import AdminNotifications from "./pages/AdminNotifications";
 import { SocketProvider } from "./context/SocketContext";
 import PermissionsManager from "./pages/permissions/PermissionsManager";
 import Dywan from "./pages/Dywan";
@@ -93,6 +94,7 @@ function App() {
             }
           >
             <Route path="notifications" element={<Notifications />} />
+            <Route path="admin-notifications" element={<AdminNotifications />} />
             <Route path="dywan" element={<Dywan />} />
             <Route path="employees/:id" element={<EmployeeEdit />} />
             <Route index element={<EmployeeList />} />

@@ -136,7 +136,7 @@ export default function Navbar({
             <button
               onClick={() => {
                 if (isAdmin) {
-                  navigate("/dashboard/notifications");
+                  navigate("/dashboard/admin-notifications");
                 } else {
                   navigate("/notifications");
                 }

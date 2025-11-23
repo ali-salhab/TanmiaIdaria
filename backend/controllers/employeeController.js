@@ -3,6 +3,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import Employee from "../models/Employee.js";
+import { notifyAdmin } from "../services/notificationService.js";
 /**
  * @desc Upload or update employee profile photo
  * @route POST /api/employees/:id/photo
@@ -130,6 +131,20 @@ export const createEmployee = async (req, res) => {
   try {
     const emp = new Employee(req.body);
     await emp.save();
+    
+    // Notify admin if action is performed by non-admin user
+    if (req.user && req.user.role !== "admin") {
+      await notifyAdmin({
+        actionBy: req.user._id,
+        section: "employees",
+        action: "create",
+        title: "تم إنشاء موظف جديد",
+        message: `تم إنشاء موظف جديد: ${emp.fullName || "غير محدد"}`,
+        employeeName: emp.fullName,
+        department: emp.level4 || emp.currentJobTitle || null,
+      });
+    }
+    
     res.status(201).json(emp);
   } catch (err) {
     res.status(500).json({ message: "Server error" });
@@ -141,6 +156,20 @@ export const updateEmployee = async (req, res) => {
       new: true,
     });
     if (!emp) return res.status(404).json({ message: "Not found" });
+    
+    // Notify admin if action is performed by non-admin user
+    if (req.user && req.user.role !== "admin") {
+      await notifyAdmin({
+        actionBy: req.user._id,
+        section: "employees",
+        action: "update",
+        title: "تم تحديث بيانات موظف",
+        message: `تم تحديث بيانات الموظف: ${emp.fullName || "غير محدد"}`,
+        employeeName: emp.fullName,
+        department: emp.level4 || emp.currentJobTitle || null,
+      });
+    }
+    
     res.json(emp);
   } catch (err) {
     res.status(500).json({ message: "Server error" });
@@ -148,7 +177,24 @@ export const updateEmployee = async (req, res) => {
 };
 export const deleteEmployee = async (req, res) => {
   try {
+    const emp = await Employee.findById(req.params.id);
+    if (!emp) return res.status(404).json({ message: "Not found" });
+    
     await Employee.findByIdAndDelete(req.params.id);
+    
+    // Notify admin if action is performed by non-admin user
+    if (req.user && req.user.role !== "admin") {
+      await notifyAdmin({
+        actionBy: req.user._id,
+        section: "employees",
+        action: "delete",
+        title: "تم حذف موظف",
+        message: `تم حذف الموظف: ${emp.fullName || "غير محدد"}`,
+        employeeName: emp.fullName,
+        department: emp.level4 || emp.currentJobTitle || null,
+      });
+    }
+    
     res.json({ message: "Deleted" });
   } catch (err) {
     res.status(500).json({ message: "Server error" });

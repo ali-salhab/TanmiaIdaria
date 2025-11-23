@@ -248,6 +248,385 @@ export const permissionDefinitions = {
     category: "التعاميم",
     action: "نشر",
   },
+  "circulars.delete": {
+    key: "circulars.delete",
+    label: "حذف التعاميم",
+    description: "القدرة على حذف التعاميم",
+    category: "التعاميم",
+    action: "حذف",
+  },
+  "circulars.upload_files": {
+    key: "circulars.upload_files",
+    label: "رفع ملفات التعاميم",
+    description: "القدرة على رفع ملفات للتعاميم",
+    category: "التعاميم",
+    action: "رفع",
+  },
+  "circulars.delete_files": {
+    key: "circulars.delete_files",
+    label: "حذف ملفات التعاميم",
+    description: "القدرة على حذف ملفات التعاميم",
+    category: "التعاميم",
+    action: "حذف",
+  },
+  "circulars.unpublish": {
+    key: "circulars.unpublish",
+    label: "إلغاء نشر التعاميم",
+    description: "القدرة على إلغاء نشر التعاميم",
+    category: "التعاميم",
+    action: "إلغاء نشر",
+  },
+
+  // Users additional permissions
+  "users.reset_password": {
+    key: "users.reset_password",
+    label: "إعادة تعيين كلمة المرور",
+    description: "القدرة على إعادة تعيين كلمات مرور المستخدمين",
+    category: "المستخدمين",
+    action: "إعادة تعيين",
+  },
+  "users.assign_permissions": {
+    key: "users.assign_permissions",
+    label: "تعيين الصلاحيات",
+    description: "القدرة على تعيين الصلاحيات للمستخدمين",
+    category: "المستخدمين",
+    action: "تعيين",
+  },
+  "users.assign_groups": {
+    key: "users.assign_groups",
+    label: "تعيين مجموعات الصلاحيات",
+    description: "القدرة على تعيين مجموعات الصلاحيات للمستخدمين",
+    category: "المستخدمين",
+    action: "تعيين",
+  },
+
+  // Employees additional permissions
+  "employees.export": {
+    key: "employees.export",
+    label: "تصدير بيانات الموظفين",
+    description: "القدرة على تصدير بيانات الموظفين",
+    category: "الموظفين",
+    action: "تصدير",
+  },
+  "employees.upload_document": {
+    key: "employees.upload_document",
+    label: "رفع وثائق الموظفين",
+    description: "القدرة على رفع وثائق للموظفين",
+    category: "الموظفين",
+    action: "رفع",
+  },
+  "employees.delete_document": {
+    key: "employees.delete_document",
+    label: "حذف وثائق الموظفين",
+    description: "القدرة على حذف وثائق الموظفين",
+    category: "الموظفين",
+    action: "حذف",
+  },
+
+  // Incidents additional permissions
+  "incidents.export": {
+    key: "incidents.export",
+    label: "تصدير الحوادث",
+    description: "القدرة على تصدير بيانات الحوادث",
+    category: "الحوادث",
+    action: "تصدير",
+  },
+
+  // Vacations additional permissions
+  "vacations.reject": {
+    key: "vacations.reject",
+    label: "رفض الإجازات",
+    description: "القدرة على رفض طلبات الإجازات",
+    category: "الإجازات",
+    action: "رفض",
+  },
+
+  // Documents additional permissions
+  "documents.download": {
+    key: "documents.download",
+    label: "تحميل الوثائق",
+    description: "القدرة على تحميل الوثائق والملفات",
+    category: "الوثائق",
+    action: "تحميل",
+  },
+
+  // FileShare permissions
+  "fileshare.send": {
+    key: "fileshare.send",
+    label: "إرسال الملفات",
+    description: "القدرة على إرسال الملفات للمستخدمين",
+    category: "مشاركة الملفات",
+    action: "إرسال",
+  },
+  "fileshare.view_inbox": {
+    key: "fileshare.view_inbox",
+    label: "عرض صندوق الوارد",
+    description: "القدرة على عرض الملفات المستلمة",
+    category: "مشاركة الملفات",
+    action: "عرض",
+  },
+  "fileshare.read": {
+    key: "fileshare.read",
+    label: "قراءة الملفات",
+    description: "القدرة على قراءة الملفات المستلمة",
+    category: "مشاركة الملفات",
+    action: "قراءة",
+  },
+
+  // Salary additional permissions
+  "salary.upload": {
+    key: "salary.upload",
+    label: "رفع بيانات الرواتب",
+    description: "القدرة على رفع ملفات الرواتب",
+    category: "الرواتب",
+    action: "رفع",
+  },
+  "salary.delete": {
+    key: "salary.delete",
+    label: "حذف بيانات الرواتب",
+    description: "القدرة على حذف بيانات الرواتب",
+    category: "الرواتب",
+    action: "حذف",
+  },
+
+  // Rewards additional permissions
+  "rewards.delete": {
+    key: "rewards.delete",
+    label: "حذف الحوافز",
+    description: "القدرة على حذف الحوافز والمكافآت",
+    category: "الحوافز",
+    action: "حذف",
+  },
+
+  // Punishments additional permissions
+  "punishments.delete": {
+    key: "punishments.delete",
+    label: "حذف الجزاءات",
+    description: "القدرة على حذف الجزاءات والعقوبات",
+    category: "الجزاءات",
+    action: "حذف",
+  },
+
+  // Dropdowns permissions
+  "dropdowns.view": {
+    key: "dropdowns.view",
+    label: "عرض القوائم المنسدلة",
+    description: "القدرة على عرض إعدادات القوائم المنسدلة",
+    category: "القوائم المنسدلة",
+    action: "عرض",
+  },
+  "dropdowns.edit": {
+    key: "dropdowns.edit",
+    label: "تعديل القوائم المنسدلة",
+    description: "القدرة على تعديل القوائم المنسدلة",
+    category: "القوائم المنسدلة",
+    action: "تعديل",
+  },
+  "dropdowns.reset_to_default": {
+    key: "dropdowns.reset_to_default",
+    label: "إعادة تعيين القوائم المنسدلة",
+    description: "القدرة على إعادة تعيين القوائم المنسدلة للافتراضي",
+    category: "القوائم المنسدلة",
+    action: "إعادة تعيين",
+  },
+
+  // Homepage permissions
+  "homepage.view": {
+    key: "homepage.view",
+    label: "عرض الصفحة الرئيسية",
+    description: "القدرة على عرض الصفحة الرئيسية",
+    category: "الصفحة الرئيسية",
+    action: "عرض",
+  },
+  "homepage.edit_widgets": {
+    key: "homepage.edit_widgets",
+    label: "تعديل الويدجت",
+    description: "القدرة على تعديل الويدجت في الصفحة الرئيسية",
+    category: "الصفحة الرئيسية",
+    action: "تعديل",
+  },
+  "homepage.edit_layout": {
+    key: "homepage.edit_layout",
+    label: "تعديل التخطيط",
+    description: "القدرة على تعديل تخطيط الصفحة الرئيسية",
+    category: "الصفحة الرئيسية",
+    action: "تعديل",
+  },
+  "homepage.edit_theme": {
+    key: "homepage.edit_theme",
+    label: "تعديل المظهر",
+    description: "القدرة على تعديل مظهر الصفحة الرئيسية",
+    category: "الصفحة الرئيسية",
+    action: "تعديل",
+  },
+
+  // Permissions management
+  "permissions.view": {
+    key: "permissions.view",
+    label: "عرض الصلاحيات",
+    description: "القدرة على عرض قائمة الصلاحيات",
+    category: "إدارة الصلاحيات",
+    action: "عرض",
+  },
+  "permissions.create": {
+    key: "permissions.create",
+    label: "إنشاء صلاحيات",
+    description: "القدرة على إنشاء صلاحيات جديدة",
+    category: "إدارة الصلاحيات",
+    action: "إنشاء",
+  },
+  "permissions.edit": {
+    key: "permissions.edit",
+    label: "تعديل الصلاحيات",
+    description: "القدرة على تعديل الصلاحيات",
+    category: "إدارة الصلاحيات",
+    action: "تعديل",
+  },
+  "permissions.delete": {
+    key: "permissions.delete",
+    label: "حذف الصلاحيات",
+    description: "القدرة على حذف الصلاحيات",
+    category: "إدارة الصلاحيات",
+    action: "حذف",
+  },
+
+  // Permission Groups
+  "permission_groups.view": {
+    key: "permission_groups.view",
+    label: "عرض مجموعات الصلاحيات",
+    description: "القدرة على عرض مجموعات الصلاحيات",
+    category: "مجموعات الصلاحيات",
+    action: "عرض",
+  },
+  "permission_groups.create": {
+    key: "permission_groups.create",
+    label: "إنشاء مجموعات الصلاحيات",
+    description: "القدرة على إنشاء مجموعات صلاحيات جديدة",
+    category: "مجموعات الصلاحيات",
+    action: "إنشاء",
+  },
+  "permission_groups.edit": {
+    key: "permission_groups.edit",
+    label: "تعديل مجموعات الصلاحيات",
+    description: "القدرة على تعديل مجموعات الصلاحيات",
+    category: "مجموعات الصلاحيات",
+    action: "تعديل",
+  },
+  "permission_groups.delete": {
+    key: "permission_groups.delete",
+    label: "حذف مجموعات الصلاحيات",
+    description: "القدرة على حذف مجموعات الصلاحيات",
+    category: "مجموعات الصلاحيات",
+    action: "حذف",
+  },
+  "permission_groups.assign_members": {
+    key: "permission_groups.assign_members",
+    label: "تعيين أعضاء المجموعات",
+    description: "القدرة على تعيين أعضاء لمجموعات الصلاحيات",
+    category: "مجموعات الصلاحيات",
+    action: "تعيين",
+  },
+
+  // Settings
+  "settings.view": {
+    key: "settings.view",
+    label: "عرض الإعدادات",
+    description: "القدرة على عرض إعدادات النظام",
+    category: "الإعدادات",
+    action: "عرض",
+  },
+  "settings.update_theme": {
+    key: "settings.update_theme",
+    label: "تحديث المظهر",
+    description: "القدرة على تحديث مظهر النظام",
+    category: "الإعدادات",
+    action: "تحديث",
+  },
+  "settings.update_dropdowns": {
+    key: "settings.update_dropdowns",
+    label: "تحديث القوائم المنسدلة",
+    description: "القدرة على تحديث القوائم المنسدلة",
+    category: "الإعدادات",
+    action: "تحديث",
+  },
+  "settings.update_homepage": {
+    key: "settings.update_homepage",
+    label: "تحديث الصفحة الرئيسية",
+    description: "القدرة على تحديث إعدادات الصفحة الرئيسية",
+    category: "الإعدادات",
+    action: "تحديث",
+  },
+
+  // Notifications
+  "notifications.view": {
+    key: "notifications.view",
+    label: "عرض الإشعارات",
+    description: "القدرة على عرض الإشعارات",
+    category: "الإشعارات",
+    action: "عرض",
+  },
+  "notifications.mark_read": {
+    key: "notifications.mark_read",
+    label: "تحديد الإشعارات كمقروءة",
+    description: "القدرة على تحديد الإشعارات كمقروءة",
+    category: "الإشعارات",
+    action: "تحديد",
+  },
+  "notifications.send": {
+    key: "notifications.send",
+    label: "إرسال الإشعارات",
+    description: "القدرة على إرسال إشعارات للمستخدمين",
+    category: "الإشعارات",
+    action: "إرسال",
+  },
+
+  // Logs
+  "logs.view": {
+    key: "logs.view",
+    label: "عرض السجلات",
+    description: "القدرة على عرض سجلات النظام",
+    category: "السجلات",
+    action: "عرض",
+  },
+  "logs.export": {
+    key: "logs.export",
+    label: "تصدير السجلات",
+    description: "القدرة على تصدير سجلات النظام",
+    category: "السجلات",
+    action: "تصدير",
+  },
+
+  // Analytics
+  "analytics.view": {
+    key: "analytics.view",
+    label: "عرض التحليلات",
+    description: "القدرة على عرض تحليلات النظام",
+    category: "التحليلات",
+    action: "عرض",
+  },
+  "analytics.export": {
+    key: "analytics.export",
+    label: "تصدير التحليلات",
+    description: "القدرة على تصدير تحليلات النظام",
+    category: "التحليلات",
+    action: "تصدير",
+  },
+
+  // Reports
+  "reports.view": {
+    key: "reports.view",
+    label: "عرض التقارير",
+    description: "القدرة على عرض تقارير النظام",
+    category: "التقارير",
+    action: "عرض",
+  },
+  "reports.export": {
+    key: "reports.export",
+    label: "تصدير التقارير",
+    description: "القدرة على تصدير تقارير النظام",
+    category: "التقارير",
+    action: "تصدير",
+  },
 };
 
 // Helper functions

@@ -37,9 +37,15 @@ export default function Dashboard() {
 
     const fetchUserInfo = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/auth/me", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await fetch(
+          `${
+            import.meta.env.VITE_API_URL ||
+            `http://${window.location.hostname}:5000/api`
+          }/auth/me`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
         if (res.ok) {
           const data = await res.json();
           setUserInfo(data.user);

@@ -12,19 +12,13 @@ const router = express.Router();
 
 // Chat permissions required for normal users (admins bypass these)
 router.get(
-  "/history/:otherUserId", 
-  protect, 
-  checkPermission("chat.view_history"), 
+  "/history/:otherUserId",
+  protect,
+  checkPermission("chat.view_history"),
   getChatHistory
 );
-router.post(
-  "/", 
-  protect, 
-  checkPermission("chat.send"), 
-  saveMessage
-);
+router.post("/", protect, checkPermission("chat.send"), saveMessage);
 router.put("/read/:otherUserId", protect, markAsRead);
 router.get("/unread", protect, getUnreadCount);
 
 export default router;
-

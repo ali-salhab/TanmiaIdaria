@@ -1,11 +1,21 @@
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { io } from "socket.io-client";
-import { Bell, MessageCircle, Megaphone, Shield, Lock, CheckCircle2 } from "lucide-react";
+import {
+  Bell,
+  MessageCircle,
+  Megaphone,
+  Shield,
+  Lock,
+  CheckCircle2,
+} from "lucide-react";
 import API from "../api/api";
 import AdminChat from "../components/chat/AdminChat";
 import { checkPermission } from "../utils/permissionHelper";
-import { getAvailableSections, getSectionPermissionStats } from "../utils/homeSectionsConfig";
+import {
+  getAvailableSections,
+  getSectionPermissionStats,
+} from "../utils/homeSectionsConfig";
 import { permissionDefinitions } from "../utils/permissionDefinitions";
 import { useSettings } from "../context/SettingsContext";
 import Logo from "../assets/logo.png";
@@ -118,10 +128,10 @@ export default function Home() {
   // Get permissions for a section
   const getSectionPermissions = (section) => {
     if (!user || !user.permissions) return [];
-    
+
     // Get all permissions that match the section's required permissions or category
     const sectionPerms = [];
-    
+
     // First, check required permissions
     if (section.requiredPermissions) {
       section.requiredPermissions.forEach((permKey) => {
@@ -130,22 +140,24 @@ export default function Home() {
         }
       });
     }
-    
+
     // Also check for other permissions in the same category
     if (section.requiredPermissions && section.requiredPermissions.length > 0) {
       const firstPerm = permissionDefinitions[section.requiredPermissions[0]];
       if (firstPerm) {
         const category = firstPerm.category;
         Object.keys(permissionDefinitions).forEach((key) => {
-          if (permissionDefinitions[key].category === category && 
-              user.permissions[key] === true && 
-              !sectionPerms.includes(key)) {
+          if (
+            permissionDefinitions[key].category === category &&
+            user.permissions[key] === true &&
+            !sectionPerms.includes(key)
+          ) {
             sectionPerms.push(key);
           }
         });
       }
     }
-    
+
     return sectionPerms;
   };
 
@@ -155,13 +167,16 @@ export default function Home() {
     allowedSections.forEach((section) => {
       // Get category from the first permission or use section label
       let category = "أخرى";
-      if (section.requiredPermissions && section.requiredPermissions.length > 0) {
+      if (
+        section.requiredPermissions &&
+        section.requiredPermissions.length > 0
+      ) {
         const firstPerm = permissionDefinitions[section.requiredPermissions[0]];
         category = firstPerm?.category || section.label;
       } else {
         category = section.label;
       }
-      
+
       if (!groups[category]) {
         groups[category] = [];
       }
@@ -172,7 +187,10 @@ export default function Home() {
 
   if (loading || !user) {
     return (
-      <div dir="rtl" className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+      <div
+        dir="rtl"
+        className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 to-slate-100"
+      >
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4"></div>
           <div className="text-gray-600 text-lg">جاري تحميل البيانات...</div>
@@ -184,7 +202,10 @@ export default function Home() {
   const isAdmin = user.role === "admin";
 
   return (
-    <div dir="rtl" className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 flex flex-col">
+    <div
+      dir="rtl"
+      className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 flex flex-col"
+    >
       {/* Header */}
       <header
         className={`fixed top-0 left-0 w-full z-50 transition-transform duration-500 ${
@@ -227,8 +248,8 @@ export default function Home() {
         </div>
 
         <div className="flex-1 flex justify-center">
-          <div 
-            className="flex items-center gap-3 md:gap-4 cursor-pointer hover:opacity-90 transition-all group" 
+          <div
+            className="flex items-center gap-3 md:gap-4 cursor-pointer hover:opacity-90 transition-all group"
             onClick={() => navigate("/profile")}
           >
             <div className="text-right hidden sm:block">
@@ -236,7 +257,9 @@ export default function Home() {
                 {user?.username}
               </h1>
               <div className="flex items-center gap-2">
-                <p className="text-slate-500 text-xs md:text-sm">{user?.role || "مستخدم"}</p>
+                <p className="text-slate-500 text-xs md:text-sm">
+                  {user?.role || "مستخدم"}
+                </p>
                 {isAdmin && (
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full text-xs font-medium">
                     <Shield className="w-3 h-3" />
@@ -251,7 +274,11 @@ export default function Home() {
           </div>
         </div>
 
-        <img src={Logo} alt="Logo" className="w-12 md:w-20 h-12 md:h-20 object-contain opacity-90 hover:opacity-100 transition-opacity" />
+        <img
+          src={Logo}
+          alt="Logo"
+          className="w-12 md:w-20 h-12 md:h-20 object-contain opacity-90 hover:opacity-100 transition-opacity"
+        />
       </header>
 
       {showNotifications && (
@@ -267,15 +294,26 @@ export default function Home() {
           </div>
           {notifications.length > 0 ? (
             notifications.map((notif, idx) => (
-              <div key={idx} className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-3 text-sm hover:shadow-md transition-all cursor-pointer">
-                <p className="font-semibold text-blue-800">{notif.title || notif.message}</p>
+              <div
+                key={idx}
+                className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-3 text-sm hover:shadow-md transition-all cursor-pointer"
+              >
+                <p className="font-semibold text-blue-800">
+                  {notif.title || notif.message}
+                </p>
                 <p className="text-gray-500 text-xs mt-1.5 flex items-center gap-2">
-                  <span>{new Date(notif.createdAt || Date.now()).toLocaleTimeString("ar-EG")}</span>
+                  <span>
+                    {new Date(notif.createdAt || Date.now()).toLocaleTimeString(
+                      "ar-EG"
+                    )}
+                  </span>
                 </p>
               </div>
             ))
           ) : (
-            <p className="text-sm text-gray-500 text-center p-4">لا توجد إشعارات</p>
+            <p className="text-sm text-gray-500 text-center p-4">
+              لا توجد إشعارات
+            </p>
           )}
         </div>
       )}
@@ -291,21 +329,23 @@ export default function Home() {
               مرحباً {user?.username} 👋
             </h1>
             <p className="text-emerald-50 text-base md:text-lg mb-4">
-              {isAdmin 
-                ? "لديك وصول كامل لجميع أقسام النظام" 
-                : permissionStats 
-                  ? `لديك صلاحية الوصول إلى ${permissionStats.available} من ${permissionStats.total} قسم (${permissionStats.percentage}%)`
-                  : "استكشف الأقسام المتاحة لك"}
+              {isAdmin
+                ? "لديك وصول كامل لجميع أقسام النظام"
+                : permissionStats
+                ? `لديك صلاحية الوصول إلى ${permissionStats.available} من ${permissionStats.total} قسم (${permissionStats.percentage}%)`
+                : "استكشف الأقسام المتاحة لك"}
             </p>
             {!isAdmin && permissionStats && (
               <div className="flex items-center gap-2 mt-4">
                 <div className="flex-1 bg-white/20 rounded-full h-2 overflow-hidden">
-                  <div 
+                  <div
                     className="bg-white h-full rounded-full transition-all duration-500"
                     style={{ width: `${permissionStats.percentage}%` }}
                   ></div>
                 </div>
-                <span className="text-sm font-medium">{permissionStats.percentage}%</span>
+                <span className="text-sm font-medium">
+                  {permissionStats.percentage}%
+                </span>
               </div>
             )}
           </div>
@@ -324,7 +364,7 @@ export default function Home() {
                   {sections.map((section) => {
                     const sectionPerms = getSectionPermissions(section);
                     const hasMultiplePerms = sectionPerms.length > 1;
-                    
+
                     return (
                       <button
                         key={section.category}
@@ -332,8 +372,10 @@ export default function Home() {
                         className={`relative group bg-white shadow-lg rounded-2xl p-5 md:p-6 cursor-pointer overflow-hidden border-2 border-transparent transition-all transform hover:-translate-y-2 hover:shadow-2xl hover:border-emerald-200 text-right w-full`}
                       >
                         {/* Gradient Background on Hover */}
-                        <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-br ${section.color}`}></div>
-                        
+                        <div
+                          className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-br ${section.color}`}
+                        ></div>
+
                         {/* Content */}
                         <div className="relative z-10">
                           {/* Icon */}
@@ -348,17 +390,17 @@ export default function Home() {
                               </div>
                             )}
                           </div>
-                          
+
                           {/* Title */}
                           <h3 className="text-lg md:text-xl font-bold text-gray-800 group-hover:text-white transition-colors mb-2">
                             {section.label}
                           </h3>
-                          
+
                           {/* Description */}
                           <p className="text-sm text-gray-600 group-hover:text-white/90 transition-colors mb-3">
                             {section.description}
                           </p>
-                          
+
                           {/* Permissions Badge */}
                           {sectionPerms.length > 0 && (
                             <div className="flex flex-wrap gap-1.5 mt-3">
@@ -381,11 +423,15 @@ export default function Home() {
                               )}
                             </div>
                           )}
-                          
+
                           {/* Arrow Indicator */}
                           <div className="mt-4 flex items-center text-emerald-600 group-hover:text-white transition-colors">
-                            <span className="text-sm font-medium">افتح القسم</span>
-                            <span className="mr-2 transform group-hover:translate-x-1 transition-transform">→</span>
+                            <span className="text-sm font-medium">
+                              افتح القسم
+                            </span>
+                            <span className="mr-2 transform group-hover:translate-x-1 transition-transform">
+                              →
+                            </span>
                           </div>
                         </div>
                       </button>
@@ -398,9 +444,12 @@ export default function Home() {
         ) : (
           <div className="flex flex-col items-center justify-center py-16 px-4 bg-white rounded-2xl shadow-xl border-2 border-dashed border-gray-300">
             <div className="text-7xl mb-6">🔒</div>
-            <h3 className="text-2xl font-bold text-gray-800 mb-3">لا توجد صلاحيات متاحة</h3>
+            <h3 className="text-2xl font-bold text-gray-800 mb-3">
+              لا توجد صلاحيات متاحة
+            </h3>
             <p className="text-gray-600 text-center max-w-md mb-6">
-              لم يتم منحك أي صلاحيات للوصول إلى أقسام النظام. يرجى التواصل مع المسؤول لتفعيل الصلاحيات المناسبة.
+              لم يتم منحك أي صلاحيات للوصول إلى أقسام النظام. يرجى التواصل مع
+              المسؤول لتفعيل الصلاحيات المناسبة.
             </p>
             <div className="flex items-center gap-2 text-emerald-600">
               <Lock className="w-5 h-5" />
@@ -413,17 +462,25 @@ export default function Home() {
         {isAdmin && allowedSections.length > 0 && (
           <div className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="bg-white rounded-xl p-6 shadow-lg border-l-4 border-emerald-500">
-              <div className="text-2xl font-bold text-gray-800">{allowedSections.length}</div>
+              <div className="text-2xl font-bold text-gray-800">
+                {allowedSections.length}
+              </div>
               <div className="text-sm text-gray-600 mt-1">أقسام متاحة</div>
             </div>
             <div className="bg-white rounded-xl p-6 shadow-lg border-l-4 border-blue-500">
               <div className="text-2xl font-bold text-gray-800">
-                {Object.keys(user?.permissions || {}).filter(k => user?.permissions[k]).length}
+                {
+                  Object.keys(user?.permissions || {}).filter(
+                    (k) => user?.permissions[k]
+                  ).length
+                }
               </div>
               <div className="text-sm text-gray-600 mt-1">صلاحيات مفعلة</div>
             </div>
             <div className="bg-white rounded-xl p-6 shadow-lg border-l-4 border-purple-500">
-              <div className="text-2xl font-bold text-gray-800">{notifications.length}</div>
+              <div className="text-2xl font-bold text-gray-800">
+                {notifications.length}
+              </div>
               <div className="text-sm text-gray-600 mt-1">إشعارات جديدة</div>
             </div>
           </div>
@@ -431,7 +488,9 @@ export default function Home() {
       </main>
 
       {/* Chat */}
-      {showChat && <AdminChat isAdmin={isAdmin} onClose={() => setShowChat(false)} />}
+      {showChat && (
+        <AdminChat isAdmin={isAdmin} onClose={() => setShowChat(false)} />
+      )}
 
       {/* Footer */}
       <footer className="mt-12 bg-gradient-to-r from-emerald-600 to-teal-700 text-white text-center py-4 md:py-6 shadow-xl">

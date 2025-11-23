@@ -43,7 +43,34 @@ app.use(
 app.use(compression());
 app.use(
   cors({
-    origin: ["http://12.0.0.173:5173", "http://localhost:5173"],
+    origin: function (origin, callback) {
+      console.log("🔍 CORS Request from origin:", origin);
+
+      // Allow requests with no origin (like mobile apps, Postman, etc.)
+      if (!origin) {
+        console.log("✅ CORS: Allowing request with no origin");
+        return callback(null, true);
+      }
+
+      // Allow all origins from local network and localhost
+      const allowedPatterns = [
+        /^http:\/\/localhost:\d+$/,
+        /^http:\/\/127\.0\.0\.1:\d+$/,
+        /^http:\/\/192\.168\.\d+\.\d+:\d+$/,
+        /^http:\/\/10\.\d+\.\d+\.\d+:\d+$/,
+        /^http:\/\/172\.(1[6-9]|2\d|3[01])\.\d+\.\d+:\d+$/,
+      ];
+
+      const isAllowed = allowedPatterns.some((pattern) => pattern.test(origin));
+
+      if (isAllowed) {
+        console.log("✅ CORS: Allowed origin:", origin);
+        callback(null, true);
+      } else {
+        console.warn(`⚠️ CORS: Unmatched origin (allowing anyway):`, origin);
+        callback(null, true); // Allow anyway for development
+      }
+    },
     credentials: true,
   })
 );
@@ -103,9 +130,12 @@ app.use((err, req, res, next) => {
 const server = http.createServer(app);
 export const io = new Server(server, {
   cors: {
-    origin: ["http://12.0.0.173:5173", "http://localhost:5173"],
-
+    origin: function (origin, callback) {
+      // Allow all origins for Socket.IO (development)
+      callback(null, true);
+    },
     methods: ["GET", "POST"],
+    credentials: true,
   },
 });
 let adminSocket = null;

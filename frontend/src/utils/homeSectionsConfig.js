@@ -1,7 +1,7 @@
 export const homeSectionsConfig = [
   {
     category: "employees",
-    requiredPermission: "employees.view",
+    requiredPermissions: ["employees.view", "employees.edit", "employees.create", "employees.delete"],
     label: "الموظفين",
     icon: "👥",
     color: "from-green-400 to-emerald-500",
@@ -10,7 +10,7 @@ export const homeSectionsConfig = [
   },
   {
     category: "incidents",
-    requiredPermission: "incidents.view",
+    requiredPermissions: ["incidents.view", "incidents.edit", "incidents.create", "incidents.delete"],
     label: "الحوادث",
     icon: "⚠️",
     color: "from-red-400 to-rose-500",
@@ -19,7 +19,7 @@ export const homeSectionsConfig = [
   },
   {
     category: "vacations",
-    requiredPermission: "vacations.view",
+    requiredPermissions: ["vacations.view", "vacations.edit", "vacations.create", "vacations.delete", "vacations.approve"],
     label: "الإجازات",
     icon: "🏖️",
     color: "from-purple-400 to-pink-500",
@@ -28,7 +28,7 @@ export const homeSectionsConfig = [
   },
   {
     category: "users",
-    requiredPermission: "users.view",
+    requiredPermissions: ["users.view", "users.edit", "users.create", "users.delete"],
     label: "المستخدمين",
     icon: "👤",
     color: "from-blue-400 to-sky-500",
@@ -37,7 +37,7 @@ export const homeSectionsConfig = [
   },
   {
     category: "documents",
-    requiredPermission: "documents.view",
+    requiredPermissions: ["documents.view", "documents.edit", "documents.upload", "documents.delete"],
     label: "الوثائق",
     icon: "📄",
     color: "from-cyan-400 to-blue-500",
@@ -46,7 +46,7 @@ export const homeSectionsConfig = [
   },
   {
     category: "salary",
-    requiredPermission: "salary.view",
+    requiredPermissions: ["salary.view", "salary.edit"],
     label: "الرواتب",
     icon: "💰",
     color: "from-yellow-400 to-orange-500",
@@ -55,7 +55,7 @@ export const homeSectionsConfig = [
   },
   {
     category: "rewards",
-    requiredPermission: "rewards.view",
+    requiredPermissions: ["rewards.view", "rewards.edit", "rewards.create"],
     label: "الحوافز",
     icon: "🎁",
     color: "from-pink-400 to-rose-500",
@@ -64,7 +64,7 @@ export const homeSectionsConfig = [
   },
   {
     category: "punishments",
-    requiredPermission: "punishments.view",
+    requiredPermissions: ["punishments.view", "punishments.edit", "punishments.create"],
     label: "الجزاءات",
     icon: "⚖️",
     color: "from-gray-400 to-slate-500",
@@ -73,7 +73,7 @@ export const homeSectionsConfig = [
   },
   {
     category: "circulars",
-    requiredPermission: "circulars.view",
+    requiredPermissions: ["circulars.view", "circulars.edit", "circulars.create", "circulars.publish"],
     label: "التعاميم",
     icon: "📢",
     color: "from-amber-400 to-yellow-500",
@@ -93,7 +93,10 @@ export const getAvailableSections = (user) => {
   return homeSectionsConfig.filter((section) => {
     if (!user.permissions) return false;
 
-    return user.permissions[section.requiredPermission] === true;
+    // Check if user has any of the required permissions for this section
+    return section.requiredPermissions.some(permission =>
+      user.permissions[permission] === true
+    );
   });
 };
 

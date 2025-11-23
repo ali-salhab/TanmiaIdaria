@@ -7,11 +7,9 @@ import {
   Menu,
   X,
   MessageCircle,
-  Settings,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useSocket } from "../context/SocketContext";
-import { useSettings } from "../context/SettingsContext";
 const navbarMessages = [
   "🎯 مرحباً بك في نظام إدارة التنمية الإدارية",
   "📊 إدارة فعالة للموارد البشرية",
@@ -26,7 +24,6 @@ export default function Navbar({
   onOpenChat,
 }) {
   const navigate = useNavigate();
-  const { playNotification } = useSettings();
   const [showSearchModal, setShowSearchModal] = useState(false);
 
   const [notifications, setNotifications] = useState([]);
@@ -52,7 +49,6 @@ export default function Navbar({
 
     const handleNotification = (notification) => {
       setNotifications((prev) => [notification, ...prev].slice(0, 15));
-      playNotification();
     };
 
     const handlePermissionUpdate = (data) => {
@@ -74,7 +70,6 @@ export default function Navbar({
           ...prev,
         ].slice(0, 15)
       );
-      playNotification();
     };
 
     socket.on("notification", handleNotification);
@@ -84,7 +79,7 @@ export default function Navbar({
       socket.off("notification", handleNotification);
       socket.off("permission_update", handlePermissionUpdate);
     };
-  }, [socket, playNotification]);
+  }, [socket]);
 
   return (
     <>
@@ -141,7 +136,7 @@ export default function Navbar({
             <button
               onClick={() => {
                 if (isAdmin) {
-                  navigate("/dashboard/admin-notifications");
+                  navigate("/dashboard/notifications");
                 } else {
                   navigate("/notifications");
                 }
@@ -183,24 +178,14 @@ export default function Navbar({
                 </p>
                 <p className="text-xs text-gray-500">{userInfo.role}</p>
               </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => navigate(isAdmin ? "/dashboard/settings" : "/settings")}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition"
-                  title="الإعدادات"
-                >
-                  <Settings className="w-5 h-5 text-gray-600" />
-                </button>
-                <img
-                  src={
-                    userInfo.image ||
-                    "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
-                  }
-                  alt={userInfo.username}
-                  className="w-10 h-10 rounded-full border-2 border-teal-500 object-cover cursor-pointer hover:opacity-80 transition"
-                  onClick={() => navigate("/profile")}
-                />
-              </div>
+              <img
+                src={
+                  userInfo.image ||
+                  "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
+                }
+                alt={userInfo.username}
+                className="w-10 h-10 rounded-full border-2 border-teal-500 object-cover"
+              />
             </div>
           )}
         </div>

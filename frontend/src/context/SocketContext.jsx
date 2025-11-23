@@ -8,23 +8,6 @@ export const SocketProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
   const [onlineUsers, setOnlineUsers] = useState([]);
 
-  // Auto-detect backend URL
-  const getSocketURL = () => {
-    if (import.meta.env.VITE_API_URL) {
-      return import.meta.env.VITE_API_URL.replace("/api", "");
-    }
-    const hostname = window.location.hostname;
-    return `http://${hostname}:5000`;
-  };
-
-  const getAPIURL = () => {
-    if (import.meta.env.VITE_API_URL) {
-      return import.meta.env.VITE_API_URL;
-    }
-    const hostname = window.location.hostname;
-    return `http://${hostname}:5000/api`;
-  };
-
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) return;
@@ -39,10 +22,8 @@ export const SocketProvider = ({ children }) => {
       return;
     }
 
-    // ✅ Connect socket with auto-detected URL
-    const socketURL = getSocketURL();
-    console.log("🔌 Connecting to socket:", socketURL);
-    const newSocket = io(socketURL, {
+    // ✅ Connect socket
+    const newSocket = io("http://localhost:5000", {
       transports: ["websocket"],
     });
 
@@ -55,8 +36,7 @@ export const SocketProvider = ({ children }) => {
       console.log("⚡ Socket connected:", newSocket.id);
 
       try {
-        const apiURL = getAPIURL();
-        const res = await fetch(`${apiURL}/auth/me`, {
+        const res = await fetch("http://localhost:5000/api/auth/me", {
           headers: { Authorization: `Bearer ${token}` },
         });
 

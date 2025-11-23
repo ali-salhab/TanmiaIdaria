@@ -20,12 +20,10 @@ import dropdownOptionsRoutes from "./routes/dropdownOptions.js";
 import permissionsRoutes from "./routes/permissions.js";
 import fileShareRoutes from "./routes/fileShare.js";
 import circularRoutes from "./routes/circulars.js";
-import messageRoutes from "./routes/messages.js";
 import { fileURLToPath } from "url";
 import http from "http";
 import { Server } from "socket.io";
 import { generateEmployeeCV } from "./controllers/incidentController.js";
-import Message from "./models/Message.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 dotenv.config();
@@ -43,34 +41,7 @@ app.use(
 app.use(compression());
 app.use(
   cors({
-    origin: function (origin, callback) {
-      console.log("🔍 CORS Request from origin:", origin);
-
-      // Allow requests with no origin (like mobile apps, Postman, etc.)
-      if (!origin) {
-        console.log("✅ CORS: Allowing request with no origin");
-        return callback(null, true);
-      }
-
-      // Allow all origins from local network and localhost
-      const allowedPatterns = [
-        /^http:\/\/localhost:\d+$/,
-        /^http:\/\/127\.0\.0\.1:\d+$/,
-        /^http:\/\/192\.168\.\d+\.\d+:\d+$/,
-        /^http:\/\/10\.\d+\.\d+\.\d+:\d+$/,
-        /^http:\/\/172\.(1[6-9]|2\d|3[01])\.\d+\.\d+:\d+$/,
-      ];
-
-      const isAllowed = allowedPatterns.some((pattern) => pattern.test(origin));
-
-      if (isAllowed) {
-        console.log("✅ CORS: Allowed origin:", origin);
-        callback(null, true);
-      } else {
-        console.warn(`⚠️ CORS: Unmatched origin (allowing anyway):`, origin);
-        callback(null, true); // Allow anyway for development
-      }
-    },
+    origin: ["http://12.0.0.173:5173", "http://localhost:5173"],
     credentials: true,
   })
 );
@@ -99,7 +70,6 @@ app.use("/api/dropdown-options", dropdownOptionsRoutes);
 app.use("/api/permissions", permissionsRoutes);
 app.use("/api/file-share", fileShareRoutes);
 app.use("/api/circulars", circularRoutes);
-app.use("/api/messages", messageRoutes);
 app.use("/api/operations", operationRoutes);
 app.get("/api/test", (req, res) => {
   res.send("connected successfully");
@@ -130,12 +100,9 @@ app.use((err, req, res, next) => {
 const server = http.createServer(app);
 export const io = new Server(server, {
   cors: {
-    origin: function (origin, callback) {
-      // Allow all origins for Socket.IO (development)
-      callback(null, true);
-    },
+    origin: ["http://12.0.0.173:5173", "http://localhost:5173"],
+
     methods: ["GET", "POST"],
-    credentials: true,
   },
 });
 let adminSocket = null;
@@ -166,93 +133,24 @@ io.on("connection", (socket) => {
       console.log("⚠️ No admin connected");
     }
   });
-  socket.on("private_message", async ({ to, message, from, fromUsername }) => {
-    try {
-      // Save message to database
-      const newMessage = new Message({
-        from,
-        to,
+  socket.on("private_message", ({ to, message, from, fromUsername }) => {
+    const targetSocket = onlineUsers.get(to);
+    if (targetSocket) {
+      io.to(targetSocket).emit("private_message", {
         message,
+        from,
         fromUsername: fromUsername || "Unknown",
       });
-      await newMessage.save();
-
-      console.log(`💬 Message saved: ${fromUsername} → ${to}`);
-
-      // Emit to target user if online
-      const targetSocket = onlineUsers.get(to);
-      if (targetSocket) {
-        io.to(targetSocket).emit("private_message", {
-          message,
-          from,
-          to,
-          fromUsername: fromUsername || "Unknown",
-          timestamp: newMessage.createdAt,
-        });
-        console.log(`✅ Message sent to recipient: ${to}`);
-      }
-
-      // Confirm to sender
-      const senderSocket = onlineUsers.get(from);
-      if (senderSocket) {
-        io.to(senderSocket).emit("message_sent_confirmation", {
-          message,
-          from,
-          to,
-          fromUsername: fromUsername || "Unknown",
-          timestamp: newMessage.createdAt,
-        });
-      }
-    } catch (error) {
-      console.error("Error saving message:", error);
     }
   });
 
-  socket.on("admin_message", async ({ message, from, fromUsername }) => {
-    try {
-      // Find admin user ID (assuming admin role)
-      const User = (await import("./models/User.js")).default;
-      const adminUser = await User.findOne({ role: "admin" });
-
-      if (adminUser) {
-        // Save message to database
-        const newMessage = new Message({
-          from,
-          to: adminUser._id,
-          message,
-          fromUsername: fromUsername || "User",
-        });
-        await newMessage.save();
-
-        console.log(`💬 Message to admin saved: ${fromUsername}`);
-
-        // Emit to all admin sockets
-        const adminSocket = onlineUsers.get(adminUser._id.toString());
-        if (adminSocket) {
-          io.to(adminSocket).emit("private_message", {
-            message,
-            from,
-            to: adminUser._id,
-            fromUsername: fromUsername || "User",
-            timestamp: newMessage.createdAt,
-          });
-          console.log(`✅ Message sent to admin`);
-        }
-
-        // Confirm to sender
-        const senderSocket = onlineUsers.get(from);
-        if (senderSocket) {
-          io.to(senderSocket).emit("message_sent_confirmation", {
-            message,
-            from,
-            to: adminUser._id,
-            fromUsername: fromUsername || "User",
-            timestamp: newMessage.createdAt,
-          });
-        }
-      }
-    } catch (error) {
-      console.error("Error saving admin message:", error);
+  socket.on("admin_message", ({ message, from, fromUsername }) => {
+    if (adminSocket) {
+      adminSocket.emit("private_message", {
+        message,
+        from,
+        fromUsername: fromUsername || "User",
+      });
     }
   });
   socket.on("user_connected", (userId) => {

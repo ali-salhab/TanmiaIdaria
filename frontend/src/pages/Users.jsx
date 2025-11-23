@@ -4,7 +4,6 @@ import { toast } from "react-hot-toast";
 import { FaEdit, FaEye, FaEyeSlash } from "react-icons/fa";
 import API from "../api/api";
 import DropdownWithSettings from "../components/DropdownWithSettings";
-import { permissionDefinitions, getAllPermissions, getPermissionsByCategory, getAllCategories } from "../utils/permissionDefinitions";
 
 export default function Users() {
   const [users, setUsers] = useState([]);
@@ -312,53 +311,38 @@ export default function Users() {
                   {/* الصلاحيات */}
                   <td className="py-3 px-4">
                     {editingPermissions === u._id ? (
-                      <div className="space-y-3 max-h-60 overflow-y-auto">
-                        {getAllCategories().map((category) => (
-                          <div key={category} className="border rounded-lg p-2 bg-gray-50">
-                            <h4 className="font-semibold text-sm text-gray-800 mb-2">{category}</h4>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
-                              {getPermissionsByCategory(category).map((perm) => (
-                                <label
-                                  key={perm.key}
-                                  className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer"
-                                >
-                                  <input
-                                    type="checkbox"
-                                    checked={tempPermissions[perm.key] || false}
-                                    onChange={() => togglePermission(perm.key)}
-                                    className="accent-blue-600 h-3 w-3"
-                                  />
-                                  {perm.label}
-                                </label>
-                              ))}
-                            </div>
-                          </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+                        {Object.keys(tempPermissions || {}).map((key) => (
+                          <label
+                            key={key}
+                            className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={tempPermissions[key]}
+                              onChange={() => togglePermission(key)}
+                              className="accent-blue-600 h-4 w-4"
+                            />
+                            {key.replace(/([A-Z])/g, " $1")}
+                          </label>
                         ))}
                       </div>
                     ) : (
-                      <div className="space-y-2 max-h-40 overflow-y-auto">
-                        {getAllCategories().map((category) => {
-                          const categoryPerms = getPermissionsByCategory(category).filter(perm =>
-                            u.permissions?.[perm.key]
-                          );
-                          if (categoryPerms.length === 0) return null;
-
-                          return (
-                            <div key={category} className="border rounded p-1 bg-blue-50">
-                              <span className="font-medium text-xs text-blue-800">{category}:</span>
-                              <div className="flex flex-wrap gap-1 mt-1">
-                                {categoryPerms.map((perm) => (
-                                  <span
-                                    key={perm.key}
-                                    className="text-xs bg-blue-100 text-blue-700 px-1 py-0.5 rounded"
-                                  >
-                                    {perm.action}
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
-                          );
-                        })}
+                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+                        {Object.keys(u.permissions || {}).map((key) => (
+                          <label
+                            key={key}
+                            className="flex items-center gap-2 text-sm text-gray-600"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={u.permissions[key]}
+                              disabled
+                              className="accent-blue-600 h-4 w-4"
+                            />
+                            {key.replace(/([A-Z])/g, " $1")}
+                          </label>
+                        ))}
                       </div>
                     )}
                   </td>

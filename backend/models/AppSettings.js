@@ -24,23 +24,8 @@ const appSettingsSchema = new mongoose.Schema(
     },
     theme: {
       type: String,
-      enum: ["light", "dark", "auto"],
-      default: "light",
-    },
-    language: {
-      type: String,
-      enum: ["ar", "en"],
-      default: "ar",
-    },
-    sounds: {
-      notifications: {
-        enabled: { type: Boolean, default: true },
-        volume: { type: Number, default: 0.7, min: 0, max: 1 },
-      },
-      messages: {
-        enabled: { type: Boolean, default: true },
-        volume: { type: Number, default: 0.7, min: 0, max: 1 },
-      },
+      enum: ["blue", "gray", "green"],
+      default: "gray",
     },
   },
   { timestamps: true }

@@ -22,8 +22,10 @@ router.post("/", protect, authorize("admin"), createPermission);
 // --- Groups ---
 router.get("/groups", protect, getAllGroups);
 router.post("/groups", protect, authorize("admin"), createGroup);
+router.put("/groups/:id", protect, authorize("admin"), updateGroup);
+router.delete("/groups/:id", protect, authorize("admin"), deleteGroup);
 
-// --- Group users (must come before :id routes) ---
+// --- Group users ---
 router.post("/groups/add-user", protect, authorize("admin"), addUserToGroup);
 router.post(
   "/groups/remove-user",
@@ -31,18 +33,14 @@ router.post(
   authorize("admin"),
   removeUserFromGroup
 );
-
-// --- Groups by ID ---
-router.put("/groups/:id", protect, authorize("admin"), updateGroup);
-router.delete("/groups/:id", protect, authorize("admin"), deleteGroup);
-
-// --- Direct user permissions ---
 router.put(
-  "/users/:userId/permissions",
+  "/permissions/user/:userId/permissions",
   protect,
   authorize("admin"),
   updateUserPermissions
 );
+// --- Direct user permissions ---
+
 router.get("/user/:userId/permissions", protect, getUserPermissions);
 
 export default router;

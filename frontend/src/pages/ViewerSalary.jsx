@@ -18,7 +18,7 @@ export default function ViewerSalary() {
       try {
         const res = await API.get("/auth/me");
         setUser(res.data.user);
-        if (!checkPermission("salary.view", res.data.user)) {
+        if (!checkPermission("viewSalary", res.data.user)) {
           toast.error("❌ ليس لديك صلاحية لعرض الرواتب");
           navigate("/home");
         }
@@ -55,7 +55,7 @@ export default function ViewerSalary() {
   }, [activeTab]);
 
   useEffect(() => {
-    if (user && checkPermission("salary.view", user)) {
+    if (user && checkPermission("viewSalary", user)) {
       fetchData();
     }
   }, [user, fetchData]);

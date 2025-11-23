@@ -14,9 +14,7 @@ import EmployeeRewards from "./pages/EmployeeRewards";
 import EmployeeIncidents from "./pages/EmployeeIncidents";
 import { Toaster } from "react-hot-toast";
 import Notifications from "./pages/Notifications";
-import AdminNotifications from "./pages/AdminNotifications";
 import { SocketProvider } from "./context/SocketContext";
-import { SettingsProvider } from "./context/SettingsContext";
 import PermissionsManager from "./pages/permissions/PermissionsManager";
 import Dywan from "./pages/Dywan";
 import HomepageBuilder from "./pages/HomepageBuilder";
@@ -29,13 +27,9 @@ import DropdownManager from "./pages/DropdownManager";
 import FileSharing from "./pages/FileSharing";
 import UserNotifications from "./pages/UserNotifications";
 import Circulars from "./pages/Circulars";
-import Settings from "./pages/Settings";
-import EmployeePenalties from "./pages/EmployeePenalties";
-import EmployeeDetailPage from "./pages/EmployeeDetailPage";
 import PermissionGroupsPage from "./pages/permissions/PermissionGroupsPage";
 import PermissionManager from "./pages/permissions/PermissionsManager";
 import PermissionsPage from "./pages/permissions/PermissionsPage";
-import EmployeeUserDetails from "./pages/user/EmployeeDetails";
 function ProtectedRoute({ children, allowedRoles }) {
   const token = localStorage.getItem("token");
   const role = localStorage.getItem("role");
@@ -54,12 +48,12 @@ function App() {
   const role = localStorage.getItem("role");
 
   return (
-    <SettingsProvider>
-      <SocketProvider>
-        <BrowserRouter>
-          <Toaster position="top-left" reverseOrder={false} />
+    <SocketProvider>
+      <BrowserRouter>
+        <Toaster position="top-left" reverseOrder={false} />
         <Routes>
-          {/* <Route
+          <Route path="/test" eleme={PermissionsManager} />
+          <Route
             path="/dashboard/employees/:id/vacations"
             element={<EmployeeVacations />}
           />
@@ -70,7 +64,7 @@ function App() {
           <Route
             path="/dashboard/employees/:id/incidents"
             element={<EmployeeIncidents />}
-          /> */}
+          />
 
           {/* Redirect root to login */}
           <Route path="/" element={<Navigate to="/login" />} />
@@ -96,9 +90,14 @@ function App() {
               </ProtectedRoute>
             }
           >
+            {" "}
+            <Route path="permissions/users" element={<PermissionsPage />} />
+            <Route
+              path="permissions/groups"
+              element={<PermissionGroupsPage />}
+            />
+            <Route path="permissions/manage" element={<PermissionManager />} />
             <Route path="notifications" element={<Notifications />} />
-            <Route path="admin-notifications" element={<AdminNotifications />} />
-            <Route path="settings" element={<Settings />} />
             <Route path="dywan" element={<Dywan />} />
             <Route path="employees/:id" element={<EmployeeEdit />} />
             <Route index element={<EmployeeList />} />
@@ -117,22 +116,7 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/user/employee/:id"
-            element={
-              <ProtectedRoute allowedRoles={["user", "admin"]}>
-                <EmployeeUserDetails />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/employee/:id"
-            element={
-              <ProtectedRoute allowedRoles={["user", "admin"]}>
-                <EmployeeDetailPage />
-              </ProtectedRoute>
-            }
-          />
+
           <Route
             path="/employees"
             element={
@@ -196,60 +180,6 @@ function App() {
             }
           />
 
-          <Route
-            path="/settings"
-            element={
-              <ProtectedRoute>
-                <Settings />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/incidents"
-            element={
-              <ProtectedRoute allowedRoles={["user", "admin"]}>
-                <EmployeeIncidents />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/vacations"
-            element={
-              <ProtectedRoute allowedRoles={["user", "admin"]}>
-                <EmployeeVacations />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/rewards"
-            element={
-              <ProtectedRoute allowedRoles={["user", "admin"]}>
-                <EmployeeRewards />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/punishments"
-            element={
-              <ProtectedRoute allowedRoles={["user", "admin"]}>
-                <EmployeePenalties />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/users"
-            element={
-              <ProtectedRoute allowedRoles={["admin"]}>
-                <EmployeeList />
-              </ProtectedRoute>
-            }
-          />
-
           <Route path="/unauthorized" element={<Unauthorized />} />
 
           <Route
@@ -264,7 +194,6 @@ function App() {
         </Routes>
       </BrowserRouter>
     </SocketProvider>
-    </SettingsProvider>
   );
 }
 

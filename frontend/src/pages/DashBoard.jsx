@@ -1,28 +1,31 @@
-import { Outlet, useNavigate } from "react-router-dom";
+import { Outlet, Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useSocket } from "../context/SocketContext";
 import toast from "react-hot-toast";
-import AdminChat from "../components/chat/AdminChat";
+import AdminChat from "../components/AdminChat";
+import { Menu, X } from "lucide-react";
 import Navbar from "../components/Navbar";
-import DashboardSidebar from "../components/dashboard/DashboardSidebar";
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const [showChat, setShowChat] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const isMobileInit = window.innerWidth < 1024;
+  const [sidebarOpen, setSidebarOpen] = useState(!isMobileInit);
+  const [isMobile, setIsMobile] = useState(isMobileInit);
   const [userInfo, setUserInfo] = useState(null);
 
   const { socket } = useSocket();
 
-  // Handle sidebar state based on screen size
   useEffect(() => {
     const handleResize = () => {
-      const isLargeScreen = window.innerWidth >= 1024;
-      setSidebarOpen(isLargeScreen);
+      const mobile = window.innerWidth < 1024;
+      setIsMobile(mobile);
+      if (mobile) {
+        setSidebarOpen(false);
+      } else {
+        setSidebarOpen(true);
+      }
     };
-
-    // Set initial state
-    handleResize();
 
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
@@ -30,31 +33,19 @@ export default function Dashboard() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (!token) {
-      navigate("/login");
-      return;
-    }
+    if (!token) navigate("/login");
 
     const fetchUserInfo = async () => {
       try {
-        const res = await fetch(
-          `${
-            import.meta.env.VITE_API_URL ||
-            `http://${window.location.hostname}:5000/api`
-          }/auth/me`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
+        const res = await fetch("http://localhost:5000/api/auth/me", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         if (res.ok) {
           const data = await res.json();
           setUserInfo(data.user);
-        } else {
-          navigate("/login");
         }
       } catch (err) {
         console.error("Error fetching user info:", err);
-        navigate("/login");
       }
     };
 
@@ -77,32 +68,147 @@ export default function Dashboard() {
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("role");
-    localStorage.removeItem("userId");
-    localStorage.removeItem("username");
     navigate("/login");
   };
 
   const toggleSidebar = () => {
-    setSidebarOpen((prev) => !prev);
+    setSidebarOpen(!sidebarOpen);
   };
 
-  const closeSidebar = () => {
-    setSidebarOpen(false);
+  const closeSidebarOnMobile = () => {
+    if (isMobile) {
+      setSidebarOpen(false);
+    }
   };
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-blue-900 via-indigo-900 to-gray-900 font-custom text-white relative overflow-hidden">
       <div className="absolute inset-0 backdrop-blur-3xl bg-white/10"></div>
 
-      {/* Sidebar Component */}
-      <DashboardSidebar
-        isOpen={sidebarOpen}
-        onClose={closeSidebar}
-        onLogout={handleLogout}
-      />
+      {sidebarOpen && isMobile && (
+        <div
+          className="fixed inset-0 bg-black/50 z-100"
+          onClick={() => setSidebarOpen(false)}
+        ></div>
+      )}
 
-      {/* Main Content */}
-      <div className="relative z-10 flex-1 flex flex-col animate-fadeSlide min-w-0 lg:ml-0">
+      <aside
+        className={`fixed  lg:relative left-0 top-0 h-screen w-56 sm:w-64 lg:bg-gray-800 bg-white/15 border-r lg:border-gray-700 border-white/20 flex flex-col shadow-2xl z-40 transition-transform duration-300 ${
+          sidebarOpen ? " sm:mt-12 lg:mt-0" : " hidden"
+        } z-100`}
+      >
+        <div className="p-4 sm:p-6 lg:border-gray-700 border-b border-white/20 bg-gradient-to-r lg:from-gray-700 lg:to-gray-800 text-center">
+          <h1 className="text-xl sm:text-2xl font-bold text-white drop-shadow">
+            التنمية الإدارية
+          </h1>
+          <p className="text-xs sm:text-sm lg:text-gray-300 text-gray-200 mt-1">
+            لوحة التحكم
+          </p>
+        </div>
+
+        <nav
+          className="flex-1 bg-black z-111 p-3 sm:p-4 space-y-2 overflow-y-auto"
+          dir="rtl"
+        >
+          <Link
+            to="/dashboard/employees"
+            onClick={closeSidebarOnMobile}
+            className="block py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg  lg:bg-gray-700 lg:hover:bg-gray-600 bg-white hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105 text-sm sm:text-base"
+          >
+            📋 الموظفين
+          </Link>
+          <Link
+            to="/dashboard/upload"
+            onClick={closeSidebarOnMobile}
+            className="block py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg lg:bg-gray-700 lg:hover:bg-gray-600 bg-white hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105 text-sm sm:text-base"
+          >
+            📤 ادارة قاعدة البيانات
+          </Link>
+
+          <Link
+            to="/dashboard/dywan"
+            onClick={closeSidebarOnMobile}
+            className="block py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg lg:bg-gray-700 lg:hover:bg-gray-600 bg-white hover:bg-white transition transform hover:translate-x-1 hover:scale-105 text-sm sm:text-base"
+          >
+            الديوان 📃
+          </Link>
+          {/* --- Permissions Section --- */}
+          <div className="mt-4">
+            <p className="text-white/70 text-sm mb-2">⚙️ إدارة الصلاحيات</p>
+
+            <Link
+              to="/dashboard/permissions/users"
+              onClick={closeSidebarOnMobile}
+              className="block py-2 px-4 rounded-lg lg:bg-gray-700 lg:hover:bg-gray-600 bg-white/10 hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105 text-sm sm:text-base"
+            >
+              👥 صلاحيات المستخدمين
+            </Link>
+
+            <Link
+              to="/dashboard/permissions/groups"
+              onClick={closeSidebarOnMobile}
+              className="block py-2 px-4 rounded-lg lg:bg-gray-700 lg:hover:bg-gray-600 bg-white/10 hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105 text-sm sm:text-base"
+            >
+              🗂️ مجموعات الصلاحيات
+            </Link>
+
+            <Link
+              to="/dashboard/permissions/manage"
+              onClick={closeSidebarOnMobile}
+              className="block py-2 px-4 rounded-lg lg:bg-gray-700 lg:hover:bg-gray-600 bg-white/10 hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105 text-sm sm:text-base"
+            >
+              🔧 إدارة جميع الصلاحيات
+            </Link>
+          </div>
+
+          <Link
+            to="/dashboard/dywan"
+            onClick={closeSidebarOnMobile}
+            className="block py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg lg:bg-gray-700 lg:hover:bg-gray-600 bg-white hover:bg-white transition transform hover:translate-x-1 hover:scale-105 text-sm sm:text-base"
+          >
+            القانونية 📃
+          </Link>
+          <Link
+            to="/dashboard/dywan"
+            onClick={closeSidebarOnMobile}
+            className="block py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg lg:bg-gray-700 lg:hover:bg-gray-600 bg-white hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105 text-sm sm:text-base"
+          >
+            📃 الشكاوى
+          </Link>
+          <Link
+            to="/dashboard"
+            onClick={closeSidebarOnMobile}
+            className="block py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg lg:bg-gray-700 lg:hover:bg-gray-600 bg-white/10 hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105 text-sm "
+          >
+            الأرشيف 🖨️
+          </Link>
+          <Link
+            to="/dashboard/notifications"
+            onClick={closeSidebarOnMobile}
+            className="block py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg lg:bg-gray-700 lg:hover:bg-gray-600 bg-white/10 hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105 text-sm sm:text-base"
+          >
+            🔔الاشعارات
+          </Link>
+          <Link
+            to="/dashboard/homepage-builder"
+            onClick={closeSidebarOnMobile}
+            className="block py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg lg:bg-gray-700 lg:hover:bg-gray-600 bg-white/10 hover:bg-white/25 transition transform hover:translate-x-1 hover:scale-105 text-sm sm:text-base"
+          >
+            🎨 تخصيص الصفحة الرئيسية
+          </Link>
+        </nav>
+
+        <div className="lg:border-gray-700 border-t border-white/20 p-3 sm:p-4 space-y-2 sm:space-y-3">
+          <button
+            onClick={handleLogout}
+            className="w-full lg:bg-red-700 lg:hover:bg-red-600 bg-rose-500/80 hover:bg-rose-600 text-red-500 py-2 rounded-lg transition transform hover:scale-105 font-medium text-sm sm:text-base"
+          >
+            تسجيل الخروج 📤
+          </button>
+        </div>
+      </aside>
+
+      <div className="relative z-10 flex-1 flex flex-col animate-fadeSlide min-w-0">
         <Navbar
           userInfo={userInfo}
           sidebarOpen={sidebarOpen}
@@ -119,7 +225,6 @@ export default function Dashboard() {
         </main>
       </div>
 
-      {/* Chat Modal */}
       {showChat && (
         <AdminChat
           isAdmin={userInfo?.role === "admin"}
@@ -127,9 +232,12 @@ export default function Dashboard() {
         />
       )}
 
-      {/* Animations */}
       <style>
         {`
+          @keyframes slideInLeft {
+            from { transform: translateX(-80px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+          }
           @keyframes fadeSlide {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
@@ -139,6 +247,9 @@ export default function Dashboard() {
             to { transform: scale(1); opacity: 1; }
           }
 
+          .animate-slideInLeft {
+            animation: slideInLeft 0.6s ease-out forwards;
+          }
           .animate-fadeSlide {
             animation: fadeSlide 0.6s ease-out forwards;
           }

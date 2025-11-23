@@ -17,7 +17,7 @@ export default function ViewerDocuments() {
       try {
         const res = await API.get("/auth/me");
         setUser(res.data.user);
-        if (!checkPermission("documents.view", res.data.user)) {
+        if (!checkPermission("viewDocuments", res.data.user)) {
           toast.error("❌ ليس لديك صلاحية لعرض الوثائق");
           navigate("/home");
         }
@@ -30,7 +30,7 @@ export default function ViewerDocuments() {
   }, [navigate]);
 
   useEffect(() => {
-    if (user && checkPermission("documents.view", user)) {
+    if (user && checkPermission("viewDocuments", user)) {
       fetchDocuments();
     }
   }, [user, filter]);

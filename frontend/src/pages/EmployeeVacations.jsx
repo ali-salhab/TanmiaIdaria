@@ -1,18 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import DropdownWithSettings from "../components/DropdownWithSettings";
 import API from "../api/api";
 import toast from "react-hot-toast";
 import { Download, Printer } from "lucide-react";
-import { checkPermission } from "../utils/permissionHelper";
 
 export default function EmployeeVacations() {
   const { id } = useParams();
-  const navigate = useNavigate();
   const [vacations, setVacations] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedVacation, setSelectedVacation] = useState(null);
-  const [user, setUser] = useState(null);
 
   const [formData, setFormData] = useState({
     type: "",
@@ -33,20 +30,6 @@ export default function EmployeeVacations() {
   ];
 
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await API.get("/auth/me");
-        setUser(res.data.user);
-        if (!checkPermission("vacations.view", res.data.user)) {
-          toast.error("❌ ليس لديك صلاحية لعرض الإجازات");
-          navigate("/home");
-        }
-      } catch (error) {
-        console.error("Error fetching user:", error);
-        navigate("/home");
-      }
-    };
-
     const fetchVacations = async () => {
       try {
         const res = await API.get(`/employees/${id}/vacations`);
@@ -58,9 +41,8 @@ export default function EmployeeVacations() {
       }
     };
 
-    fetchUser();
     fetchVacations();
-  }, [id, navigate]);
+  }, [id]);
 
   const handleAdd = () => {
     setSelectedVacation(null);

@@ -19,6 +19,7 @@ import {
 import { permissionDefinitions } from "../utils/permissionDefinitions";
 import { useSettings } from "../context/SettingsContext";
 import Logo from "../assets/logo.png";
+import syriaLogo from "../assets/syria-logo.png";
 
 const VITE_API_URL = import.meta.env.VITE_API_URL;
 
@@ -278,6 +279,11 @@ export default function Home() {
           src={Logo}
           alt="Logo"
           className="w-12 md:w-20 h-12 md:h-20 object-contain opacity-90 hover:opacity-100 transition-opacity"
+        />
+        <img
+          src={syriaLogo}
+          alt="Syrian Flag"
+          className="w-12 md:w-16 h-12 md:h-16 object-contain rounded-full shadow-lg ml-2"
         />
       </header>
 

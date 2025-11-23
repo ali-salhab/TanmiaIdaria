@@ -10,6 +10,7 @@ import Logo from "../assets/logo.png";
 import API from "../api/api";
 import AdminChat from "../components/chat/AdminChat";
 import { checkPermission } from "../utils/permissionHelper";
+import syriaLogo from "../assets/syria-logo.png";
 const VITE_API_URL = import.meta.env.VITE_API_URL;
 console.log(VITE_API_URL);
 export default function ViewerHome() {
@@ -280,6 +281,11 @@ export default function ViewerHome() {
           src={Logo}
           alt="App Logo"
           className="w-10 md:w-16 h-10 md:h-16 object-contain"
+        />
+        <img
+          src={syriaLogo}
+          alt="Syrian Flag"
+          className="w-10 md:w-14 h-10 md:h-14 object-contain rounded-full shadow-md ml-2"
         />
       </header>
 

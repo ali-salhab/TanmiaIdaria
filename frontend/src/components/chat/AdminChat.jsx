@@ -230,7 +230,7 @@ export default function AdminChat({ isAdmin, onClose }) {
   const selectedUserInfo = selectedUser ? usersInfo[selectedUser] : null;
 
   return (
-    <div className="fixed bottom-0 right-0 w-full sm:w-96 h-screen md:h-[600px] md:bottom-4 md:right-4 bg-white border-2 border-gray-200 rounded-t-xl md:rounded-xl shadow-2xl flex flex-col z-50 md:z-40">
+    <div className="fixed bottom-0 right-0 w-full sm:w-96 h-screen md:h-[600px] md:bottom-4 md:right-4 bg-white border-2 border-gray-200 rounded-t-xl md:rounded-xl shadow-2xl flex flex-col z-50">
       {/* Header */}
       <div className="flex justify-between items-center p-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-t-xl">
         <div className="flex items-center gap-3 flex-1">

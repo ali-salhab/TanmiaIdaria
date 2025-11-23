@@ -1,6 +1,15 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { ChevronDown, Bell, Users, Settings, LogOut, FileText, Archive, X } from "lucide-react";
+import {
+  ChevronDown,
+  Bell,
+  Users,
+  Settings,
+  LogOut,
+  FileText,
+  Archive,
+  X,
+} from "lucide-react";
 import { useSocket } from "../context/SocketContext";
 
 export default function Sidebar({ onLogout, isOpen, onClose }) {
@@ -36,9 +45,11 @@ export default function Sidebar({ onLogout, isOpen, onClose }) {
   ];
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-64 bg-gradient-to-b from-teal-600 via-teal-700 to-teal-800 text-white flex flex-col shadow-2xl border-l border-teal-400/20 overflow-hidden z-40 animate-slideInLeft md:block hidden">
+    <aside className="fixed left-0 top-0 h-screen w-64 bg-gradient-to-b from-teal-600 via-teal-700 to-teal-800 text-white flex flex-col shadow-2xl border-l border-teal-400/20 overflow-hidden z-30 animate-slideInLeft md:block hidden">
       <div className="p-6 border-b border-teal-400/30 text-center backdrop-blur-sm bg-teal-600/50">
-        <h1 className="text-2xl font-bold drop-shadow-lg text-white">التنمية الإدارية</h1>
+        <h1 className="text-2xl font-bold drop-shadow-lg text-white">
+          التنمية الإدارية
+        </h1>
         <p className="text-sm text-teal-100 mt-1 font-medium">لوحة التحكم</p>
       </div>
 
@@ -62,13 +73,18 @@ export default function Sidebar({ onLogout, isOpen, onClose }) {
           <div className="space-y-1 max-h-24 overflow-y-auto">
             {onlineUsers.length > 0 ? (
               onlineUsers.map((user, idx) => (
-                <div key={idx} className="flex items-center gap-2 text-xs text-teal-100">
+                <div
+                  key={idx}
+                  className="flex items-center gap-2 text-xs text-teal-100"
+                >
                   <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
                   {user}
                 </div>
               ))
             ) : (
-              <p className="text-xs text-teal-300 italic">لا توجد مستخدمون متصلون</p>
+              <p className="text-xs text-teal-300 italic">
+                لا توجد مستخدمون متصلون
+              </p>
             )}
           </div>
         </div>
@@ -103,7 +119,9 @@ export default function Sidebar({ onLogout, isOpen, onClose }) {
                   </div>
                 ))
               ) : (
-                <p className="text-xs text-teal-300 text-center italic p-2">لا توجد إشعارات</p>
+                <p className="text-xs text-teal-300 text-center italic p-2">
+                  لا توجد إشعارات
+                </p>
               )}
             </div>
           )}

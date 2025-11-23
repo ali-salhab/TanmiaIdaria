@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { useSocket } from "../context/SocketContext";
+import { useSocket } from "../../context/SocketContext";
 import { X, Send } from "lucide-react";
-import API from "../api/api";
-import UserAvatar from "./common/UserAvatar";
+import API from "../../api/api";
+import UserAvatar from "../common/UserAvatar";
 
 export default function ChatWindow({ userId, onClose, index = 0 }) {
   const { socket } = useSocket();
@@ -65,7 +65,6 @@ export default function ChatWindow({ userId, onClose, index = 0 }) {
   };
 
   const offset = index * 380;
-
   const currentUserId = localStorage.getItem("userId");
 
   return (
@@ -197,3 +196,4 @@ export default function ChatWindow({ userId, onClose, index = 0 }) {
     </div>
   );
 }
+

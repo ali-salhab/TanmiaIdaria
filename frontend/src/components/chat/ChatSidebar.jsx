@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import { useSocket } from "../context/SocketContext";
+import { useSocket } from "../../context/SocketContext";
 import ChatWindow from "./ChatWindow";
 import { X, Users as UsersIcon } from "lucide-react";
-import API from "../api/api";
-import UserAvatar from "./common/UserAvatar";
+import API from "../../api/api";
+import UserAvatar from "../common/UserAvatar";
 
 export default function ChatSidebar({ onClose, isAdmin }) {
   const { onlineUsers } = useSocket();
@@ -141,3 +141,4 @@ export default function ChatSidebar({ onClose, isAdmin }) {
     </>
   );
 }
+

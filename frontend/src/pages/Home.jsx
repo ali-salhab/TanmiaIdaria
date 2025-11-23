@@ -205,13 +205,15 @@ export default function Home() {
             )}
           </button>
 
-          <button
-            onClick={() => setShowChat(!showChat)}
-            className="p-2 md:p-2.5 hover:bg-blue-50 rounded-xl transition-all group"
-            title="الدردشة"
-          >
-            <MessageCircle className="w-5 md:w-6 h-5 md:h-6 text-gray-700 group-hover:text-blue-600 transition-colors" />
-          </button>
+          {(isAdmin || checkPermission("chat.access", user)) && (
+            <button
+              onClick={() => setShowChat(!showChat)}
+              className="p-2 md:p-2.5 hover:bg-blue-50 rounded-xl transition-all group"
+              title="الدردشة"
+            >
+              <MessageCircle className="w-5 md:w-6 h-5 md:h-6 text-gray-700 group-hover:text-blue-600 transition-colors" />
+            </button>
+          )}
 
           {checkPermission("circulars.view", user) && (
             <button

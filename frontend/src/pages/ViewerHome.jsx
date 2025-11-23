@@ -247,13 +247,15 @@ export default function ViewerHome() {
             )}
           </div>
 
-          <button
-            onClick={() => setShowChat(!showChat)}
-            className="p-1.5 md:p-2 hover:bg-gray-100 rounded-lg transition"
-            title="الدردشة مع الإدارة"
-          >
-            <MessageCircle className="w-4 md:w-5 h-4 md:h-5 text-gray-600" />
-          </button>
+          {checkPermission("chat.access", user) && (
+            <button
+              onClick={() => setShowChat(!showChat)}
+              className="p-1.5 md:p-2 hover:bg-gray-100 rounded-lg transition"
+              title="الدردشة مع الإدارة"
+            >
+              <MessageCircle className="w-4 md:w-5 h-4 md:h-5 text-gray-600" />
+            </button>
+          )}
         </div>
 
         <div className="flex items-center gap-2 md:gap-4 flex-1 justify-center">

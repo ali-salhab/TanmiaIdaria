@@ -22,7 +22,9 @@ export default function AdminChat({ isAdmin, onClose }) {
   useEffect(() => {
     if (isAdmin && onlineUsers.length > 0) {
       const currentUserId = localStorage.getItem("userId");
-      const filteredUsers = onlineUsers.filter(userId => userId !== currentUserId);
+      const filteredUsers = onlineUsers.filter(
+        (userId) => userId !== currentUserId
+      );
       setUsers(filteredUsers);
       fetchUsersInfo(filteredUsers);
     } else if (isAdmin) {
@@ -54,39 +56,61 @@ export default function AdminChat({ isAdmin, onClose }) {
   useEffect(() => {
     if (!socket) return;
 
-    const handlePrivateMessage = ({ from, message, fromUsername, timestamp }) => {
+    const handlePrivateMessage = ({
+      from,
+      message,
+      fromUsername,
+      timestamp,
+      to,
+    }) => {
       const currentUserId = localStorage.getItem("userId");
-      
-      // Only add if it's a new message (not already in messages)
-      setMessages((prev) => {
-        const messageExists = prev.some(
-          m => m.message === message && 
-          m.from === from && 
-          new Date(m.timestamp).getTime() === new Date(timestamp).getTime()
-        );
-        if (messageExists) return prev;
-        
-        return [
-          ...prev,
-          { from, message, fromUsername, timestamp: timestamp || new Date() },
-        ];
-      });
-      
-      playMessage();
-      
-      // Show notification if message is from someone else and chat is not focused
+
+      // For received messages
       if (from !== currentUserId) {
-        const senderInfo = usersInfo[from] || { username: fromUsername };
-        playNotification();
-        toast.success(`💬 رسالة جديدة من ${senderInfo.username}`, {
-          icon: <Bell className="w-5 h-5" />,
+        setMessages((prev) => {
+          const messageExists = prev.some(
+            (m) =>
+              m.message === message &&
+              m.from === from &&
+              Math.abs(
+                new Date(m.timestamp).getTime() - new Date(timestamp).getTime()
+              ) < 1000
+          );
+          if (messageExists) return prev;
+
+          return [
+            ...prev,
+            { from, message, fromUsername, timestamp: timestamp || new Date() },
+          ];
         });
+
+        playMessage();
+        playNotification();
+
+        // Show toast notification
+        const senderInfo = usersInfo[from] || { username: fromUsername };
+        toast.success(
+          `💬 رسالة جديدة من ${senderInfo.username || fromUsername}`,
+          {
+            icon: <Bell className="w-5 h-5" />,
+          }
+        );
       }
     };
 
+    const handleMessageConfirmation = ({ from, message, timestamp }) => {
+      // This confirms the message was sent successfully
+      console.log("✅ Message sent confirmation received");
+    };
+
     socket.on("private_message", handlePrivateMessage);
-    return () => socket.off("private_message", handlePrivateMessage);
-  }, [socket, playMessage]);
+    socket.on("message_sent_confirmation", handleMessageConfirmation);
+
+    return () => {
+      socket.off("private_message", handlePrivateMessage);
+      socket.off("message_sent_confirmation", handleMessageConfirmation);
+    };
+  }, [socket, playMessage, playNotification, usersInfo]);
 
   // Load chat history when user is selected
   useEffect(() => {
@@ -102,7 +126,7 @@ export default function AdminChat({ isAdmin, onClose }) {
     setLoadingHistory(true);
     try {
       const res = await API.get(`/messages/history/${otherUserId}`);
-      const historyMessages = res.data.map(msg => ({
+      const historyMessages = res.data.map((msg) => ({
         from: msg.from,
         message: msg.message,
         fromUsername: msg.fromUsername,
@@ -124,7 +148,7 @@ export default function AdminChat({ isAdmin, onClose }) {
       if (adminRes.data && adminRes.data.length > 0) {
         const adminId = adminRes.data[0]._id;
         const res = await API.get(`/messages/history/${adminId}`);
-        const historyMessages = res.data.map(msg => ({
+        const historyMessages = res.data.map((msg) => ({
           from: msg.from,
           message: msg.message,
           fromUsername: msg.fromUsername,
@@ -149,9 +173,13 @@ export default function AdminChat({ isAdmin, onClose }) {
   };
 
   // Filter messages for selected user
-  const filteredMessages = isAdmin && selectedUser
-    ? messages.filter(m => m.from === selectedUser || m.from === localStorage.getItem("userId"))
-    : messages;
+  const filteredMessages =
+    isAdmin && selectedUser
+      ? messages.filter(
+          (m) =>
+            m.from === selectedUser || m.from === localStorage.getItem("userId")
+        )
+      : messages;
 
   const sendMessage = () => {
     const from = localStorage.getItem("userId");
@@ -160,28 +188,40 @@ export default function AdminChat({ isAdmin, onClose }) {
     if (!input.trim()) return;
 
     if (isAdmin && selectedUser) {
+      // Admin sending to specific user
       socket.emit("private_message", {
         to: selectedUser,
         message: input,
         from,
         fromUsername,
       });
-      setMessages((prev) => [
-        ...prev,
-        { from, message: input, fromUsername, timestamp: new Date() },
-      ]);
+
+      // Add message to local state immediately
+      const newMessage = {
+        from,
+        message: input,
+        fromUsername,
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, newMessage]);
       playMessage();
       setInput("");
     } else if (!isAdmin) {
+      // Normal user sending to admin
       socket.emit("admin_message", {
         message: input,
         from,
         fromUsername,
       });
-      setMessages((prev) => [
-        ...prev,
-        { from, message: input, fromUsername, timestamp: new Date() },
-      ]);
+
+      // Add message to local state immediately
+      const newMessage = {
+        from,
+        message: input,
+        fromUsername,
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, newMessage]);
       playMessage();
       setInput("");
     }
@@ -203,7 +243,9 @@ export default function AdminChat({ isAdmin, onClose }) {
                 size="md"
               />
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-sm truncate">{selectedUserInfo.username}</p>
+                <p className="font-semibold text-sm truncate">
+                  {selectedUserInfo.username}
+                </p>
                 <p className="text-xs text-blue-100 flex items-center gap-1">
                   <span className="w-2 h-2 bg-emerald-300 rounded-full animate-pulse"></span>
                   متصل الآن
@@ -246,7 +288,7 @@ export default function AdminChat({ isAdmin, onClose }) {
                 users.map((userId) => {
                   const userInfo = usersInfo[userId];
                   const isSelected = selectedUser === userId;
-                  
+
                   return (
                     <button
                       key={userId}
@@ -267,9 +309,11 @@ export default function AdminChat({ isAdmin, onClose }) {
                         isOnline={true}
                         size="lg"
                       />
-                      <span className={`text-xs font-medium text-center max-w-[60px] truncate ${
-                        isSelected ? "text-blue-700" : "text-gray-700"
-                      }`}>
+                      <span
+                        className={`text-xs font-medium text-center max-w-[60px] truncate ${
+                          isSelected ? "text-blue-700" : "text-gray-700"
+                        }`}
+                      >
                         {userInfo?.username || "User"}
                       </span>
                     </button>
@@ -277,7 +321,9 @@ export default function AdminChat({ isAdmin, onClose }) {
                 })
               ) : (
                 <div className="w-full py-4 text-center">
-                  <p className="text-xs text-gray-500">لا يوجد مستخدمون متصلون</p>
+                  <p className="text-xs text-gray-500">
+                    لا يوجد مستخدمون متصلون
+                  </p>
                 </div>
               )}
             </div>
@@ -306,10 +352,12 @@ export default function AdminChat({ isAdmin, onClose }) {
         )}
         {filteredMessages.map((m, i) => {
           const isFromCurrent = m.from === localStorage.getItem("userId");
-          const messageUserInfo = isFromCurrent 
-            ? null 
-            : (isAdmin ? usersInfo[m.from] : null);
-          
+          const messageUserInfo = isFromCurrent
+            ? null
+            : isAdmin
+            ? usersInfo[m.from]
+            : null;
+
           return (
             <div
               key={i}
@@ -327,10 +375,12 @@ export default function AdminChat({ isAdmin, onClose }) {
                   className="flex-shrink-0"
                 />
               )}
-              
-              <div className={`flex flex-col max-w-[75%] ${
-                isFromCurrent ? "items-end" : "items-start"
-              }`}>
+
+              <div
+                className={`flex flex-col max-w-[75%] ${
+                  isFromCurrent ? "items-end" : "items-start"
+                }`}
+              >
                 {!isFromCurrent && (
                   <p className="text-xs font-semibold text-gray-600 mb-1 px-1">
                     {m.fromUsername || messageUserInfo?.username || "User"}
@@ -344,9 +394,11 @@ export default function AdminChat({ isAdmin, onClose }) {
                   }`}
                 >
                   <p className="whitespace-pre-wrap break-words">{m.message}</p>
-                  <p className={`text-xs mt-1.5 ${
-                    isFromCurrent ? "text-blue-100" : "text-gray-500"
-                  }`}>
+                  <p
+                    className={`text-xs mt-1.5 ${
+                      isFromCurrent ? "text-blue-100" : "text-gray-500"
+                    }`}
+                  >
                     {new Date(m.timestamp).toLocaleTimeString("ar-EG", {
                       hour: "2-digit",
                       minute: "2-digit",
@@ -377,14 +429,18 @@ export default function AdminChat({ isAdmin, onClose }) {
           className="flex-1 border border-gray-300 rounded-xl px-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder={isAdmin && !selectedUser ? "اختر مستخدماً أولاً..." : "اكتب رسالتك هنا..."}
+          placeholder={
+            isAdmin && !selectedUser
+              ? "اختر مستخدماً أولاً..."
+              : "اكتب رسالتك هنا..."
+          }
           onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && sendMessage()}
           disabled={isAdmin && !selectedUser}
           dir="rtl"
         />
         <button
           onClick={sendMessage}
-          disabled={isAdmin && !selectedUser || !input.trim()}
+          disabled={(isAdmin && !selectedUser) || !input.trim()}
           className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2.5 rounded-xl hover:from-blue-700 hover:to-blue-800 text-sm font-medium transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md"
         >
           <Send className="w-4 h-4" />

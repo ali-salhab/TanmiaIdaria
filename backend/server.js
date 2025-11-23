@@ -147,23 +147,28 @@ io.on("connection", (socket) => {
       });
       await newMessage.save();
 
+      console.log(`💬 Message saved: ${fromUsername} → ${to}`);
+
       // Emit to target user if online
       const targetSocket = onlineUsers.get(to);
       if (targetSocket) {
         io.to(targetSocket).emit("private_message", {
           message,
           from,
+          to,
           fromUsername: fromUsername || "Unknown",
           timestamp: newMessage.createdAt,
         });
+        console.log(`✅ Message sent to recipient: ${to}`);
       }
 
-      // Also emit to sender for their own chat window
+      // Confirm to sender
       const senderSocket = onlineUsers.get(from);
       if (senderSocket) {
-        io.to(senderSocket).emit("private_message", {
+        io.to(senderSocket).emit("message_sent_confirmation", {
           message,
           from,
+          to,
           fromUsername: fromUsername || "Unknown",
           timestamp: newMessage.createdAt,
         });
@@ -178,8 +183,8 @@ io.on("connection", (socket) => {
       // Find admin user ID (assuming admin role)
       const User = (await import("./models/User.js")).default;
       const adminUser = await User.findOne({ role: "admin" });
-      
-      if (adminUser && adminSocket) {
+
+      if (adminUser) {
         // Save message to database
         const newMessage = new Message({
           from,
@@ -189,12 +194,32 @@ io.on("connection", (socket) => {
         });
         await newMessage.save();
 
-        adminSocket.emit("private_message", {
-          message,
-          from,
-          fromUsername: fromUsername || "User",
-          timestamp: newMessage.createdAt,
-        });
+        console.log(`💬 Message to admin saved: ${fromUsername}`);
+
+        // Emit to all admin sockets
+        const adminSocket = onlineUsers.get(adminUser._id.toString());
+        if (adminSocket) {
+          io.to(adminSocket).emit("private_message", {
+            message,
+            from,
+            to: adminUser._id,
+            fromUsername: fromUsername || "User",
+            timestamp: newMessage.createdAt,
+          });
+          console.log(`✅ Message sent to admin`);
+        }
+
+        // Confirm to sender
+        const senderSocket = onlineUsers.get(from);
+        if (senderSocket) {
+          io.to(senderSocket).emit("message_sent_confirmation", {
+            message,
+            from,
+            to: adminUser._id,
+            fromUsername: fromUsername || "User",
+            timestamp: newMessage.createdAt,
+          });
+        }
       }
     } catch (error) {
       console.error("Error saving admin message:", error);

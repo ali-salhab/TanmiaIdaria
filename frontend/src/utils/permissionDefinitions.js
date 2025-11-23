@@ -627,6 +627,29 @@ export const permissionDefinitions = {
     category: "التقارير",
     action: "تصدير",
   },
+
+  // Chat permissions
+  "chat.access": {
+    key: "chat.access",
+    label: "الوصول للدردشة",
+    description: "القدرة على الوصول لوظيفة الدردشة",
+    category: "الدردشة",
+    action: "الوصول",
+  },
+  "chat.send": {
+    key: "chat.send",
+    label: "إرسال رسائل",
+    description: "القدرة على إرسال رسائل في الدردشة",
+    category: "الدردشة",
+    action: "إرسال",
+  },
+  "chat.view_history": {
+    key: "chat.view_history",
+    label: "عرض سجل الدردشة",
+    description: "القدرة على عرض سجل الرسائل السابقة",
+    category: "الدردشة",
+    action: "عرض",
+  },
 };
 
 // Helper functions

@@ -1,123 +1,317 @@
 import { useEffect, useState, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
-import API from "../api/api";
-import { ArrowLeft } from "lucide-react";
-import { toast } from "react-hot-toast";
 import { checkPermission } from "../utils/permissionHelper";
 
+import { Link, useNavigate } from "react-router-dom";
+import API from "../api/api";
+import Pagination from "../components/Pagination";
+import DropdownWithSettings from "../components/DropdownWithSettings";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
+import jsPDF from "jspdf";
+// Correct import for autotable with Vite/ES6
+import autoTable from "jspdf-autotable";
 export default function ViewerEmployeeList() {
+  const exportExcel = () => {
+    if (!employees.length) return;
+
+    const ws = XLSX.utils.json_to_sheet(employees);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Employees");
+
+    const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+    const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
+    saveAs(blob, "employees.xlsx");
+  };
+
+  // Export filtered data to PDF
+  const exportPDF = () => {
+    if (!employees.length) return;
+
+    const doc = new jsPDF();
+
+    const tableColumn = [
+      "ID",
+      "Full Name",
+      "National ID",
+      "Gender",
+      "Level4level4",
+    ];
+    const tableRows = employees.map((emp) => [
+      emp.selfNumber,
+      emp.fullName,
+      emp.nationalId,
+      emp.gender,
+      emp.level1,
+    ]);
+
+    // Call autoTable like this:
+    autoTable(doc, {
+      head: [tableColumn],
+      body: tableRows,
+      startY: 20,
+      theme: "striped", // optional
+      headStyles: { fillColor: [41, 128, 185] },
+      styles: { fontSize: 10 },
+    });
+
+    doc.text("Employee List", 14, 15);
+    doc.save("employees.pdf");
+  };
+
   const navigate = useNavigate();
   const [employees, setEmployees] = useState([]);
   const [search, setSearch] = useState("");
+  const [level4, setLevel4] = useState("");
+  const [gender, setGender] = useState("");
+  const [ageMin, setAgeMin] = useState("");
+  const [ageMax, setAgeMax] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [user, setUser] = useState(null);
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await API.get("/auth/me");
-        setUser(res.data.user);
-        if (!checkPermission("viewEmployees", res.data.user)) {
-          toast.error("❌ ليس لديك صلاحية لعرض الموظفين");
-          navigate("/home");
-        }
-      } catch (error) {
-        console.error("Error fetching user:", error);
-        navigate("/home");
-      }
-    };
-    fetchUser();
-  }, [navigate]);
-
-  const fetchEmployees = useCallback(async () => {
+  const fetchEmployees = async () => {
     try {
+      console.log("searching .... filter based on ");
+      console.log(page, search, level4, gender, ageMin, ageMax);
       setLoading(true);
       const res = await API.get("/employees", {
         params: {
+          page,
           search,
-          page: 1,
-          limit: 100,
+          level4,
+          gender,
+          ageMin,
+          ageMax,
         },
       });
-      setEmployees(res.data.data || res.data || []);
-    } catch (error) {
-      toast.error("❌ فشل تحميل بيانات الموظفين");
-      console.error(error);
+      console.log(employees);
+      // Adjust according to your API structure
+      setEmployees(res.data.data);
+      setTotalPages(Math.ceil(res.data.total / res.data.limit));
+    } catch (err) {
+      console.error(err);
     } finally {
       setLoading(false);
     }
-  }, [search]);
+  };
 
   useEffect(() => {
-    if (user && checkPermission("viewEmployees", user)) {
-      fetchEmployees();
+    fetchEmployees();
+  }, [page, search, level4, gender, ageMin, ageMax]);
+
+  const resetFilters = () => {
+    setSearch("");
+    setLevel4("");
+    setGender("");
+    setAgeMin("");
+    setAgeMax("");
+    setPage(1);
+  };
+  const calculateAge = (birthDate) => {
+    if (!birthDate) return "-";
+    const birth = new Date(birthDate);
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+
+    // Adjust if birthday hasn’t occurred yet this year
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birth.getDate())
+    ) {
+      age--;
     }
-  }, [user, fetchEmployees]);
-
+    return age;
+  };
   return (
-    <div dir="rtl" className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 md:p-8">
-      <div className="max-w-6xl mx-auto">
-        <div className="flex items-center gap-4 mb-6">
-          <button
-            onClick={() => navigate("/home")}
-            className="p-2 hover:bg-gray-200 rounded-lg transition"
-            title="العودة"
-          >
-            <ArrowLeft className="w-6 h-6 text-gray-600" />
-          </button>
-          <h1 className="text-3xl font-bold text-gray-800">بيانات الموظفين</h1>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-md p-4 md:p-6 mb-6">
-          <input
-            type="text"
-            placeholder="ابحث عن موظف بالاسم أو الرقم..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-          />
-        </div>
-
-        {loading ? (
-          <div className="flex justify-center items-center py-12">
-            <div className="text-gray-600">جاري التحميل...</div>
-          </div>
-        ) : employees.length > 0 ? (
-          <div className="bg-white rounded-lg shadow-md overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-emerald-600 text-white">
-                  <tr>
-                    <th className="px-4 py-3 text-right">الاسم الكامل</th>
-                    <th className="px-4 py-3 text-right">رقم الموظف</th>
-                    <th className="px-4 py-3 text-right">الوظيفة</th>
-                    <th className="px-4 py-3 text-right">القسم</th>
-                    <th className="px-4 py-3 text-right">حالة العقد</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {employees.map((emp, idx) => (
-                    <tr
-                      key={emp._id || idx}
-                      className="border-b border-gray-200 hover:bg-emerald-50 transition"
-                    >
-                      <td className="px-4 py-3">{emp.fullName || "-"}</td>
-                      <td className="px-4 py-3">{emp.selfNumber || "-"}</td>
-                      <td className="px-4 py-3">{emp.level1 || "-"}</td>
-                      <td className="px-4 py-3">{emp.level2 || "-"}</td>
-                      <td className="px-4 py-3">{emp.contractStatus || "-"}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        ) : (
-          <div className="bg-white rounded-lg shadow-md p-12 text-center">
-            <p className="text-gray-600 text-lg">لا توجد بيانات موظفين</p>
-          </div>
-        )}
+    <div className="p-6 font-custom" dir="rtl">
+      <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <h2 className="text-3xl text-gray-800 font-extrabold">
+          قائمة الموظفين
+        </h2>
+        <button
+          onClick={() => navigate("/employees/add")}
+          className="bg-gray-700 text-white px-4 py-2 ml-5 font-extrabold rounded hover:bg-gray-800 transition"
+        >
+          + إضافة موظف جديد
+        </button>
       </div>
+      <div className="mb-4 flex justify-between items-center">
+        <input
+          type="text"
+          placeholder="ابحث ...."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="border p-2 rounded w-1/3"
+        />
+
+        <div className="space-x-2 ml-3">
+          <button
+            onClick={exportExcel}
+            className="bg-gray-700 ml-5 text-white px-4 py-2 rounded hover:bg-gray-800 transition"
+          >
+            تصدير اكسل
+          </button>
+          <button
+            onClick={exportPDF}
+            className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800 transition"
+          >
+            تصدير PDF
+          </button>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="bg-gray-50 p-4 rounded shadow mb-4 grid grid-cols-1 md:grid-cols-5 gap-4">
+        <input
+          type="text"
+          placeholder="Search by name or ID..."
+          value={search}
+          onChange={(e) => {
+            console.log(e.target.value);
+            setSearch(e.target.value);
+            setPage(1);
+          }}
+          className="border p-2 rounded w-full"
+        />
+        <DropdownWithSettings
+          id="employee_list_department"
+          value={level4}
+          onChange={(e) => {
+            setLevel4(e.target.value);
+            console.log(e.target.value);
+            setPage(1);
+          }}
+          options={[
+            { value: "", label: "كل الاقسام" },
+            { value: "مديرية المعلوماتية", label: "مديرية المعلوماتية" },
+            {
+              value: "مديرية التنمية الإدارية",
+              label: "مديرية التنمية الإدارية",
+            },
+            { value: "مكتب التنمية المحلية", label: "مكتب التنمية المحلية" },
+            {
+              value: "مديرية إدارة النفايات الصلبة",
+              label: "مديرية إدارة النفايات الصلبة",
+            },
+            {
+              value: "مديرية المجالس المحلية",
+              label: "مديرية المجالس المحلية",
+            },
+          ]}
+          placeholder="كل الاقسام"
+          className="border p-2 rounded"
+        />
+        <DropdownWithSettings
+          id="employee_list_gender"
+          value={gender}
+          onChange={(e) => {
+            setGender(e.target.value);
+            setPage(1);
+          }}
+          options={[
+            { value: "", label: "الكل" },
+            { value: "انثى", label: "انثى" },
+            { value: "ذكر", label: "ذكر" },
+          ]}
+          placeholder="الكل"
+          className="border p-2 rounded"
+        />
+        <input
+          type="number"
+          placeholder="Min Age"
+          value={ageMin}
+          onChange={(e) => {
+            setAgeMin(e.target.value);
+            setPage(1);
+          }}
+          className="border p-2 rounded"
+        />
+        <input
+          type="number"
+          placeholder="Max Age"
+          value={ageMax}
+          onChange={(e) => {
+            setAgeMax(e.target.value);
+            setPage(1);
+          }}
+          className="border p-2 rounded"
+        />
+        <button
+          onClick={resetFilters}
+          className="md:col-span-5 bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded w-full"
+        >
+          تهيئة الحقول
+        </button>
+      </div>
+
+      {/* Table */}
+      <div className="overflow-x-auto ">
+        <table className="w-full border-collapse items-center border border-gray-300">
+          <thead className="items-center justify-center">
+            <tr className="bg-gray-200 text-sm center align-middle items-center justify-center">
+              <th className="border p-2">#</th>
+              <th className="border p-4">الاسم الثلاثي</th>
+              <th className="border p-2">لرقم الوطني</th>
+              <th className="border p-2">الجنس</th>
+              <th className="border p-2">القسم</th>
+              <th className="border p-2">رقم الموبايل</th>
+              <th className="border p-2">Age</th>
+
+              <th className="border p-2">الاجراءات</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
+              <tr>
+                <td colSpan="7" className="text-center p-4">
+                  Loading...
+                </td>
+              </tr>
+            ) : employees.length === 0 ? (
+              <tr>
+                <td colSpan="7" className="text-center p-4 text-gray-500">
+                  No employees found
+                </td>
+              </tr>
+            ) : (
+              employees.map((emp, index) => (
+                <tr key={emp._id} className="hover:bg-gray-100 text-sm">
+                  <td className="border p-2 text-center ">
+                    {(page - 1) * 50 + index + 1}
+                  </td>
+                  <td className="border p-4 m-2 text-center">
+                    <Link
+                      to={`/user/employee/${emp._id}`}
+                      onClick={(e) => {}}
+                      className="text-gray-700 hover:bg-gray-300 hover:p-2 hover:rounded-md hover:m-2 hover:text-gray-900 transition"
+                    >
+                      {emp.fullName}
+                    </Link>
+                  </td>
+                  <td className="border p-2 text-center">{emp.nationalId}</td>
+                  <td className="border p-2 text-center">{emp.gender}</td>
+                  <td className="border p-2 text-center">{emp.level4}</td>
+                  <td className="border p-2 text-center ">{emp.phone}</td>
+                  <td className="border p-2 text-center">
+                    {emp.birthDate ? calculateAge(emp.birthDate) : "-"}
+                  </td>
+                  <td className="border p-2 text-center">
+                    <Link
+                      to={`${emp._id}`}
+                      className="text-gray-700 hover:text-gray-900 hover:underline transition"
+                    >
+                      تعديل
+                    </Link>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      <Pagination page={page} setPage={setPage} totalPages={totalPages} />
     </div>
   );
 }

@@ -129,7 +129,10 @@ export const addUserToGroup = async (req, res) => {
       await user.save();
     }
 
-    await group.populate("permissions").populate("members", "-password");
+    await group.populate([
+      { path: "permissions" },
+      { path: "members", select: "-password" }
+    ]);
     res.json(group);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -147,18 +150,24 @@ export const removeUserFromGroup = async (req, res) => {
     const group = await PermissionGroup.findById(groupId);
     if (!group) return res.status(404).json({ message: "Group not found" });
 
-    // remove user from group array
-    group.users = group.users.filter(
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    group.members = group.members.filter(
       (id) => id.toString() !== userId.toString()
     );
     await group.save();
 
-    // remove group from user model also
     await User.findByIdAndUpdate(userId, {
       $pull: { permissionGroups: groupId },
     });
 
-    res.json({ message: "User removed from group" });
+    await group.populate([
+      { path: "permissions" },
+      { path: "members", select: "-password" }
+    ]);
+
+    res.json({ message: "User removed from group", group });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
@@ -204,29 +213,28 @@ export const getUserPermissions = async (req, res) => {
 export const updateUserPermissions = async (req, res) => {
   try {
     const { userId } = req.params;
-    const { permission } = req.body; // employees.view
+    const { directPermissions } = req.body;
 
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    if (!permission) {
-      return res.status(400).json({ message: "Permission key missing" });
+    if (!Array.isArray(directPermissions)) {
+      return res.status(400).json({ message: "directPermissions must be an array of permission IDs" });
     }
 
-    // إذا ما كان عند المستخدم object للصلاحيات، أنشئه
-    if (!user.permissions) {
-      user.permissions = {};
-    }
-
-    // toggle permission
-    user.permissions[permission] = !user.permissions[permission];
-
+    user.directPermissions = directPermissions;
     await user.save();
 
+    await user.populate("directPermissions");
+    await user.populate({
+      path: "permissionGroups",
+      populate: { path: "permissions" }
+    });
+
     res.json({
-      message: "Permission updated",
+      message: "User direct permissions updated",
       permissions: user.permissions,
     });
   } catch (error) {

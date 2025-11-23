@@ -1,6 +1,7 @@
 import { useState } from "react";
 import API from "../api/api";
 import { useNavigate } from "react-router-dom";
+import syriaLogo from "../assets/syria-logo.png";
 
 export default function Login() {
   const [username, setUsername] = useState("");
@@ -56,6 +57,15 @@ export default function Login() {
         onSubmit={handleSubmit}
         className="relative z-10 backdrop-blur-xl bg-white/20 border border-white/30 text-white rounded-2xl shadow-2xl p-10 w-full max-w-sm animate-fadeSlide"
       >
+        {/* Syria Logo */}
+        <div className="flex justify-center mb-6">
+          <img
+            src={syriaLogo}
+            alt="Syrian Flag"
+            className="w-24 h-24 object-contain rounded-full shadow-lg"
+          />
+        </div>
+
         <h2 className="text-3xl font-bold mb-8 text-center tracking-wide">
           مديرية التنمية الإدارية
         </h2>

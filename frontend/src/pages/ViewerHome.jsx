@@ -3,13 +3,15 @@ import { jwtDecode } from "jwt-decode";
 import { useNavigate } from "react-router-dom";
 import { io } from "socket.io-client";
 import { Bell, MessageCircle } from "lucide-react";
+// lll
 import EmployeesSVG from "../assets/employees.svg";
 import VacationsSVG from "../assets/vacation.svg";
 import ReportsSVG from "../assets/report.svg";
 import Logo from "../assets/logo.png";
 import API from "../api/api";
-import AdminChat from "../components/AdminChat";
+import AdminChat from "../components/chat/AdminChat";
 import { checkPermission } from "../utils/permissionHelper";
+import syriaLogo from "../assets/syria-logo.png";
 const VITE_API_URL = import.meta.env.VITE_API_URL;
 console.log(VITE_API_URL);
 export default function ViewerHome() {
@@ -177,9 +179,9 @@ export default function ViewerHome() {
   const { permissions } = user;
   console.log("🎨 Rendering ViewerHome with permissions:", permissions);
 
-  const canViewEmployees = checkPermission("viewEmployees", user);
-  const canViewDocuments = checkPermission("viewDocuments", user);
-  const canViewSalary = checkPermission("viewSalary", user);
+  const canViewEmployees = checkPermission("employees.view", user);
+  const canViewDocuments = checkPermission("documents.view", user);
+  const canViewSalary = checkPermission("salary.view", user);
 
   const hasNoPermissions =
     !canViewEmployees && !canViewDocuments && !canViewSalary;
@@ -247,13 +249,15 @@ export default function ViewerHome() {
             )}
           </div>
 
-          <button
-            onClick={() => setShowChat(!showChat)}
-            className="p-1.5 md:p-2 hover:bg-gray-100 rounded-lg transition"
-            title="الدردشة مع الإدارة"
-          >
-            <MessageCircle className="w-4 md:w-5 h-4 md:h-5 text-gray-600" />
-          </button>
+          {checkPermission("chat.access", user) && (
+            <button
+              onClick={() => setShowChat(!showChat)}
+              className="p-1.5 md:p-2 hover:bg-gray-100 rounded-lg transition"
+              title="الدردشة مع الإدارة"
+            >
+              <MessageCircle className="w-4 md:w-5 h-4 md:h-5 text-gray-600" />
+            </button>
+          )}
         </div>
 
         <div className="flex items-center gap-2 md:gap-4 flex-1 justify-center">
@@ -278,6 +282,11 @@ export default function ViewerHome() {
           src={Logo}
           alt="App Logo"
           className="w-10 md:w-16 h-10 md:h-16 object-contain"
+        />
+        <img
+          src={syriaLogo}
+          alt="Syrian Flag"
+          className="w-10 md:w-14 h-10 md:h-14 object-contain rounded-full shadow-md ml-2"
         />
       </header>
 

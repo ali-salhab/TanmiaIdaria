@@ -1,9 +1,10 @@
 import express from "express";
 import DropdownOption from "../models/DropdownOption.js";
+import { protect } from "../middleware/auth.js";
 
 const router = express.Router();
 
-router.get("/", async (req, res) => {
+router.get("/", protect, async (req, res) => {
   try {
     const options = await DropdownOption.find();
     res.json(options);
@@ -12,21 +13,59 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.get("/:dropdownId", async (req, res) => {
+router.get("/:dropdownId", protect, async (req, res) => {
   try {
-    const option = await DropdownOption.findOne({
+    let option = await DropdownOption.findOne({
       dropdownId: req.params.dropdownId,
     });
+    
+    // If dropdown doesn't exist, create it with default options from query params
     if (!option) {
-      return res.status(404).json({ message: "Dropdown option not found" });
+      const { label, options: defaultOptions } = req.query;
+      
+      // If no default options provided, return empty dropdown structure
+      if (!defaultOptions) {
+        return res.json({
+          dropdownId: req.params.dropdownId,
+          label: label || req.params.dropdownId,
+          options: [],
+          defaultOptions: [],
+        });
+      }
+      
+      // Parse options if provided as JSON string
+      let parsedOptions = [];
+      try {
+        parsedOptions = JSON.parse(decodeURIComponent(defaultOptions));
+      } catch {
+        parsedOptions = Array.isArray(defaultOptions) ? defaultOptions : [];
+      }
+      
+      option = new DropdownOption({
+        dropdownId: req.params.dropdownId,
+        label: label || req.params.dropdownId,
+        options: parsedOptions.map((opt, idx) => ({
+          value: opt.value || opt,
+          label: opt.label || opt,
+          visible: true,
+          order: idx,
+        })),
+        defaultOptions: parsedOptions.map(opt => ({
+          value: opt.value || opt,
+          label: opt.label || opt,
+        })),
+      });
+      
+      await option.save();
     }
+    
     res.json(option);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
 
-router.post("/", async (req, res) => {
+router.post("/", protect, async (req, res) => {
   const { dropdownId, label, options, defaultOptions } = req.body;
 
   const dropdownOption = new DropdownOption({
@@ -48,7 +87,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.put("/:dropdownId", async (req, res) => {
+router.put("/:dropdownId", protect, async (req, res) => {
   try {
     const option = await DropdownOption.findOne({
       dropdownId: req.params.dropdownId,
@@ -74,7 +113,7 @@ router.put("/:dropdownId", async (req, res) => {
   }
 });
 
-router.delete("/:dropdownId", async (req, res) => {
+router.delete("/:dropdownId", protect, async (req, res) => {
   try {
     const option = await DropdownOption.findOneAndDelete({
       dropdownId: req.params.dropdownId,
@@ -88,7 +127,7 @@ router.delete("/:dropdownId", async (req, res) => {
   }
 });
 
-router.post("/:dropdownId/reset", async (req, res) => {
+router.post("/:dropdownId/reset", protect, async (req, res) => {
   try {
     const option = await DropdownOption.findOne({
       dropdownId: req.params.dropdownId,
@@ -111,7 +150,7 @@ router.post("/:dropdownId/reset", async (req, res) => {
   }
 });
 
-router.post("/:dropdownId/options", async (req, res) => {
+router.post("/:dropdownId/options", protect, async (req, res) => {
   try {
     const { label, value } = req.body;
     
@@ -149,7 +188,7 @@ router.post("/:dropdownId/options", async (req, res) => {
   }
 });
 
-router.put("/:dropdownId/options/:optionValue", async (req, res) => {
+router.put("/:dropdownId/options/:optionValue", protect, async (req, res) => {
   try {
     const { label } = req.body;
     
@@ -184,7 +223,7 @@ router.put("/:dropdownId/options/:optionValue", async (req, res) => {
   }
 });
 
-router.delete("/:dropdownId/options/:optionValue", async (req, res) => {
+router.delete("/:dropdownId/options/:optionValue", protect, async (req, res) => {
   try {
     const option = await DropdownOption.findOne({
       dropdownId: req.params.dropdownId,

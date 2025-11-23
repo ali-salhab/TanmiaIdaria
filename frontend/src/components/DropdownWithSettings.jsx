@@ -28,10 +28,16 @@ export default function DropdownWithSettings({
   useEffect(() => {
     const fetchDropdownSettings = async () => {
       try {
-        const response = await API.get(`/dropdown-options/${id}`);
+        // Encode options as query params for auto-creation
+        const optionsParam = encodeURIComponent(JSON.stringify(options));
+        const labelParam = encodeURIComponent(label || id);
+        
+        const response = await API.get(
+          `/dropdown-options/${id}?label=${labelParam}&options=${optionsParam}`
+        );
         const backendSettings = response.data;
         
-        if (backendSettings && backendSettings.options) {
+        if (backendSettings && backendSettings.options && backendSettings.options.length > 0) {
           const settings = {};
           const orderedOptions = [];
           
@@ -46,9 +52,38 @@ export default function DropdownWithSettings({
           setVisibleOptions(orderedOptions);
           setAllOptions(backendSettings.options);
         } else {
-          loadLocalSettings();
+          // If backend has no options, use the provided options
+          const settings = {};
+          const orderedOptions = [];
+          
+          options.forEach((opt, idx) => {
+            settings[opt.value] = true;
+            orderedOptions.push({
+              ...opt,
+              visible: true,
+              order: idx,
+            });
+          });
+          
+          setOptionSettings(settings);
+          setVisibleOptions(orderedOptions);
+          setAllOptions(orderedOptions);
+          
+          // Try to save to backend
+          try {
+            await API.post("/dropdown-options", {
+              dropdownId: id,
+              label: label || id,
+              options: orderedOptions,
+              defaultOptions: options,
+            });
+          } catch (err) {
+            console.log("Could not save dropdown to backend:", err);
+          }
         }
-      } catch {
+      } catch (error) {
+        console.log("Error fetching dropdown settings:", error);
+        // Fallback to local settings
         loadLocalSettings();
       }
     };
@@ -90,18 +125,35 @@ export default function DropdownWithSettings({
     };
     setOptionSettings(updated);
     localStorage.setItem(storageKey, JSON.stringify(updated));
-    setVisibleOptions(
-      options.filter((opt) => updated[opt.value] !== false)
-    );
+    
+    const newVisibleOptions = allOptions.filter((opt) => updated[opt.value] !== false);
+    setVisibleOptions(newVisibleOptions);
 
     try {
-      const updatedOptions = options.map((opt) => ({
+      const updatedOptions = allOptions.map((opt) => ({
         ...opt,
         visible: updated[opt.value] !== false,
       }));
       await API.put(`/dropdown-options/${id}`, { options: updatedOptions });
     } catch (error) {
-      console.error("Failed to sync settings to backend:", error);
+      // If dropdown doesn't exist, create it
+      if (error.response?.status === 404) {
+        try {
+          await API.post("/dropdown-options", {
+            dropdownId: id,
+            label: label || id,
+            options: allOptions.map((opt) => ({
+              ...opt,
+              visible: updated[opt.value] !== false,
+            })),
+            defaultOptions: options,
+          });
+        } catch (createError) {
+          console.error("Failed to create dropdown:", createError);
+        }
+      } else {
+        console.error("Failed to sync settings to backend:", error);
+      }
     }
   };
 
@@ -121,7 +173,24 @@ export default function DropdownWithSettings({
       }));
       await API.put(`/dropdown-options/${id}`, { options: updatedOptions });
     } catch (error) {
-      console.error("Failed to sync order to backend:", error);
+      // If dropdown doesn't exist, create it
+      if (error.response?.status === 404) {
+        try {
+          await API.post("/dropdown-options", {
+            dropdownId: id,
+            label: label || id,
+            options: newOrder.map((opt, idx) => ({
+              ...opt,
+              order: idx,
+            })),
+            defaultOptions: options,
+          });
+        } catch (createError) {
+          console.error("Failed to create dropdown:", createError);
+        }
+      } else {
+        console.error("Failed to sync order to backend:", error);
+      }
     }
   };
 
@@ -175,7 +244,56 @@ export default function DropdownWithSettings({
       setNewOptionValue("");
       setShowAddModal(false);
     } catch (err) {
-      setError(err.response?.data?.message || "فشل إضافة الخيار");
+      // If dropdown doesn't exist, create it first
+      if (err.response?.status === 404) {
+        try {
+          // Create dropdown with existing options plus new one
+          const newOptions = [
+            ...allOptions,
+            {
+              label: newOptionLabel,
+              value: newOptionValue,
+              visible: true,
+              order: allOptions.length,
+            },
+          ];
+          
+          await API.post("/dropdown-options", {
+            dropdownId: id,
+            label: label || id,
+            options: newOptions,
+            defaultOptions: [...options, { label: newOptionLabel, value: newOptionValue }],
+          });
+          
+          // Retry adding the option
+          const response = await API.post(`/dropdown-options/${id}/options`, {
+            label: newOptionLabel,
+            value: newOptionValue,
+          });
+          
+          if (response.data && response.data.options) {
+            setAllOptions(response.data.options);
+            const settings = {};
+            const orderedOptions = [];
+            response.data.options.forEach((opt) => {
+              settings[opt.value] = opt.visible !== false;
+              if (opt.visible !== false) {
+                orderedOptions.push(opt);
+              }
+            });
+            setOptionSettings(settings);
+            setVisibleOptions(orderedOptions);
+          }
+          
+          setNewOptionLabel("");
+          setNewOptionValue("");
+          setShowAddModal(false);
+        } catch (createErr) {
+          setError("فشل إنشاء القائمة المنسدلة وإضافة الخيار");
+        }
+      } else {
+        setError(err.response?.data?.message || "فشل إضافة الخيار");
+      }
     } finally {
       setLoading(false);
     }
@@ -214,7 +332,43 @@ export default function DropdownWithSettings({
       setEditingOption(null);
       setShowEditModal(false);
     } catch (err) {
-      setError(err.response?.data?.message || "فشل تعديل الخيار");
+      // If dropdown doesn't exist, create it first
+      if (err.response?.status === 404) {
+        try {
+          const updatedOptions = allOptions.map(opt => 
+            opt.value === editingOption.value 
+              ? { ...opt, label: newOptionLabel }
+              : opt
+          );
+          
+          await API.post("/dropdown-options", {
+            dropdownId: id,
+            label: label || id,
+            options: updatedOptions,
+            defaultOptions: options,
+          });
+          
+          setAllOptions(updatedOptions);
+          const settings = {};
+          const orderedOptions = [];
+          updatedOptions.forEach((opt) => {
+            settings[opt.value] = opt.visible !== false;
+            if (opt.visible !== false) {
+              orderedOptions.push(opt);
+            }
+          });
+          setOptionSettings(settings);
+          setVisibleOptions(orderedOptions);
+          
+          setNewOptionLabel("");
+          setEditingOption(null);
+          setShowEditModal(false);
+        } catch (createErr) {
+          setError("فشل إنشاء القائمة المنسدلة وتعديل الخيار");
+        }
+      } else {
+        setError(err.response?.data?.message || "فشل تعديل الخيار");
+      }
     } finally {
       setLoading(false);
     }
@@ -242,7 +396,23 @@ export default function DropdownWithSettings({
         setVisibleOptions(orderedOptions);
       }
     } catch (err) {
-      console.error("فشل حذف الخيار:", err);
+      // If dropdown doesn't exist, just update local state
+      if (err.response?.status === 404) {
+        const updatedOptions = allOptions.filter(opt => opt.value !== optionValue);
+        setAllOptions(updatedOptions);
+        const settings = {};
+        const orderedOptions = [];
+        updatedOptions.forEach((opt) => {
+          settings[opt.value] = opt.visible !== false;
+          if (opt.visible !== false) {
+            orderedOptions.push(opt);
+          }
+        });
+        setOptionSettings(settings);
+        setVisibleOptions(orderedOptions);
+      } else {
+        console.error("فشل حذف الخيار:", err);
+      }
     }
   };
 
@@ -258,7 +428,7 @@ export default function DropdownWithSettings({
           <select
             value={value}
             onChange={onChange}
-            className={`w-full border border-gray-300 px-3 py-2 pr-12 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${className}`}
+            className={`w-full border-2 border-gray-300 px-4 py-3 pr-12 rounded-xl bg-white text-gray-800 font-medium shadow-sm hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ${className}`}
           >
             <option value="">{placeholder}</option>
             {visibleOptions.map((opt) => (
@@ -270,7 +440,7 @@ export default function DropdownWithSettings({
 
           <button
             onClick={() => setShowSettings(!showSettings)}
-            className="absolute left-2 top-1/2 -translate-y-1/2 p-1.5 text-gray-600 hover:text-blue-600 transition-all duration-200 group-hover:scale-110"
+            className="absolute left-2 top-1/2 -translate-y-1/2 p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-all duration-200 group-hover:scale-110 shadow-sm hover:shadow-md border border-blue-200"
             title="إعدادات القائمة المنسدلة"
           >
             <Settings className="w-4 h-4" />
@@ -279,7 +449,7 @@ export default function DropdownWithSettings({
       </div>
 
       {showSettings && (
-        <div className="absolute top-full right-0 mt-2 w-96 bg-white border border-gray-300 rounded-xl shadow-2xl p-4 z-50">
+        <div className="absolute top-full right-0 mt-2 w-96 bg-white border-2 border-blue-200 rounded-xl shadow-2xl p-4 z-50 backdrop-blur-sm">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-gray-800">إعدادات الخيارات</h3>
             <button

@@ -67,7 +67,7 @@ router.get("/me", verifyToken, async (req, res) => {
     // Add direct permissions
     if (user.directPermissions?.length) {
       user.directPermissions.forEach((perm) => {
-        if (perm?.name) mergedPermissions.add(perm.name);
+        if (perm?.key) mergedPermissions.add(perm.key);
       });
     }
 
@@ -76,7 +76,7 @@ router.get("/me", verifyToken, async (req, res) => {
       user.permissionGroups.forEach((group) => {
         if (group.permissions?.length) {
           group.permissions.forEach((perm) => {
-            if (perm?.name) mergedPermissions.add(perm.name);
+            if (perm?.key) mergedPermissions.add(perm.key);
           });
         }
       });

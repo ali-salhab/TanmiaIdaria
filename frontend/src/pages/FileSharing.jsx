@@ -89,8 +89,12 @@ export default function FileSharing() {
     try {
       await API.put(`/file-share/${fileShare._id}/download`);
 
+      const baseURL = import.meta.env.VITE_API_URL
+        ? import.meta.env.VITE_API_URL.replace("/api", "")
+        : `http://${window.location.hostname}:5000`;
+
       const link = document.createElement("a");
-      link.href = `http://localhost:5000${fileShare.fileUrl}`;
+      link.href = `${baseURL}${fileShare.fileUrl}`;
       link.download = fileShare.fileName;
       document.body.appendChild(link);
       link.click();
@@ -102,8 +106,6 @@ export default function FileSharing() {
       toast.error("فشل تحميل الملف");
     }
   };
-
-
 
   const handleDeleteFile = async (id) => {
     if (!window.confirm("هل تريد حذف هذا الملف؟")) return;
@@ -145,10 +147,16 @@ export default function FileSharing() {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-gray-200 rounded flex items-center justify-center flex-shrink-0">
-                  {file.fileType === "image" ? "🖼️" : file.fileType === "document" ? "📄" : "📎"}
+                  {file.fileType === "image"
+                    ? "🖼️"
+                    : file.fileType === "document"
+                    ? "📄"
+                    : "📎"}
                 </div>
                 <div className="min-w-0">
-                  <p className="font-medium truncate text-gray-800">{file.fileName}</p>
+                  <p className="font-medium truncate text-gray-800">
+                    {file.fileName}
+                  </p>
                   <div className="text-sm text-gray-500 flex gap-2">
                     <span>{(file.fileSize / 1024 / 1024).toFixed(2)} MB</span>
                     {!isSent && <span>التنزيلات: {file.downloadCount}</span>}
@@ -245,7 +253,9 @@ export default function FileSharing() {
       {uploadModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
           <div className="bg-white rounded-lg p-6 max-w-md w-full transform transition-all duration-300 animate-fadeInUp overflow-y-auto max-h-[90vh]">
-            <h3 className="text-xl font-bold mb-4 text-center text-gray-800">إرسال ملف جديد</h3>
+            <h3 className="text-xl font-bold mb-4 text-center text-gray-800">
+              إرسال ملف جديد
+            </h3>
 
             <form onSubmit={handleSendFile} className="space-y-4">
               <div>
@@ -275,13 +285,16 @@ export default function FileSharing() {
                 />
                 {selectedFile && (
                   <p className="text-sm text-gray-600 mt-1">
-                    {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
+                    {selectedFile.name} (
+                    {(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
                   </p>
                 )}
               </div>
 
               <div>
-                <label className="block mb-2 font-medium">رسالة (اختياري)</label>
+                <label className="block mb-2 font-medium">
+                  رسالة (اختياري)
+                </label>
                 <textarea
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
@@ -304,10 +317,14 @@ export default function FileSharing() {
                   disabled={loading}
                   className="flex-1 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition disabled:opacity-50 flex items-center justify-center gap-2"
                 >
-                  {loading ? "جاري الإرسال..." : <>
-                    <Send size={16} />
-                    إرسال
-                  </>}
+                  {loading ? (
+                    "جاري الإرسال..."
+                  ) : (
+                    <>
+                      <Send size={16} />
+                      إرسال
+                    </>
+                  )}
                 </button>
               </div>
             </form>

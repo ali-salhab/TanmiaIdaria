@@ -8,7 +8,7 @@ import VacationsSVG from "../assets/vacation.svg";
 import ReportsSVG from "../assets/report.svg";
 import Logo from "../assets/logo.png";
 import API from "../api/api";
-import AdminChat from "../components/AdminChat";
+import AdminChat from "../components/chat/AdminChat";
 import { checkPermission } from "../utils/permissionHelper";
 const VITE_API_URL = import.meta.env.VITE_API_URL;
 console.log(VITE_API_URL);

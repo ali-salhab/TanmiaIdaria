@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { io } from "socket.io-client";
 import { Bell, MessageCircle, Megaphone, Shield, Lock, CheckCircle2 } from "lucide-react";
 import API from "../api/api";
-import AdminChat from "../components/AdminChat";
+import AdminChat from "../components/chat/AdminChat";
 import { checkPermission } from "../utils/permissionHelper";
 import { getAvailableSections, getSectionPermissionStats } from "../utils/homeSectionsConfig";
 import { permissionDefinitions } from "../utils/permissionDefinitions";

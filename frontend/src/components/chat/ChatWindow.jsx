@@ -158,7 +158,7 @@ export default function ChatWindow({ userId, onClose, index = 0 }) {
                 </p>
                 <p className="text-xs text-blue-100 flex items-center gap-1">
                   <span className="w-2 h-2 bg-emerald-300 rounded-full animate-pulse"></span>
-                  متصل الآن
+                  متصل الآ
                 </p>
               </div>
             </>

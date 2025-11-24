@@ -20,6 +20,7 @@ import {
   BorderStyle,
   VerticalAlign,
 } from "docx";
+import { notifyAdmin } from "../services/notificationService.js";
 export const generateEmployeeCV = async (req, res) => {
   console.log(
     "================ generate Excel file (ExcelJS) ===================="
@@ -118,6 +119,22 @@ export const generateEmployeeCV = async (req, res) => {
 export const createIncident = async (req, res) => {
   try {
     const incident = await Incident.create(req.body);
+    
+    // Notify admin if action is performed by non-admin user
+    if (req.user && req.user.role !== "admin") {
+      // Get employee info for better notification context
+      const employee = await Employee.findById(incident.employee);
+      await notifyAdmin({
+        actionBy: req.user._id,
+        section: "incidents",
+        action: "create",
+        title: "تم إنشاء حادث جديد",
+        message: `تم إنشاء حادث جديد للموظف: ${employee?.fullName || "غير محدد"}`,
+        employeeName: employee?.fullName,
+        department: employee?.level4 || employee?.currentJobTitle || null,
+      });
+    }
+    
     res.status(201).json(incident);
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -138,7 +155,7 @@ export const deleteIncident = async (req, res) => {
   try {
     console.log(req.params.id);
 
-    const incident = await Incident.find({ _id: req.params.id });
+    const incident = await Incident.findById(req.params.id);
     console.log(incident);
     if (!incident) {
       console.log("==============if======================");
@@ -146,14 +163,32 @@ export const deleteIncident = async (req, res) => {
       return res.status(404).send({ message: "content not found" });
     } else {
       console.log("================else====================");
+      
+      // Notify admin if action is performed by non-admin user
+      if (req.user && req.user.role !== "admin") {
+        // Get employee info for better notification context
+        const employee = await Employee.findById(incident.employee);
+        await notifyAdmin({
+          actionBy: req.user._id,
+          section: "incidents",
+          action: "delete",
+          title: "تم حذف حادث",
+          message: `تم حذف الحادث للموظف: ${employee?.fullName || "غير محدد"}`,
+          employeeName: employee?.fullName,
+          department: employee?.level4 || employee?.currentJobTitle || null,
+        });
+      }
 
-      const res = await Incident.deleteOne({ _id: req.params.id });
-      console.log(res);
-      return res.send({ res });
+      const result = await Incident.deleteOne({ _id: req.params.id });
+      console.log(result);
+      return res.send({ result });
     }
 
-    res.send({ message: "erroe" });
-  } catch (error) {}
+    res.send({ message: "error" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
 };
 
 // PUT /api/incidents/:id
@@ -165,6 +200,22 @@ export const updateIncident = async (req, res) => {
     });
     if (!incident)
       return res.status(404).json({ message: "Incident not found" });
+    
+    // Notify admin if action is performed by non-admin user
+    if (req.user && req.user.role !== "admin") {
+      // Get employee info for better notification context
+      const employee = await Employee.findById(incident.employee);
+      await notifyAdmin({
+        actionBy: req.user._id,
+        section: "incidents",
+        action: "update",
+        title: "تم تحديث بيانات حادث",
+        message: `تم تحديث بيانات الحادث للموظف: ${employee?.fullName || "غير محدد"}`,
+        employeeName: employee?.fullName,
+        department: employee?.level4 || employee?.currentJobTitle || null,
+      });
+    }
+    
     res.json(incident);
   } catch (error) {
     console.error(error);

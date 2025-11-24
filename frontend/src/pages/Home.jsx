@@ -7,7 +7,6 @@ import {
   Megaphone,
   Shield,
   Lock,
-  CheckCircle2,
 } from "lucide-react";
 import API from "../api/api";
 import AdminChat from "../components/chat/AdminChat";
@@ -16,7 +15,7 @@ import {
   getAvailableSections,
   getSectionPermissionStats,
 } from "../utils/homeSectionsConfig";
-import { permissionDefinitions } from "../utils/permissionDefinitions";
+import PermissionBasedSectionGrid from "../components/common/PermissionBasedSectionGrid";
 import { useSettings } from "../context/SettingsContext";
 import Logo from "../assets/logo.png";
 
@@ -125,65 +124,7 @@ export default function Home() {
     return getSectionPermissionStats(user);
   }, [user]);
 
-  // Get permissions for a section
-  const getSectionPermissions = (section) => {
-    if (!user || !user.permissions) return [];
-
-    // Get all permissions that match the section's required permissions or category
-    const sectionPerms = [];
-
-    // First, check required permissions
-    if (section.requiredPermissions) {
-      section.requiredPermissions.forEach((permKey) => {
-        if (user.permissions[permKey] === true) {
-          sectionPerms.push(permKey);
-        }
-      });
-    }
-
-    // Also check for other permissions in the same category
-    if (section.requiredPermissions && section.requiredPermissions.length > 0) {
-      const firstPerm = permissionDefinitions[section.requiredPermissions[0]];
-      if (firstPerm) {
-        const category = firstPerm.category;
-        Object.keys(permissionDefinitions).forEach((key) => {
-          if (
-            permissionDefinitions[key].category === category &&
-            user.permissions[key] === true &&
-            !sectionPerms.includes(key)
-          ) {
-            sectionPerms.push(key);
-          }
-        });
-      }
-    }
-
-    return sectionPerms;
-  };
-
-  // Group sections by category for better organization
-  const groupedSections = useMemo(() => {
-    const groups = {};
-    allowedSections.forEach((section) => {
-      // Get category from the first permission or use section label
-      let category = "أخرى";
-      if (
-        section.requiredPermissions &&
-        section.requiredPermissions.length > 0
-      ) {
-        const firstPerm = permissionDefinitions[section.requiredPermissions[0]];
-        category = firstPerm?.category || section.label;
-      } else {
-        category = section.label;
-      }
-
-      if (!groups[category]) {
-        groups[category] = [];
-      }
-      groups[category].push(section);
-    });
-    return groups;
-  }, [allowedSections]);
+  // No need for these functions anymore as they're now in the reusable components
 
   if (loading || !user) {
     return (
@@ -352,111 +293,10 @@ export default function Home() {
         </div>
 
         {/* Sections Grid */}
-        {allowedSections.length > 0 ? (
-          <div className="space-y-8">
-            {Object.entries(groupedSections).map(([category, sections]) => (
-              <div key={category} className="space-y-4">
-                <h2 className="text-xl md:text-2xl font-bold text-gray-800 flex items-center gap-2">
-                  <span className="w-1 h-8 bg-gradient-to-b from-emerald-500 to-teal-600 rounded-full"></span>
-                  {category}
-                </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-                  {sections.map((section) => {
-                    const sectionPerms = getSectionPermissions(section);
-                    const hasMultiplePerms = sectionPerms.length > 1;
-
-                    return (
-                      <button
-                        key={section.category}
-                        onClick={() => navigate(section.path)}
-                        className={`relative group bg-white shadow-lg rounded-2xl p-5 md:p-6 cursor-pointer overflow-hidden border-2 border-transparent transition-all transform hover:-translate-y-2 hover:shadow-2xl hover:border-emerald-200 text-right w-full`}
-                      >
-                        {/* Gradient Background on Hover */}
-                        <div
-                          className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-br ${section.color}`}
-                        ></div>
-
-                        {/* Content */}
-                        <div className="relative z-10">
-                          {/* Icon */}
-                          <div className="flex items-center justify-between mb-4">
-                            <div className="text-5xl md:text-6xl transform group-hover:scale-110 transition-transform duration-300">
-                              {section.icon}
-                            </div>
-                            {hasMultiplePerms && (
-                              <div className="bg-emerald-100 text-emerald-700 rounded-full px-2 py-1 text-xs font-medium flex items-center gap-1">
-                                <CheckCircle2 className="w-3 h-3" />
-                                {sectionPerms.length}
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Title */}
-                          <h3 className="text-lg md:text-xl font-bold text-gray-800 group-hover:text-white transition-colors mb-2">
-                            {section.label}
-                          </h3>
-
-                          {/* Description */}
-                          <p className="text-sm text-gray-600 group-hover:text-white/90 transition-colors mb-3">
-                            {section.description}
-                          </p>
-
-                          {/* Permissions Badge */}
-                          {sectionPerms.length > 0 && (
-                            <div className="flex flex-wrap gap-1.5 mt-3">
-                              {sectionPerms.slice(0, 2).map((permKey) => {
-                                const perm = permissionDefinitions[permKey];
-                                if (!perm) return null;
-                                return (
-                                  <span
-                                    key={permKey}
-                                    className="text-xs px-2 py-1 bg-emerald-50 text-emerald-700 rounded-lg group-hover:bg-white/20 group-hover:text-white transition-colors font-medium"
-                                  >
-                                    {perm.action}
-                                  </span>
-                                );
-                              })}
-                              {sectionPerms.length > 2 && (
-                                <span className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-lg group-hover:bg-white/20 group-hover:text-white transition-colors font-medium">
-                                  +{sectionPerms.length - 2}
-                                </span>
-                              )}
-                            </div>
-                          )}
-
-                          {/* Arrow Indicator */}
-                          <div className="mt-4 flex items-center text-emerald-600 group-hover:text-white transition-colors">
-                            <span className="text-sm font-medium">
-                              افتح القسم
-                            </span>
-                            <span className="mr-2 transform group-hover:translate-x-1 transition-transform">
-                              →
-                            </span>
-                          </div>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center py-16 px-4 bg-white rounded-2xl shadow-xl border-2 border-dashed border-gray-300">
-            <div className="text-7xl mb-6">🔒</div>
-            <h3 className="text-2xl font-bold text-gray-800 mb-3">
-              لا توجد صلاحيات متاحة
-            </h3>
-            <p className="text-gray-600 text-center max-w-md mb-6">
-              لم يتم منحك أي صلاحيات للوصول إلى أقسام النظام. يرجى التواصل مع
-              المسؤول لتفعيل الصلاحيات المناسبة.
-            </p>
-            <div className="flex items-center gap-2 text-emerald-600">
-              <Lock className="w-5 h-5" />
-              <span className="font-medium">في انتظار تفعيل الصلاحيات</span>
-            </div>
-          </div>
-        )}
+        <PermissionBasedSectionGrid 
+          allowedSections={allowedSections} 
+          user={user} 
+        />
 
         {/* Quick Stats (if admin or has analytics permission) */}
         {isAdmin && allowedSections.length > 0 && (

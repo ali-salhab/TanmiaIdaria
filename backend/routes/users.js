@@ -12,6 +12,7 @@ import {
   uploadSalaryImage,
   uploadEmployeeListImage,
   deleteDocument,
+  searchEmployees
 } from "../controllers/userController.js";
 import { verifyToken, isAdmin } from "../middleware/authMiddleware.js";
 import upload from "../middleware/upload.js";
@@ -33,5 +34,8 @@ router.post("/:id/salary-image", upload.single("image"), uploadSalaryImage);
 router.post("/:id/employee-list-image", upload.single("image"), uploadEmployeeListImage);
 router.delete("/:id/documents/:documentIndex", deleteDocument);
 router.delete("/:id", deleteUser);
+
+// New endpoint for searching employees during user creation
+router.get("/search/employees", searchEmployees);
 
 export default router;

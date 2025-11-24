@@ -22,6 +22,13 @@ const userSchema = new mongoose.Schema(
         ref: "Permission",
       },
     ],
+    // Link to Employee model
+    employeeId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Employee",
+      required: true,
+      unique: true
+    },
 
     profile: {
       firstName: String,
@@ -56,8 +63,6 @@ userSchema.pre("save", async function (next) {
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
   next();
-  // console.log(this);
-  // console.log(this);
 });
 
 userSchema.methods.comparePassword = async function (candidate) {

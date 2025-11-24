@@ -25,16 +25,6 @@ export default function DashboardSidebar({
       icon: "📄"
     },
     { 
-      label: "📃 القانونية", 
-      to: "/dashboard/dywan",
-      icon: "⚖️"
-    },
-    { 
-      label: "📃 الشكاوى", 
-      to: "/dashboard/dywan",
-      icon: "📝"
-    },
-    { 
       label: "📃 DropDown Manager", 
       to: "/dashboard/dropdown-manager",
       icon: "⚙️"

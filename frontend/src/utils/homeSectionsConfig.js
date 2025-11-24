@@ -1,3 +1,5 @@
+import { checkPermission } from './permissionHelper.js';
+
 export const homeSectionsConfig = [
   {
     category: "employees",
@@ -156,18 +158,20 @@ export const homeSectionsConfig = [
 
 export const getAvailableSections = (user) => {
   if (!user) return [];
-  console.log(user.permissions);
 
   if (user.role === "admin") {
     return homeSectionsConfig;
   }
 
   return homeSectionsConfig.filter((section) => {
-    if (!user.permissions) return false;
+    // Sections with no required permissions are available to all users
+    if (!section.requiredPermissions || section.requiredPermissions.length === 0) {
+      return true;
+    }
 
     // Check if user has any of the required permissions for this section
     return section.requiredPermissions.some(permission =>
-      user.permissions[permission] === true
+      checkPermission(permission, user)
     );
   });
 };

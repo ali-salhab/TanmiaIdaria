@@ -1,4 +1,5 @@
 import User from "../models/User.js";
+import Employee from "../models/Employee.js";
 import bcrypt from "bcryptjs";
 import { io } from "../server.js";
 import OperationLog from "../models/ActivityLog.js";
@@ -6,7 +7,7 @@ import OperationLog from "../models/ActivityLog.js";
 // ✅ Get all users
 export const getUsers = async (req, res) => {
   try {
-    const users = await User.find().select("-password").sort({ createdAt: -1 });
+    const users = await User.find().select("-password").sort({ createdAt: -1 }).populate('employeeId');
     console.log(users);
     res.json(users);
   } catch (err) {
@@ -20,7 +21,7 @@ export const getUser = async (req, res) => {
   console.log("get user by id function");
   console.log("====================================");
   try {
-    const user = await User.findById(req.params.id).select("-password");
+    const user = await User.findById(req.params.id).select("-password").populate('employeeId');
     if (!user) return res.status(404).json({ message: "User not found" });
     res.json(user);
   } catch (err) {
@@ -34,12 +35,30 @@ export const createUser = async (req, res) => {
   console.log("Create User controller ");
   console.log("====================================");
   try {
-    const { username, password, role, permissions } = req.body;
+    const { username, password, role, employeeId } = req.body;
+    
+    // Check if employeeId is provided
+    if (!employeeId) {
+      return res.status(400).json({ message: "Employee ID is required" });
+    }
+    
+    // Check if employee exists
+    const employee = await Employee.findById(employeeId);
+    if (!employee) {
+      return res.status(400).json({ message: "Employee not found" });
+    }
+    
+    // Check if employee already has a user account
+    const existingUser = await User.findOne({ employeeId });
+    if (existingUser) {
+      return res.status(400).json({ message: "This employee already has a user account" });
+    }
+    
     const exists = await User.findOne({ username });
     if (exists)
       return res.status(400).json({ message: "Username already exists" });
 
-    const user = new User({ username, password, role, permissions });
+    const user = new User({ username, password, role, employeeId });
     console.log(user);
 
     const createdUser = await user.save();
@@ -55,7 +74,9 @@ export const createUser = async (req, res) => {
     });
     io.emit("new_operation", log);
 
-    res.status(201).json({ message: "User created", user });
+    // Populate employee data in response
+    const userWithEmployee = await User.findById(createdUser._id).populate('employeeId');
+    res.status(201).json({ message: "User created", user: userWithEmployee });
   } catch (err) {
     console.log(err.message);
     res.status(500).json({ message: err.message });
@@ -70,7 +91,7 @@ export const updateUser = async (req, res) => {
       req.params.id,
       { username, role },
       { new: true }
-    ).select("-password");
+    ).select("-password").populate('employeeId');
     res.json(user);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -154,7 +175,7 @@ export const updateUserProfile = async (req, res) => {
         "profile.bio": bio,
       },
       { new: true }
-    ).select("-password");
+    ).select("-password").populate('employeeId');
     res.json(user);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -171,7 +192,7 @@ export const uploadAvatar = async (req, res) => {
       req.params.id,
       { "profile.avatar": `/uploads/${req.file.filename}` },
       { new: true }
-    ).select("-password");
+    ).select("-password").populate('employeeId');
     res.json({ message: "Avatar uploaded successfully", user });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -196,7 +217,9 @@ export const uploadDocument = async (req, res) => {
     });
 
     await user.save();
-    res.json({ message: "Document uploaded successfully", user });
+    // Populate employee data in response
+    const userWithEmployee = await User.findById(user._id).select("-password").populate('employeeId');
+    res.json({ message: "Document uploaded successfully", user: userWithEmployee });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -215,7 +238,7 @@ export const uploadSalaryImage = async (req, res) => {
         "profile.salaryInfo.uploadedAt": new Date(),
       },
       { new: true }
-    ).select("-password");
+    ).select("-password").populate('employeeId');
     res.json({ message: "Salary image uploaded successfully", user });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -235,7 +258,7 @@ export const uploadEmployeeListImage = async (req, res) => {
         "profile.employeeList.uploadedAt": new Date(),
       },
       { new: true }
-    ).select("-password");
+    ).select("-password").populate('employeeId');
     res.json({ message: "Employee list image uploaded successfully", user });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -253,8 +276,33 @@ export const deleteDocument = async (req, res) => {
       user.profile.documents.splice(documentIndex, 1);
       await user.save();
     }
+    
+    // Populate employee data in response
+    const userWithEmployee = await User.findById(user._id).select("-password").populate('employeeId');
+    res.json({ message: "Document deleted successfully", user: userWithEmployee });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
 
-    res.json({ message: "Document deleted successfully", user });
+// ✅ Search employees for user creation
+export const searchEmployees = async (req, res) => {
+  try {
+    const { q } = req.query;
+    if (!q) {
+      return res.status(400).json({ message: "Search query is required" });
+    }
+    
+    // Search for employees by name or national ID
+    const employees = await Employee.find({
+      $or: [
+        { fullName: new RegExp(q, 'i') },
+        { nationalId: new RegExp(q, 'i') },
+        { phone: new RegExp(q, 'i') }
+      ]
+    }).limit(20); // Limit to 20 results
+    
+    res.json(employees);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

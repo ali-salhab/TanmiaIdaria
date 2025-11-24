@@ -188,6 +188,7 @@ io.on("connection", (socket) => {
           to,
           fromUsername: fromUsername || "Unknown",
           timestamp: newMessage.createdAt,
+          messageId: newMessage._id.toString(), // Add unique message ID
         });
         console.log(`✅ Message sent to recipient: ${to}`);
       }
@@ -201,6 +202,7 @@ io.on("connection", (socket) => {
           to,
           fromUsername: fromUsername || "Unknown",
           timestamp: newMessage.createdAt,
+          messageId: newMessage._id.toString(), // Add unique message ID
         });
       }
     } catch (error) {
@@ -235,6 +237,7 @@ io.on("connection", (socket) => {
             to: adminUser._id,
             fromUsername: fromUsername || "User",
             timestamp: newMessage.createdAt,
+            messageId: newMessage._id.toString(), // Add unique message ID
           });
           console.log(`✅ Message sent to admin`);
         }
@@ -248,6 +251,7 @@ io.on("connection", (socket) => {
             to: adminUser._id,
             fromUsername: fromUsername || "User",
             timestamp: newMessage.createdAt,
+            messageId: newMessage._id.toString(), // Add unique message ID
           });
         }
       }

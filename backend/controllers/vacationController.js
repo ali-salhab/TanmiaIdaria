@@ -20,6 +20,7 @@ import path from "path";
 
 import { fileURLToPath } from "url";
 import Employee from "../models/Employee.js";
+import { notifyAdmin } from "../services/notificationService.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -354,6 +355,21 @@ export const addVacation = async (req, res) => {
       childOrder,
       startDate,
     });
+    
+    // Notify admin if action is performed by non-admin user
+    if (req.user && req.user.role !== "admin") {
+      // Get employee info for better notification context
+      const employee = await Employee.findById(req.params.id);
+      await notifyAdmin({
+        actionBy: req.user._id,
+        section: "vacations",
+        action: "create",
+        title: "تم إنشاء إجازة جديدة",
+        message: `تم إنشاء إجازة جديدة للموظف: ${employee?.fullName || "غير محدد"}`,
+        employeeName: employee?.fullName,
+        department: employee?.level4 || employee?.currentJobTitle || null,
+      });
+    }
 
     res.status(201).json(vacation);
   } catch (err) {
@@ -377,6 +393,22 @@ export const updateVacation = async (req, res) => {
     vacation.startDate = startDate ?? vacation.startDate;
 
     await vacation.save();
+    
+    // Notify admin if action is performed by non-admin user
+    if (req.user && req.user.role !== "admin") {
+      // Get employee info for better notification context
+      const employee = await Employee.findById(vacation.employeeId);
+      await notifyAdmin({
+        actionBy: req.user._id,
+        section: "vacations",
+        action: "update",
+        title: "تم تحديث بيانات إجازة",
+        message: `تم تحديث بيانات الإجازة للموظف: ${employee?.fullName || "غير محدد"}`,
+        employeeName: employee?.fullName,
+        department: employee?.level4 || employee?.currentJobTitle || null,
+      });
+    }
+    
     res.json(vacation);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -815,9 +847,26 @@ export const generateSingleVacationTemplate = async (req, res) => {
 // Delete vacation
 export const deleteVacation = async (req, res) => {
   try {
-    const vacation = await Vacation.findByIdAndDelete(req.params.id);
+    const vacation = await Vacation.findById(req.params.id);
     if (!vacation)
       return res.status(404).json({ message: "Vacation not found" });
+      
+    // Notify admin if action is performed by non-admin user
+    if (req.user && req.user.role !== "admin") {
+      // Get employee info for better notification context
+      const employee = await Employee.findById(vacation.employeeId);
+      await notifyAdmin({
+        actionBy: req.user._id,
+        section: "vacations",
+        action: "delete",
+        title: "تم حذف إجازة",
+        message: `تم حذف الإجازة للموظف: ${employee?.fullName || "غير محدد"}`,
+        employeeName: employee?.fullName,
+        department: employee?.level4 || employee?.currentJobTitle || null,
+      });
+    }
+    
+    await Vacation.findByIdAndDelete(req.params.id);
     res.json({ message: "Vacation deleted successfully" });
   } catch (err) {
     res.status(500).json({ message: err.message });

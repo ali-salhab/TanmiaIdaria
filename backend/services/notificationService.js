@@ -27,6 +27,58 @@ export const notifyAdmin = async ({
     const actionUser = await User.findById(actionBy).select("username profile");
     const actionByUsername = actionUser?.username || "مستخدم";
 
+    // Enhanced title and message with more context
+    const enhancedTitle = title || (() => {
+      const actionLabels = {
+        create: "إنشاء جديد",
+        update: "تحديث بيانات",
+        edit: "تعديل بيانات",
+        delete: "حذف بيانات",
+      };
+      
+      const sectionLabels = {
+        employees: "موظف",
+        incidents: "حادث",
+        vacations: "إجازة",
+        documents: "وثيقة",
+        circulars: "تعميم",
+        users: "مستخدم",
+      };
+      
+      const actionLabel = actionLabels[action] || action;
+      const sectionLabel = sectionLabels[section] || section;
+      
+      return `${actionLabel} ${sectionLabel}`;
+    })();
+    
+    const enhancedMessage = message || (() => {
+      const actionLabels = {
+        create: "قام بإنشاء",
+        update: "قام بتحديث",
+        edit: "قام بتعديل",
+        delete: "قام بحذف",
+      };
+      
+      const sectionLabels = {
+        employees: "بيانات موظف",
+        incidents: "بيانات حادث",
+        vacations: "بيانات إجازة",
+        documents: "وثيقة",
+        circulars: "تعميم",
+        users: "حساب مستخدم",
+      };
+      
+      const actionLabel = actionLabels[action] || `قام بـ ${action}`;
+      const sectionLabel = sectionLabels[section] || section;
+      
+      let msg = `${actionByUsername} ${actionLabel} ${sectionLabel}`;
+      if (employeeName) {
+        msg += ` للموظف: ${employeeName}`;
+      }
+      
+      return msg;
+    })();
+
     // Create notifications for all admins
     const notifications = await Promise.all(
       admins.map((admin) =>
@@ -35,8 +87,8 @@ export const notifyAdmin = async ({
           actionBy: actionBy,
           actionByUsername: actionByUsername,
           type: "user_action",
-          title: title || `إجراء جديد في ${section}`,
-          message: message || `${actionByUsername} قام بـ ${action} في ${section}`,
+          title: enhancedTitle,
+          message: enhancedMessage,
           section: section,
           action: action,
           employeeName: employeeName,
@@ -58,6 +110,7 @@ export const notifyAdmin = async ({
         employeeName: notification.employeeName,
         department: notification.department,
         actionByUsername: notification.actionByUsername,
+        actionBy: notification.actionBy,
         createdAt: notification.createdAt,
         read: notification.read,
       });
@@ -82,11 +135,25 @@ export const notifyUser = async ({
   permission = null,
 }) => {
   try {
+    // Enhanced title and message with emojis and better formatting
+    const enhancedTitle = title || (() => {
+      const typeLabels = {
+        system: "🔔 إشعار نظام",
+        success: "✅ نجاح العملية",
+        warning: "⚠️ تحذير",
+        error: "❌ خطأ",
+        info: "ℹ️ معلومات",
+      };
+      return typeLabels[type] || "🔔 إشعار";
+    })();
+    
+    const enhancedMessage = message || "تم تنفيذ العملية بنجاح";
+
     const notification = await Notification.create({
       userId,
       type,
-      title,
-      message,
+      title: enhancedTitle,
+      message: enhancedMessage,
       permission,
       read: false,
     });

@@ -87,30 +87,52 @@ The Employee model contains comprehensive employee information including persona
 #### Modified Endpoints
 
 - `POST /api/users` - Create user (now requires employeeId)
+  - Request body: { employeeId: ObjectId, password: string, role: string }
+  - Response: { message: string, user: UserWithEmployee }
+  - Error responses: 400 for validation errors, 409 for duplicate user
 - `GET /api/users/:id` - Get user with employee data
+  - Response: { UserWithEmployee }
+  - Populates the employeeId reference with actual employee data
 - `GET /api/users` - List users with employee data
+  - Response: Array of { UserWithEmployee }
+  - Populates employeeId references with actual employee data
 
 #### New Endpoints
 
 - `GET /api/employees/search?q={query}` - Search employees for user creation
+  - Query parameters: q (search term for name or national ID)
+  - Response: Array of { _id: ObjectId, fullName: string, nationalId: string, currentJobTitle: string }
 - `GET /api/employees/:id/user` - Get user data for a specific employee
+  - Response: { user: User } or null if no user exists for this employee
+  - Useful for checking if an employee already has a user account
 
 ### Workflow
 
 #### User Creation Process
 
-1. Admin navigates to user creation page
-2. Admin searches for an employee using the search functionality
-3. Admin selects an employee from the search results
-4. Admin enters a password for the new user
-5. System creates a user record linked to the selected employee
-6. System prevents creating multiple users for the same employee
+1. Admin navigates to the Users management page
+2. Admin clicks the "Create New User" button
+3. Admin searches for an employee using the search functionality by typing name or national ID
+4. System displays a list of matching employees
+5. Admin selects an employee from the search results
+6. System populates the form with the employee's name, national ID, and job title
+7. Admin selects a role for the user from the dropdown (admin, employee, viewer, hr, finance)
+8. Admin enters a password for the new user
+9. Admin clicks the "Create" button
+10. System validates that the employee exists and does not already have a user account
+11. System creates a user record linked to the selected employee
+12. System redirects to the user list or shows a success message
 
 #### Profile Display Process
 
-1. User accesses their profile page
-2. System fetches user data along with associated employee data
-3. System displays combined information in the profile view
+1. User accesses their profile page (`/profile`)
+2. System makes a single API call to fetch user data with populated employee data
+3. System displays user-specific information (username, role) in the header section
+4. System displays employee personal information (full name, national ID, birth date) in the personal details section
+5. System displays employee job information (job title, employment type, hiring date) in the employment section
+6. System displays employee contact information (phone) in the contact section
+7. System displays user documents which are stored in the user record
+8. User can update profile information, which updates the appropriate model (user or employee)
 
 ## Implementation Considerations
 
@@ -136,15 +158,17 @@ The Employee model contains comprehensive employee information including persona
 
 ### User Creation Validation
 
-- Employee ID must be provided
+- Employee ID must be provided and must be a valid ObjectId
 - Employee must exist in the system
 - Employee must not already be linked to another user
-- Password must meet security requirements
+- Password must be at least 6 characters long
+- Role must be one of the allowed values (admin, employee, viewer, user, hr, finance)
 
 ### Data Consistency Validation
 
-- Prevent deletion of employees who are linked to users
-- Handle updates to employee information that should reflect in user profiles
+- Prevent deletion of employees who are linked to users (show warning and suggest disabling instead)
+- When employee information is updated, ensure related user profile information stays consistent
+- If a user is deleted, consider whether to cascade delete or keep the employee record
 
 ## Error Handling
 
@@ -166,8 +190,6 @@ The Employee model contains comprehensive employee information including persona
 
 ### Integration Tests
 
-- Test the complete user creation workflow
-- Verify data integrity between user and employee models
 - Test the complete user creation workflow
 - Verify data integrity between user and employee models
 - Test API endpoints for proper data retrieval and error handling

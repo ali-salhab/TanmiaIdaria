@@ -102,7 +102,7 @@ export default function Dashboard() {
       />
 
       {/* Main Content */}
-      <div className={`relative z-10 flex-1 flex flex-col animate-fadeSlide min-w-0 ${showChat ? 'lg:mr-96' : ''}`}>
+      <div className="relative z-10 flex-1 flex flex-col animate-fadeSlide min-w-0 lg:ml-0">
         <Navbar
           userInfo={userInfo}
           sidebarOpen={sidebarOpen}
@@ -121,20 +121,10 @@ export default function Dashboard() {
 
       {/* Chat Modal */}
       {showChat && (
-        <div className="hidden md:block absolute right-0 top-0 bottom-0 w-96 z-40">
-          <AdminChat
-            isAdmin={userInfo?.role === "admin"}
-            onClose={() => setShowChat(false)}
-          />
-        </div>
-      )}
-      {showChat && (
-        <div className="md:hidden fixed inset-0 z-50">
-          <AdminChat
-            isAdmin={userInfo?.role === "admin"}
-            onClose={() => setShowChat(false)}
-          />
-        </div>
+        <AdminChat
+          isAdmin={userInfo?.role === "admin"}
+          onClose={() => setShowChat(false)}
+        />
       )}
 
       {/* Animations */}

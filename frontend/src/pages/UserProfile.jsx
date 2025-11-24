@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { useAuth } from "../hooks/useAuth";
 import API from "../api/api";
 import ImageUploadWithScanner from "../components/ImageUploadWithScanner";
-import { FileText, Trash2, Download, User, Image, FileText as FileIcon } from "lucide-react";
+import { FileText, Trash2, Download, User, Image, FileText as FileIcon, Briefcase } from "lucide-react";
 import { toast } from "react-hot-toast";
 // Import decorative circle images
 import bluePattern from "../assets/circles/patterns/circle-pattern-blue.svg";
@@ -26,6 +26,7 @@ export default function UserProfile() {
     bio: "",
   });
   const [userData, setUserData] = useState(null);
+  const [employeeData, setEmployeeData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [documentName, setDocumentName] = useState("");
@@ -42,6 +43,12 @@ export default function UserProfile() {
     try {
       const res = await API.get(`/users/${authUser?._id}`);
       setUserData(res.data);
+      
+      // Set employee data if available
+      if (res.data.employeeId) {
+        setEmployeeData(res.data.employeeId);
+      }
+      
       if (res.data.profile) {
         setProfile(res.data.profile);
       }
@@ -144,6 +151,7 @@ export default function UserProfile() {
   // Tab configuration
   const tabs = [
     { id: "profile", label: "الملف الشخصي", icon: <User size={20} /> },
+    { id: "employee", label: "بيانات الموظف", icon: <Briefcase size={20} /> },
     { id: "images", label: "الصور", icon: <Image size={20} /> },
     { id: "documents", label: "المستندات", icon: <FileIcon size={20} /> },
   ];
@@ -377,6 +385,104 @@ export default function UserProfile() {
                   </>
                 )}
               </div>
+            </div>
+          )}
+
+          {/* Employee Data Tab */}
+          {activeTab === "employee" && (
+            <div className="animate-fadeIn">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                  <Briefcase className="w-6 h-6 text-blue-600" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-800">بيانات الموظف</h3>
+              </div>
+              
+              {employeeData ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100">
+                    <h4 className="text-lg font-semibold text-gray-800 mb-4">المعلومات الأساسية</h4>
+                    <div className="space-y-3">
+                      <div className="flex justify-between border-b pb-2">
+                        <span className="text-gray-600">الاسم الثلاثي:</span>
+                        <span className="font-medium">{employeeData.fullName || "غير محدد"}</span>
+                      </div>
+                      <div className="flex justify-between border-b pb-2">
+                        <span className="text-gray-600">الرقم الوطني:</span>
+                        <span className="font-medium">{employeeData.nationalId || "غير محدد"}</span>
+                      </div>
+                      <div className="flex justify-between border-b pb-2">
+                        <span className="text-gray-600">تاريخ الميلاد:</span>
+                        <span className="font-medium">
+                          {employeeData.birthDate ? new Date(employeeData.birthDate).toLocaleDateString("ar-EG") : "غير محدد"}
+                        </span>
+                      </div>
+                      <div className="flex justify-between border-b pb-2">
+                        <span className="text-gray-600">الجنس:</span>
+                        <span className="font-medium">{employeeData.gender || "غير محدد"}</span>
+                      </div>
+                      <div className="flex justify-between border-b pb-2">
+                        <span className="text-gray-600">الحالة الاجتماعية:</span>
+                        <span className="font-medium">{employeeData.maritalStatus || "غير محدد"}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-6 border border-green-100">
+                    <h4 className="text-lg font-semibold text-gray-800 mb-4">معلومات العمل</h4>
+                    <div className="space-y-3">
+                      <div className="flex justify-between border-b pb-2">
+                        <span className="text-gray-600">المسمى الوظيفي:</span>
+                        <span className="font-medium">{employeeData.currentJobTitle || "غير محدد"}</span>
+                      </div>
+                      <div className="flex justify-between border-b pb-2">
+                        <span className="text-gray-600">القسم:</span>
+                        <span className="font-medium">{employeeData.level4 || "غير محدد"}</span>
+                      </div>
+                      <div className="flex justify-between border-b pb-2">
+                        <span className="text-gray-600">تاريخ التعيين:</span>
+                        <span className="font-medium">
+                          {employeeData.hiringDate ? new Date(employeeData.hiringDate).toLocaleDateString("ar-EG") : "غير محدد"}
+                        </span>
+                      </div>
+                      <div className="flex justify-between border-b pb-2">
+                        <span className="text-gray-600">نوع التوظيف:</span>
+                        <span className="font-medium">{employeeData.employmentType || "غير محدد"}</span>
+                      </div>
+                      <div className="flex justify-between border-b pb-2">
+                        <span className="text-gray-600">الراتب الأخير:</span>
+                        <span className="font-medium">{employeeData.lastSalary ? `${employeeData.lastSalary} دينار` : "غير محدد"}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-6 border border-amber-100 md:col-span-2">
+                    <h4 className="text-lg font-semibold text-gray-800 mb-4">معلومات الاتصال</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="flex justify-between border-b pb-2">
+                        <span className="text-gray-600">الهاتف:</span>
+                        <span className="font-medium">{employeeData.phone || "غير محدد"}</span>
+                      </div>
+                      <div className="flex justify-between border-b pb-2">
+                        <span className="text-gray-600">المحافظة:</span>
+                        <span className="font-medium">{employeeData.governorate || "غير محدد"}</span>
+                      </div>
+                      <div className="flex justify-between border-b pb-2">
+                        <span className="text-gray-600">المدينة:</span>
+                        <span className="font-medium">{employeeData.city || "غير محدد"}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-12 bg-gradient-to-br from-gray-50 to-blue-50 rounded-2xl border border-gray-100">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                    <Briefcase className="w-8 h-8 text-gray-500" />
+                  </div>
+                  <h4 className="text-lg font-medium text-gray-700 mb-2">لا توجد بيانات موظف</h4>
+                  <p className="text-gray-500">يجب أن يكون لديك حساب مستخدم مرتبط بموظف</p>
+                </div>
+              )}
             </div>
           )}
 

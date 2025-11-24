@@ -14,6 +14,7 @@ export default function Users() {
     username: "",
     password: "",
     role: "employee",
+    employeeId: ""
   });
   const [deleteModal, setDeleteModal] = useState({
     show: false,
@@ -25,6 +26,9 @@ export default function Users() {
   const [showPasswords, setShowPasswords] = useState({});
   const [editingPermissions, setEditingPermissions] = useState(null);
   const [tempPermissions, setTempPermissions] = useState({});
+  const [employees, setEmployees] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showEmployeeDropdown, setShowEmployeeDropdown] = useState(false);
 
   const token = localStorage.getItem("token");
 
@@ -35,9 +39,6 @@ export default function Users() {
   const fetchUsers = async () => {
     try {
       const res = await API.get("/users");
-      // const res = await axios.get(API, {
-      //   headers: { Authorization: `Bearer ${token}` },
-      // });
       let data = res.data;
       data.sort((a, b) =>
         sortOrder === "asc"
@@ -54,12 +55,54 @@ export default function Users() {
     fetchUsers();
   }, [sortOrder]);
 
+  // Search for employees
+  const searchEmployees = async (query) => {
+    if (query.length < 2) {
+      setEmployees([]);
+      return;
+    }
+    
+    try {
+      const res = await API.get(`/users/search/employees?q=${query}`);
+      setEmployees(res.data);
+      setShowEmployeeDropdown(true);
+    } catch (error) {
+      console.error("Error searching employees:", error);
+      setEmployees([]);
+    }
+  };
+
+  // Handle employee selection
+  const handleEmployeeSelect = (employee) => {
+    setNewUser(prev => ({
+      ...prev,
+      employeeId: employee._id,
+      username: employee.fullName || `${employee.firstName} ${employee.lastName}`.trim()
+    }));
+    setSearchQuery(employee.fullName || `${employee.firstName} ${employee.lastName}`.trim());
+    setShowEmployeeDropdown(false);
+    setEmployees([]);
+  };
+
   const createUser = async () => {
     try {
+      // Validate that employee is selected
+      if (!newUser.employeeId) {
+        toast.error("❌ يرجى اختيار موظف");
+        return;
+      }
+      
+      // Validate that password is provided
+      if (!newUser.password) {
+        toast.error("❌ يرجى إدخال كلمة المرور");
+        return;
+      }
+      
       await API.post("/users", newUser);
 
       toast.success("✅ تم إنشاء المستخدم بنجاح!");
-      setNewUser({ username: "", password: "", role: "employee" });
+      setNewUser({ username: "", password: "", role: "employee", employeeId: "" });
+      setSearchQuery("");
       fetchUsers();
     } catch (error) {
       const msg = error.response?.data?.message || "❌ فشل في إنشاء المستخدم!";
@@ -155,16 +198,44 @@ export default function Users() {
         <h3 className="text-lg font-medium mb-4 text-gray-700">
           ➕ إنشاء مستخدم جديد
         </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <input
-            type="text"
-            placeholder="اسم المستخدم"
-            value={newUser.username}
-            onChange={(e) =>
-              setNewUser({ ...newUser, username: e.target.value })
-            }
-            className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 outline-none"
-          />
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+          {/* Employee Search Field */}
+          <div className="sm:col-span-3 relative">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              البحث عن الموظف
+            </label>
+            <input
+              type="text"
+              placeholder="ابحث عن الموظف بالاسم أو الرقم الوطني"
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                searchEmployees(e.target.value);
+              }}
+              className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 outline-none w-full"
+            />
+            
+            {/* Employee Dropdown */}
+            {showEmployeeDropdown && employees.length > 0 && (
+              <div className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                {employees.map((employee) => (
+                  <div
+                    key={employee._id}
+                    className="px-4 py-2 hover:bg-blue-50 cursor-pointer"
+                    onClick={() => handleEmployeeSelect(employee)}
+                  >
+                    <div className="font-medium">{employee.fullName || `${employee.firstName} ${employee.lastName}`}</div>
+                    <div className="text-sm text-gray-500">
+                      {employee.nationalId && `الرقم الوطني: ${employee.nationalId}`}
+                      {employee.phone && ` | الهاتف: ${employee.phone}`}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          
+          {/* Password Field */}
           <input
             type="password"
             placeholder="كلمة المرور"
@@ -174,6 +245,8 @@ export default function Users() {
             }
             className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 outline-none"
           />
+          
+          {/* Role Dropdown */}
           <DropdownWithSettings
             id="users_new_user_role"
             value={newUser.role}
@@ -219,6 +292,9 @@ export default function Users() {
             <tr>
               <th className="py-3 px-4 text-right text-gray-700 font-semibold">
                 اسم المستخدم
+              </th>
+              <th className="py-3 px-4 text-right text-gray-700 font-semibold">
+                الموظف
               </th>
               <th className="py-3 px-4 text-right text-gray-700 font-semibold">
                 الدور
@@ -269,6 +345,22 @@ export default function Users() {
                     >
                       <FaEdit />
                     </button>
+                  </td>
+                  
+                  {/* الموظف */}
+                  <td className="py-3 px-4 text-gray-700">
+                    {u.employeeId ? (
+                      <div>
+                        <div>{u.employeeId.fullName || `${u.employeeId.firstName} ${u.employeeId.lastName}`}</div>
+                        {u.employeeId.nationalId && (
+                          <div className="text-sm text-gray-500">
+                            الرقم الوطني: {u.employeeId.nationalId}
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      "غير مرتبط"
+                    )}
                   </td>
 
                   {/* الدور */}
@@ -409,7 +501,7 @@ export default function Users() {
             {users.length === 0 && (
               <tr>
                 <td
-                  colSpan="6"
+                  colSpan="7"
                   className="text-center py-6 text-gray-500 italic"
                 >
                   لا يوجد مستخدمون حالياً.

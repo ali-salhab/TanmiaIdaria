@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useSocket } from "../../context/SocketContext";
 import { useSettings } from "../../context/SettingsContext";
 import { X, Send, Users as UsersIcon, Bell } from "lucide-react";
@@ -16,8 +16,47 @@ export default function AdminChat({ isAdmin, onClose }) {
   const [usersInfo, setUsersInfo] = useState({});
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(false);
+  const [messageCache, setMessageCache] = useState(new Set()); // For deduplication
   const messagesEndRef = useRef(null);
   const { playNotification } = useSettings();
+
+  // Generate unique message identifier
+  const generateMessageId = useCallback((message, from, timestamp) => {
+    // Create a unique identifier based on message content, sender, and timestamp
+    const timeSlot = Math.floor(new Date(timestamp).getTime() / 1000); // 1-second precision
+    return `${from}-${message}-${timeSlot}`;
+  }, []);
+
+  // Check if message is duplicate
+  const isDuplicateMessage = useCallback((messageData) => {
+    const messageId = generateMessageId(
+      messageData.message,
+      messageData.from,
+      messageData.timestamp
+    );
+    return messageCache.has(messageId);
+  }, [generateMessageId, messageCache]);
+
+  // Add message to cache
+  const addToMessageCache = useCallback((messageData) => {
+    const messageId = generateMessageId(
+      messageData.message,
+      messageData.from,
+      messageData.timestamp
+    );
+    setMessageCache(prev => new Set(prev).add(messageId));
+    
+    // Clean up old cache entries (keep only last 1000 messages)
+    if (messageCache.size > 1000) {
+      const iterator = messageCache.values();
+      const first = iterator.next().value;
+      if (first) {
+        const newCache = new Set(messageCache);
+        newCache.delete(first);
+        setMessageCache(newCache);
+      }
+    }
+  }, [generateMessageId, messageCache]);
 
   useEffect(() => {
     if (isAdmin && onlineUsers.length > 0) {
@@ -62,27 +101,29 @@ export default function AdminChat({ isAdmin, onClose }) {
       fromUsername,
       timestamp,
       to,
+      messageId, // Unique ID from server
     }) => {
       const currentUserId = localStorage.getItem("userId");
 
       // For received messages
       if (from !== currentUserId) {
-        setMessages((prev) => {
-          const messageExists = prev.some(
-            (m) =>
-              m.message === message &&
-              m.from === from &&
-              Math.abs(
-                new Date(m.timestamp).getTime() - new Date(timestamp).getTime()
-              ) < 1000
-          );
-          if (messageExists) return prev;
+        const messageData = {
+          from,
+          message,
+          fromUsername,
+          timestamp: timestamp || new Date(),
+          messageId: messageId || generateMessageId(message, from, timestamp || new Date())
+        };
 
-          return [
-            ...prev,
-            { from, message, fromUsername, timestamp: timestamp || new Date() },
-          ];
-        });
+        // Check for duplicates using both client-side cache and server-side ID
+        if (isDuplicateMessage(messageData) || (messageId && messageCache.has(messageId))) {
+          console.log("Duplicate message detected, ignoring:", messageData);
+          return;
+        }
+
+        // Add to cache and state
+        addToMessageCache(messageData);
+        setMessages((prev) => [...prev, messageData]);
 
         playMessage();
         playNotification();
@@ -98,7 +139,7 @@ export default function AdminChat({ isAdmin, onClose }) {
       }
     };
 
-    const handleMessageConfirmation = ({ from, message, timestamp }) => {
+    const handleMessageConfirmation = ({ from, message, timestamp, messageId }) => {
       // This confirms the message was sent successfully
       console.log("✅ Message sent confirmation received");
     };
@@ -110,7 +151,7 @@ export default function AdminChat({ isAdmin, onClose }) {
       socket.off("private_message", handlePrivateMessage);
       socket.off("message_sent_confirmation", handleMessageConfirmation);
     };
-  }, [socket, playMessage, playNotification, usersInfo]);
+  }, [socket, playMessage, playNotification, usersInfo, isDuplicateMessage, addToMessageCache, generateMessageId, messageCache]);
 
   // Load chat history when user is selected
   useEffect(() => {
@@ -131,7 +172,20 @@ export default function AdminChat({ isAdmin, onClose }) {
         message: msg.message,
         fromUsername: msg.fromUsername,
         timestamp: msg.createdAt || msg.timestamp,
+        messageId: msg._id, // Use MongoDB ID as unique identifier
       }));
+      
+      // Populate cache with existing messages
+      const newCache = new Set();
+      historyMessages.forEach(msg => {
+        if (msg.messageId) {
+          newCache.add(msg.messageId);
+        }
+        const clientId = generateMessageId(msg.message, msg.from, msg.timestamp);
+        newCache.add(clientId);
+      });
+      setMessageCache(newCache);
+      
       setMessages(historyMessages);
     } catch (error) {
       console.error("Error loading chat history:", error);
@@ -153,7 +207,20 @@ export default function AdminChat({ isAdmin, onClose }) {
           message: msg.message,
           fromUsername: msg.fromUsername,
           timestamp: msg.createdAt || msg.timestamp,
+          messageId: msg._id, // Use MongoDB ID as unique identifier
         }));
+        
+        // Populate cache with existing messages
+        const newCache = new Set();
+        historyMessages.forEach(msg => {
+          if (msg.messageId) {
+            newCache.add(msg.messageId);
+          }
+          const clientId = generateMessageId(msg.message, msg.from, msg.timestamp);
+          newCache.add(clientId);
+        });
+        setMessageCache(newCache);
+        
         setMessages(historyMessages);
       }
     } catch (error) {
@@ -189,12 +256,14 @@ export default function AdminChat({ isAdmin, onClose }) {
 
     if (isAdmin && selectedUser) {
       // Admin sending to specific user
-      socket.emit("private_message", {
+      const messageData = {
         to: selectedUser,
         message: input,
         from,
         fromUsername,
-      });
+      };
+      
+      socket.emit("private_message", messageData);
 
       // Add message to local state immediately
       const newMessage = {
@@ -202,17 +271,26 @@ export default function AdminChat({ isAdmin, onClose }) {
         message: input,
         fromUsername,
         timestamp: new Date(),
+        messageId: `temp-${Date.now()}-${Math.random()}` // Temporary ID until server confirms
       };
-      setMessages((prev) => [...prev, newMessage]);
-      playMessage();
+      
+      // Check for duplicates before adding
+      if (!isDuplicateMessage(newMessage)) {
+        addToMessageCache(newMessage);
+        setMessages((prev) => [...prev, newMessage]);
+        playMessage();
+      }
+      
       setInput("");
     } else if (!isAdmin) {
       // Normal user sending to admin
-      socket.emit("admin_message", {
+      const messageData = {
         message: input,
         from,
         fromUsername,
-      });
+      };
+      
+      socket.emit("admin_message", messageData);
 
       // Add message to local state immediately
       const newMessage = {
@@ -220,9 +298,16 @@ export default function AdminChat({ isAdmin, onClose }) {
         message: input,
         fromUsername,
         timestamp: new Date(),
+        messageId: `temp-${Date.now()}-${Math.random()}` // Temporary ID until server confirms
       };
-      setMessages((prev) => [...prev, newMessage]);
-      playMessage();
+      
+      // Check for duplicates before adding
+      if (!isDuplicateMessage(newMessage)) {
+        addToMessageCache(newMessage);
+        setMessages((prev) => [...prev, newMessage]);
+        playMessage();
+      }
+      
       setInput("");
     }
   };
@@ -295,6 +380,7 @@ export default function AdminChat({ isAdmin, onClose }) {
                       onClick={() => {
                         setSelectedUser(userId);
                         setMessages([]);
+                        setMessageCache(new Set()); // Clear cache when switching users
                       }}
                       className={`flex flex-col items-center gap-2 p-2 rounded-xl transition-all min-w-[70px] ${
                         isSelected
@@ -360,7 +446,7 @@ export default function AdminChat({ isAdmin, onClose }) {
 
           return (
             <div
-              key={i}
+              key={m.messageId || i} // Use message ID as key when available
               className={`flex items-end gap-2 ${
                 isFromCurrent ? "justify-end" : "justify-start"
               }`}

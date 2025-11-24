@@ -44,6 +44,9 @@ const permissions = [
   "fileshare.send",
   "fileshare.view_inbox",
   "fileshare.read",
+  
+  // Dywan
+  "dywan.receive_files",
 
   // Circulars
   "circulars.view",
@@ -122,7 +125,7 @@ async function seed() {
       await Permission.create({
         key,
         label: key.split(".").join(" - "),
-        category: key.split(".")[1] || "view",
+        category: key.split(".")[0] || "view",
       });
       console.log("Inserted:", key);
     }

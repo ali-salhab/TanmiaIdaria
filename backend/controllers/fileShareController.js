@@ -1,4 +1,5 @@
 import FileShare from "../models/FileShare.js";
+import User from "../models/User.js";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -137,5 +138,19 @@ export const incrementDownloadCount = async (req, res) => {
   } catch (error) {
     console.error("Error updating download count:", error);
     res.status(500).json({ message: "Server error" });
+  }
+};
+
+// New function to get users with dywan.receive_files permission
+export const getUsersWithDywanPermission = async (req, res) => {
+  try {
+    // In a real implementation, you would query users based on their actual permissions
+    // For now, we'll return all users as a placeholder
+    // This would need to be implemented based on your specific permission system
+    const users = await User.find().select("-password").sort({ createdAt: -1 });
+    res.json(users);
+  } catch (error) {
+    console.error("Error fetching users with dywan permission:", error);
+    res.status(500).json({ message: "Server error while fetching users" });
   }
 };

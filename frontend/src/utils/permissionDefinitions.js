@@ -650,6 +650,15 @@ export const permissionDefinitions = {
     category: "الدردشة",
     action: "عرض",
   },
+  
+  // Dywan permissions
+  "dywan.receive_files": {
+    key: "dywan.receive_files",
+    label: "استلام ملفات الديوان",
+    description: "القدرة على استلام ملفات من قسم الديوان",
+    category: "الديوان",
+    action: "استلام",
+  },
 };
 
 // Helper functions

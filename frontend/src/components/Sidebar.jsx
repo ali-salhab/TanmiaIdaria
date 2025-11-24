@@ -32,7 +32,7 @@ export default function Sidebar({ onLogout, isOpen, onClose }) {
     { label: "📤 قاعدة البيانات", to: "/dashboard/upload" },
     { label: "🎨 تخصيص الصفحة الرئيسية", to: "/dashboard/homepage-builder" },
     { label: "📃 الديوان", to: "/dashboard/dywan" },
-    { label: "🖨️ الأرشيف", to: "/dashboard" },
+    { label: "🖨️ الأرشيف", to: "/dashboard/archive" },
   ];
 
   return (

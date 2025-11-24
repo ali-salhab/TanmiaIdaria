@@ -1,0 +1,14 @@
+<svg width="500" height="500" viewBox="0 0 500 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="orb2">
+      <stop offset="0%" style="stop-color:#A78BFA;stop-opacity:0.6" />
+      <stop offset="100%" style="stop-color:#8B5CF6;stop-opacity:0.1" />
+    </radialGradient>
+    <filter id="blur2">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="20" />
+    </filter>
+  </defs>
+  <circle cx="250" cy="250" r="200" fill="url(#orb2)" filter="url(#blur2)"/>
+  <circle cx="250" cy="250" r="150" fill="url(#orb2)" opacity="0.4"/>
+  <circle cx="250" cy="250" r="100" fill="#C4B5FD" opacity="0.3"/>
+</svg>

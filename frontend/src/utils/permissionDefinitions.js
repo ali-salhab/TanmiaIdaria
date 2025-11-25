@@ -650,7 +650,7 @@ export const permissionDefinitions = {
     category: "الدردشة",
     action: "عرض",
   },
-  
+
   // Dywan permissions
   "dywan.receive_files": {
     key: "dywan.receive_files",
@@ -658,6 +658,50 @@ export const permissionDefinitions = {
     description: "القدرة على استلام ملفات من قسم الديوان",
     category: "الديوان",
     action: "استلام",
+  },
+
+  // Legal (القانوني) permissions
+  "legal.access": {
+    key: "legal.access",
+    label: "الوصول للقسم القانوني",
+    description: "القدرة على الوصول لقسم الشؤون القانونية",
+    category: "الشؤون القانونية",
+    action: "الوصول",
+  },
+  "legal.send_files": {
+    key: "legal.send_files",
+    label: "إرسال ملفات للشؤون القانونية",
+    description: "القدرة على إرسال ملفات ونماذج للقسم القانوني",
+    category: "الشؤون القانونية",
+    action: "إرسال",
+  },
+  "legal.reply_files": {
+    key: "legal.reply_files",
+    label: "الرد بملفات للقضايا",
+    description: "القدرة على الرد بالملفات للقضايا والاستشارات القانونية",
+    category: "الشؤون القانونية",
+    action: "رد",
+  },
+  "legal.reply_text": {
+    key: "legal.reply_text",
+    label: "الرد النصي للقضايا",
+    description: "القدرة على الرد بنصائح قانونية وتوضيحات",
+    category: "الشؤون القانونية",
+    action: "رد",
+  },
+  "legal.view_cases": {
+    key: "legal.view_cases",
+    label: "عرض القضايا والملفات القانونية",
+    description: "القدرة على عرض جميع القضايا والملفات القانونية",
+    category: "الشؤون القانونية",
+    action: "عرض",
+  },
+  "legal.manage_cases": {
+    key: "legal.manage_cases",
+    label: "إدارة القضايا القانونية",
+    description: "القدرة على إدارة القضايا والاستشارات (إنشاء، تعديل، إغلاق)",
+    category: "الشؤون القانونية",
+    action: "إدارة",
   },
 };
 

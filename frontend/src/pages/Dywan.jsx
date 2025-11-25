@@ -1,6 +1,18 @@
 import { useState, useEffect } from "react";
 import API from "../api/api";
-import { Upload, File, X, Search, Download, Eye, Trash2, Filter, Send, MessageSquare, Archive } from "lucide-react";
+import {
+  Upload,
+  File,
+  X,
+  Search,
+  Download,
+  Eye,
+  Trash2,
+  Filter,
+  Send,
+  MessageSquare,
+  Archive,
+} from "lucide-react";
 import toast from "react-hot-toast";
 import DropdownWithSettings from "../components/DropdownWithSettings";
 
@@ -14,7 +26,9 @@ export default function Dywan() {
   const [documentType, setDocumentType] = useState("");
   const [status, setStatus] = useState("");
   const [documentNumber, setDocumentNumber] = useState("");
-  const [documentYear, setDocumentYear] = useState(new Date().getFullYear().toString());
+  const [documentYear, setDocumentYear] = useState(
+    new Date().getFullYear().toString()
+  );
   const [incomingNumber, setIncomingNumber] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [filterDept, setFilterDept] = useState("");
@@ -22,7 +36,7 @@ export default function Dywan() {
   const [filterStatus, setFilterStatus] = useState("");
   const [filterYear, setFilterYear] = useState("");
   const [selectedDocument, setSelectedDocument] = useState(null);
-  
+
   // File sharing states
   const [receivedFiles, setReceivedFiles] = useState([]);
   const [sentFiles, setSentFiles] = useState([]);
@@ -34,7 +48,11 @@ export default function Dywan() {
   const [fileSharingLoading, setFileSharingLoading] = useState(false);
 
   useEffect(() => {
-    if (activeTab === "outgoing" || activeTab === "incoming" || activeTab === "decisions") {
+    if (
+      activeTab === "outgoing" ||
+      activeTab === "incoming" ||
+      activeTab === "decisions"
+    ) {
       fetchDocuments();
     } else if (activeTab === "file-sharing") {
       fetchReceivedFiles();
@@ -45,7 +63,14 @@ export default function Dywan() {
 
   useEffect(() => {
     applyFilters();
-  }, [documents, searchQuery, filterDept, filterType, filterStatus, filterYear]);
+  }, [
+    documents,
+    searchQuery,
+    filterDept,
+    filterType,
+    filterStatus,
+    filterYear,
+  ]);
 
   const fetchDocuments = async () => {
     try {
@@ -91,17 +116,22 @@ export default function Dywan() {
     let filtered = documents;
 
     if (searchQuery) {
-      filtered = filtered.filter((doc) =>
-        doc.documentNumber?.toString().includes(searchQuery) ||
-        doc.incomingNumber?.toString().includes(searchQuery) ||
-        doc.department?.includes(searchQuery)
+      filtered = filtered.filter(
+        (doc) =>
+          doc.documentNumber?.toString().includes(searchQuery) ||
+          doc.incomingNumber?.toString().includes(searchQuery) ||
+          doc.department?.includes(searchQuery)
       );
     }
 
-    if (filterDept) filtered = filtered.filter((doc) => doc.department === filterDept);
-    if (filterType) filtered = filtered.filter((doc) => doc.documentType === filterType);
-    if (filterStatus) filtered = filtered.filter((doc) => doc.status === filterStatus);
-    if (filterYear) filtered = filtered.filter((doc) => doc.year === filterYear);
+    if (filterDept)
+      filtered = filtered.filter((doc) => doc.department === filterDept);
+    if (filterType)
+      filtered = filtered.filter((doc) => doc.documentType === filterType);
+    if (filterStatus)
+      filtered = filtered.filter((doc) => doc.status === filterStatus);
+    if (filterYear)
+      filtered = filtered.filter((doc) => doc.year === filterYear);
 
     setFilteredDocuments(filtered);
   };
@@ -332,7 +362,10 @@ export default function Dywan() {
     );
   };
 
-  const years = Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i);
+  const years = Array.from(
+    { length: 10 },
+    (_, i) => new Date().getFullYear() - i
+  );
 
   return (
     <div className="p-6 font-custom" dir="rtl">
@@ -387,7 +420,9 @@ export default function Dywan() {
         // File Sharing Tab Content
         <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
           <div className="flex justify-between items-center mb-6">
-            <h3 className="text-xl font-semibold text-gray-800">مشاركة الملفات</h3>
+            <h3 className="text-xl font-semibold text-gray-800">
+              مشاركة الملفات
+            </h3>
             <button
               onClick={() => setUploadModalOpen(true)}
               className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition flex items-center gap-2"
@@ -433,7 +468,9 @@ export default function Dywan() {
 
                 <form onSubmit={handleSendFile} className="space-y-4">
                   <div>
-                    <label className="block mb-2 font-medium">اختر المستقبل</label>
+                    <label className="block mb-2 font-medium">
+                      اختر المستقبل
+                    </label>
                     <select
                       value={selectedRecipient}
                       onChange={(e) => setSelectedRecipient(e.target.value)}
@@ -460,7 +497,8 @@ export default function Dywan() {
                     {selectedFileForShare && (
                       <p className="text-sm text-gray-600 mt-1">
                         {selectedFileForShare.name} (
-                        {(selectedFileForShare.size / 1024 / 1024).toFixed(2)} MB)
+                        {(selectedFileForShare.size / 1024 / 1024).toFixed(2)}{" "}
+                        MB)
                       </p>
                     )}
                   </div>
@@ -512,97 +550,82 @@ export default function Dywan() {
           <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200 max-h-screen overflow-y-auto">
             <h3 className="text-xl font-semibold text-gray-800 mb-6 flex items-center gap-2">
               <Upload className="w-5 h-5 text-teal-600" />
-              إضافة وثيقة جديدة
+              إضافة وارد جديد
             </h3>
 
             <div className="space-y-4 mb-6">
+              <DropdownWithSettings
+                id="dywan_department"
+                value={department}
+                onChange={(e) => setDepartment(e.target.value)}
+                options={[{ value: "", label: "اختر" }]}
+                label="نوع الوارد*"
+                placeholder="اختر"
+              />{" "}
+              <label className="block  text-sm font-medium text-gray-700 mb-2">
+                اسم الجهة الوارد منها البريد الوارد
+              </label>
+              <input
+                type="text"
+                value={documentNumber}
+                onChange={(e) => setDocumentNumber(e.target.value)}
+                className="w-full mt-5 border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
+                placeholder="أدخل رقم الوارد"
+              />
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">رقم الوثيقة *</label>
-                <input
-                  type="text"
-                  value={documentNumber}
-                  onChange={(e) => setDocumentNumber(e.target.value)}
-                  className="w-full border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
-                  placeholder="أدخل رقم الوثيقة"
-                />
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  رقم البريد وفقالجهة الوارد منها{" "}
+                </label>
+                <div className="flex flex-row">
+                  <input
+                    type="number"
+                    value={documentNumber}
+                    onChange={(e) => setDocumentNumber(e.target.value)}
+                    className="w-full mt-5 border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    placeholder="أدخل رقم الوارد"
+                  />
+                </div>
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">رقم الوارد</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  رقم الوارد وفق سجل المحافظة{" "}
+                </label>
                 <input
                   type="text"
                   value={incomingNumber}
                   onChange={(e) => setIncomingNumber(e.target.value)}
                   className="w-full border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
-                  placeholder="أدخل رقم الوارد (اختياري)"
+                  placeholder="أدخل رقم الوارد)"
                 />
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  تاريخ تسجيل البريد الوارد
+                </label>
+                <input
+                  type="date"
+                  value={incomingNumber}
+                  onChange={(e) => setIncomingNumber(e.target.value)}
+                  className="w-full border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  placeholder="أدخل رقم الوارد)"
+                />
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  موضوع البريد الوارد{" "}
+                </label>
+                <input
+                  type="text"
+                  value={incomingNumber}
+                  onChange={(e) => setIncomingNumber(e.target.value)}
+                  className="w-full border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  placeholder="أدخل رقم الوارد)"
+                />
+                <label className="block text-sm font-medium text-gray-700 mb-2"></label>
               </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                <DropdownWithSettings
-                  id="dywan_document_year"
-                  value={documentYear}
-                  onChange={(e) => setDocumentYear(e.target.value)}
-                  options={years.map((year) => ({ value: year.toString(), label: year.toString() }))}
-                  label="السنة"
-                  placeholder="اختر السنة"
-                />
-
-                <DropdownWithSettings
-                  id="dywan_department"
-                  value={department}
-                  onChange={(e) => setDepartment(e.target.value)}
-                  options={[
-                    { value: "", label: "اختر" },
-                    { value: "مديرية المعلوماتية", label: "المعلوماتية" },
-                    { value: "مديرية التنمية الإدارية", label: "التنمية الإدارية" },
-                    { value: "مكتب التنمية المحلية", label: "التنمية المحلية" },
-                    { value: "مديرية إدارة النفايات الصلبة", label: "النفايات الصلبة" },
-                    { value: "مديرية المجالس المحلية", label: "المجالس المحلية" },
-                  ]}
-                  label="القسم *"
-                  placeholder="اختر"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                <DropdownWithSettings
-                  id="dywan_document_type"
-                  value={documentType}
-                  onChange={(e) => setDocumentType(e.target.value)}
-                  options={[
-                    { value: "", label: "اختر" },
-                    { value: "تقرير", label: "تقرير" },
-                    { value: "قرار", label: "قرار" },
-                    { value: "تعميم", label: "تعميم" },
-                    { value: "محضر", label: "محضر" },
-                    { value: "مراسلة", label: "مراسلة" },
-                    { value: "أخرى", label: "أخرى" },
-                  ]}
-                  label="نوع الوثيقة *"
-                  placeholder="اختر"
-                />
-
-                <DropdownWithSettings
-                  id="dywan_status"
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value)}
-                  options={[
-                    { value: "", label: "اختر" },
-                    { value: "جديدة", label: "جديدة" },
-                    { value: "قيد المراجعة", label: "قيد المراجعة" },
-                    { value: "موافق عليها", label: "موافق عليها" },
-                    { value: "مرفوضة", label: "مرفوضة" },
-                    { value: "مؤرشفة", label: "مؤرشفة" },
-                  ]}
-                  label="الحالة *"
-                  placeholder="اختر"
-                />
-              </div>
+              <div className="grid grid-cols-2 gap-2"></div>
+              <div className="grid grid-cols-2 gap-2"></div>
             </div>
-
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">اختر ملف أو امسح وثيقة *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                اختر ملف أو امسح وثيقة *
+              </label>
               <div className="flex flex-col items-center border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-teal-400 transition bg-gray-50">
                 <Upload className="w-8 h-8 text-gray-400 mb-2" />
                 <input
@@ -612,10 +635,13 @@ export default function Dywan() {
                   onChange={handleFileChange}
                   className="block w-full text-sm text-gray-600 file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 cursor-pointer"
                 />
-                {file && <p className="mt-2 text-sm text-teal-600 font-medium">✓ {file.name}</p>}
+                {file && (
+                  <p className="mt-2 text-sm text-teal-600 font-medium">
+                    ✓ {file.name}
+                  </p>
+                )}
               </div>
             </div>
-
             <button
               onClick={handleScan}
               disabled={loading || !file}
@@ -653,7 +679,10 @@ export default function Dywan() {
                   id="dywan_filter_year"
                   value={filterYear}
                   onChange={(e) => setFilterYear(e.target.value)}
-                  options={years.map((year) => ({ value: year.toString(), label: year.toString() }))}
+                  options={years.map((year) => ({
+                    value: year.toString(),
+                    label: year.toString(),
+                  }))}
                   label="السنة"
                   placeholder="السنة"
                   className="text-sm"
@@ -666,10 +695,19 @@ export default function Dywan() {
                   options={[
                     { value: "", label: "القسم" },
                     { value: "مديرية المعلوماتية", label: "المعلوماتية" },
-                    { value: "مديرية التنمية الإدارية", label: "التنمية الإدارية" },
+                    {
+                      value: "مديرية التنمية الإدارية",
+                      label: "التنمية الإدارية",
+                    },
                     { value: "مكتب التنمية المحلية", label: "التنمية المحلية" },
-                    { value: "مديرية إدارة النفايات الصلبة", label: "النفايات الصلبة" },
-                    { value: "مديرية المجالس المحلية", label: "المجالس المحلية" },
+                    {
+                      value: "مديرية إدارة النفايات الصلبة",
+                      label: "النفايات الصلبة",
+                    },
+                    {
+                      value: "مديرية المجالس المحلية",
+                      label: "المجالس المحلية",
+                    },
                   ]}
                   placeholder="القسم"
                   className="text-sm"
@@ -727,8 +765,12 @@ export default function Dywan() {
                     <div className="flex items-start gap-2">
                       <File className="w-4 h-4 text-teal-600 mt-1 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-gray-800 text-sm truncate">#{doc.documentNumber}</p>
-                        <p className="text-xs text-gray-500">{doc.department}</p>
+                        <p className="font-medium text-gray-800 text-sm truncate">
+                          #{doc.documentNumber}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {doc.department}
+                        </p>
                         <div className="flex gap-1 mt-1 flex-wrap">
                           <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
                             {doc.documentType}
@@ -758,17 +800,23 @@ export default function Dywan() {
               <div className="mt-4 p-4 bg-teal-50 rounded-lg border border-teal-200 space-y-2">
                 <div>
                   <p className="text-xs text-gray-600">رقم الوثيقة</p>
-                  <p className="font-semibold text-gray-800">#{selectedDocument.documentNumber}</p>
+                  <p className="font-semibold text-gray-800">
+                    #{selectedDocument.documentNumber}
+                  </p>
                 </div>
                 {selectedDocument.incomingNumber && (
                   <div>
                     <p className="text-xs text-gray-600">رقم الوارد</p>
-                    <p className="font-semibold text-gray-800">{selectedDocument.incomingNumber}</p>
+                    <p className="font-semibold text-gray-800">
+                      {selectedDocument.incomingNumber}
+                    </p>
                   </div>
                 )}
                 <div>
                   <p className="text-xs text-gray-600">السنة</p>
-                  <p className="font-semibold text-gray-800">{selectedDocument.year}</p>
+                  <p className="font-semibold text-gray-800">
+                    {selectedDocument.year}
+                  </p>
                 </div>
                 <button
                   onClick={() => removeDocument(selectedDocument._id)}

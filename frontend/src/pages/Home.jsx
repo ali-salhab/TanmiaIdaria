@@ -1,13 +1,7 @@
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { io } from "socket.io-client";
-import {
-  Bell,
-  MessageCircle,
-  Megaphone,
-  Shield,
-  Lock,
-} from "lucide-react";
+import { Bell, MessageCircle, Megaphone, Shield, Lock } from "lucide-react";
 import API from "../api/api";
 import AdminChat from "../components/chat/AdminChat";
 import { checkPermission } from "../utils/permissionHelper";
@@ -17,6 +11,7 @@ import {
 } from "../utils/homeSectionsConfig";
 import PermissionBasedSectionGrid from "../components/common/PermissionBasedSectionGrid";
 import { useSettings } from "../context/SettingsContext";
+import HoverCard from "../components/HoverCard";
 import Logo from "../assets/logo.png";
 
 const VITE_API_URL = import.meta.env.VITE_API_URL;
@@ -292,10 +287,59 @@ export default function Home() {
           </div>
         </div>
 
+        {/* Hover Cards Demo */}
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
+            ميزات النظام
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <HoverCard
+              title="إدارة الموظفين"
+              description="إدارة شاملة لبيانات الموظفين والرواتب والإجازات"
+              hoverContent={{
+                title: "إحصائيات الموظفين",
+                description:
+                  "عرض تفصيلي لجميع الموظفين مع إمكانية التعديل والإضافة",
+                stats: [
+                  { value: "150+", label: "موظف" },
+                  { value: "12", label: "قسم" },
+                ],
+              }}
+              className="bg-gradient-to-br from-blue-50 to-indigo-50"
+            />
+            <HoverCard
+              title="نظام الإشعارات"
+              description="إشعارات فورية للتحديثات والأحداث المهمة"
+              hoverContent={{
+                title: "إشعارات اليوم",
+                description: "تابع آخر التحديثات والإعلانات في الوقت الفعلي",
+                stats: [
+                  { value: notifications.length, label: "إشعار جديد" },
+                  { value: "24/7", label: "متاح" },
+                ],
+              }}
+              className="bg-gradient-to-br from-emerald-50 to-teal-50"
+            />
+            <HoverCard
+              title="التعاميم والإعلانات"
+              description="نشر التعاميم والإعلانات لجميع الموظفين"
+              hoverContent={{
+                title: "إدارة التعاميم",
+                description: "إنشاء وإدارة التعاميم مع إمكانية التوزيع المحدد",
+                stats: [
+                  { value: "25", label: "تعميم نشط" },
+                  { value: "100%", label: "تغطية" },
+                ],
+              }}
+              className="bg-gradient-to-br from-purple-50 to-pink-50"
+            />
+          </div>
+        </div>
+
         {/* Sections Grid */}
-        <PermissionBasedSectionGrid 
-          allowedSections={allowedSections} 
-          user={user} 
+        <PermissionBasedSectionGrid
+          allowedSections={allowedSections}
+          user={user}
         />
 
         {/* Quick Stats (if admin or has analytics permission) */}

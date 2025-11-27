@@ -90,6 +90,12 @@ export const listEmployees = async (req, res) => {
       "university",
       "workLocation",
       "level4",
+      "nationalId",
+      "jobCategory",
+      "status",
+      "phone",
+      "employmentType",
+      "selfNumber",
     ];
     allowed.forEach((k) => {
       if (req.query[k]) filters[k] = req.query[k];
@@ -131,7 +137,7 @@ export const createEmployee = async (req, res) => {
   try {
     const emp = new Employee(req.body);
     await emp.save();
-    
+
     // Notify admin if action is performed by non-admin user
     if (req.user && req.user.role !== "admin") {
       await notifyAdmin({
@@ -144,7 +150,7 @@ export const createEmployee = async (req, res) => {
         department: emp.level4 || emp.currentJobTitle || null,
       });
     }
-    
+
     res.status(201).json(emp);
   } catch (err) {
     res.status(500).json({ message: "Server error" });
@@ -156,7 +162,7 @@ export const updateEmployee = async (req, res) => {
       new: true,
     });
     if (!emp) return res.status(404).json({ message: "Not found" });
-    
+
     // Notify admin if action is performed by non-admin user
     if (req.user && req.user.role !== "admin") {
       await notifyAdmin({
@@ -169,7 +175,7 @@ export const updateEmployee = async (req, res) => {
         department: emp.level4 || emp.currentJobTitle || null,
       });
     }
-    
+
     res.json(emp);
   } catch (err) {
     res.status(500).json({ message: "Server error" });
@@ -179,9 +185,9 @@ export const deleteEmployee = async (req, res) => {
   try {
     const emp = await Employee.findById(req.params.id);
     if (!emp) return res.status(404).json({ message: "Not found" });
-    
+
     await Employee.findByIdAndDelete(req.params.id);
-    
+
     // Notify admin if action is performed by non-admin user
     if (req.user && req.user.role !== "admin") {
       await notifyAdmin({
@@ -194,7 +200,7 @@ export const deleteEmployee = async (req, res) => {
         department: emp.level4 || emp.currentJobTitle || null,
       });
     }
-    
+
     res.json({ message: "Deleted" });
   } catch (err) {
     res.status(500).json({ message: "Server error" });

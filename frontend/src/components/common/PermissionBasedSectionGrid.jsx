@@ -47,19 +47,15 @@ const PermissionBasedSectionGrid = ({ allowedSections, user }) => {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="grid grid-cols-3 gap-4">
       {Object.entries(groupedSections).map(([category, sections]) => (
-        <div key={category} className="space-y-4">
-          <h2 className="text-xl md:text-2xl font-bold text-gray-800 flex items-center gap-2">
-            <span className="w-1 h-8 bg-gradient-to-b from-emerald-500 to-teal-600 rounded-full"></span>
-            {category}
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+        <div key={category} className="">
+          <div className="">
             {sections.map((section) => (
-              <PermissionBasedSection 
-                key={section.category} 
-                section={section} 
-                user={user} 
+              <PermissionBasedSection
+                key={section.category}
+                section={section}
+                user={user}
               />
             ))}
           </div>

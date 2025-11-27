@@ -1,6 +1,15 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Users, Calendar, AlertTriangle, BarChart3, Shield, FileText, Award } from "lucide-react";
+import {
+  ArrowRight,
+  Users,
+  Calendar,
+  AlertTriangle,
+  BarChart3,
+  Shield,
+  FileText,
+  Award,
+} from "lucide-react";
 // Import decorative circle images
 import bluePattern from "../assets/circles/patterns/circle-pattern-blue.svg";
 import purplePattern from "../assets/circles/patterns/circle-pattern-purple.svg";
@@ -22,50 +31,50 @@ const onboardingContent = [
     description: "إدارة سهلة وفعالة لبيانات جميع الموظفين والموارد البشرية",
     color: "from-blue-400 to-blue-600",
     icon: <Users size={40} />,
-    image: userIcon1
+    image: userIcon1,
   },
   {
     title: "📊 تتبع الإجازات",
     description: "نظام متكامل لطلبات الإجازات والإجازات المرضية والموافقات",
     color: "from-green-400 to-green-600",
     icon: <Calendar size={40} />,
-    image: badgeIcon1
+    image: badgeIcon1,
   },
   {
     title: "⚠️ تسجيل الحوادث",
     description: "توثيق وتتبع جميع الحوادث والإصابات في مكان العمل",
     color: "from-red-400 to-red-600",
     icon: <AlertTriangle size={40} />,
-    image: badgeIcon2
+    image: badgeIcon2,
   },
   {
     title: "📈 التقارير والإحصائيات",
     description: "تحليل شامل للبيانات وإنشاء تقارير مفصلة",
     color: "from-purple-400 to-purple-600",
     icon: <BarChart3 size={40} />,
-    image: documentIcon1
+    image: documentIcon1,
   },
   {
     title: "🛡️ إدارة الصلاحيات",
     description: "نظام صلاحيات متقدم للتحكم في الوصول إلى الميزات",
     color: "from-indigo-400 to-indigo-600",
     icon: <Shield size={40} />,
-    image: documentIcon2
+    image: documentIcon2,
   },
   {
     title: "📄 إدارة الوثائق",
     description: "أرشفة وتنظيم جميع المستندات والملفات المهمة",
     color: "from-amber-400 to-amber-600",
     icon: <FileText size={40} />,
-    image: userIcon2
+    image: userIcon2,
   },
   {
     title: "🏆 المكافآت والإنجازات",
     description: "تتبع وتوثيق المكافآت والإنجازات للموظفين",
     color: "from-emerald-400 to-emerald-600",
     icon: <Award size={40} />,
-    image: badgeIcon1
-  }
+    image: badgeIcon1,
+  },
 ];
 
 export default function Onboarding() {
@@ -77,7 +86,7 @@ export default function Onboarding() {
 
   useEffect(() => {
     if (!isAutoPlaying) return;
-    
+
     const interval = setInterval(() => {
       setIsFlipping(true);
       setDirection(1);
@@ -101,14 +110,14 @@ export default function Onboarding() {
 
   const goToSlide = (index) => {
     if (index === currentIndex) return;
-    
+
     setIsFlipping(true);
     setDirection(index > currentIndex ? 1 : -1);
     setTimeout(() => {
       setCurrentIndex(index);
       setIsFlipping(false);
     }, 600);
-    
+
     // Pause autoplay when user interacts
     setIsAutoPlaying(false);
   };
@@ -127,7 +136,10 @@ export default function Onboarding() {
     setIsFlipping(true);
     setDirection(-1);
     setTimeout(() => {
-      setCurrentIndex((prev) => (prev - 1 + onboardingContent.length) % onboardingContent.length);
+      setCurrentIndex(
+        (prev) =>
+          (prev - 1 + onboardingContent.length) % onboardingContent.length
+      );
       setIsFlipping(false);
     }, 600);
     setIsAutoPlaying(false);
@@ -148,27 +160,55 @@ export default function Onboarding() {
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {/* Floating orbs */}
         <div className="absolute top-10 left-10 w-64 h-64 opacity-20 animate-float">
-          <img src={floatingOrb1} alt="" className="w-full h-full object-contain" />
+          <img
+            src={floatingOrb1}
+            alt=""
+            className="w-full h-full object-contain"
+          />
         </div>
         <div className="absolute bottom-10 right-10 w-64 h-64 opacity-20 animate-floatRandom">
-          <img src={floatingOrb2} alt="" className="w-full h-full object-contain" />
+          <img
+            src={floatingOrb2}
+            alt=""
+            className="w-full h-full object-contain"
+          />
         </div>
         <div className="absolute top-1/3 right-1/4 w-48 h-48 opacity-15 animate-float">
-          <img src={gradientSphere1} alt="" className="w-full h-full object-contain" />
+          <img
+            src={gradientSphere1}
+            alt=""
+            className="w-full h-full object-contain"
+          />
         </div>
         <div className="absolute bottom-1/4 left-1/3 w-56 h-56 opacity-15 animate-floatRandom">
-          <img src={gradientSphere2} alt="" className="w-full h-full object-contain" />
+          <img
+            src={gradientSphere2}
+            alt=""
+            className="w-full h-full object-contain"
+          />
         </div>
-        
+
         {/* Decorative patterns */}
         <div className="absolute top-0 left-1/4 w-96 h-96 opacity-10">
-          <img src={bluePattern} alt="" className="w-full h-full object-contain animate-pulseGentle" />
+          <img
+            src={bluePattern}
+            alt=""
+            className="w-full h-full object-contain animate-pulseGentle"
+          />
         </div>
         <div className="absolute bottom-0 right-1/4 w-96 h-96 opacity-10">
-          <img src={purplePattern} alt="" className="w-full h-full object-contain animate-pulseGentle" />
+          <img
+            src={purplePattern}
+            alt=""
+            className="w-full h-full object-contain animate-pulseGentle"
+          />
         </div>
         <div className="absolute top-1/2 right-0 w-96 h-96 opacity-10">
-          <img src={gradientPattern1} alt="" className="w-full h-full object-contain animate-pulseGentle" />
+          <img
+            src={gradientPattern1}
+            alt=""
+            className="w-full h-full object-contain animate-pulseGentle"
+          />
         </div>
       </div>
 
@@ -181,37 +221,47 @@ export default function Onboarding() {
               <div className="absolute inset-0 rounded-full border-4 border-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 p-1 animate-spin-slow opacity-60"></div>
               <div className="absolute inset-4 rounded-full border-4 border-transparent bg-gradient-to-r from-emerald-400 via-blue-400 to-cyan-400 p-1 animate-spin-slow opacity-40 animation-delay-1000"></div>
               <div className="absolute inset-8 rounded-full border-4 border-transparent bg-gradient-to-r from-amber-400 via-orange-400 to-red-400 p-1 animate-spin-slow-reverse opacity-30 animation-delay-2000"></div>
-              
+
               {/* Decorative background circle */}
               <div className="absolute inset-0 rounded-full bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 shadow-2xl"></div>
-              
+
               {/* Enhanced logo with decorative image */}
               <div
                 className={`absolute inset-0 flex items-center justify-center transform transition-all duration-700 ${
-                  isFlipping ? "scale-0 opacity-0 rotate-180" : "scale-100 opacity-100"
+                  isFlipping
+                    ? "scale-0 opacity-0 rotate-180"
+                    : "scale-100 opacity-100"
                 }`}
               >
                 <div className="relative">
                   <div className="w-56 h-56 lg:w-64 lg:h-64 rounded-full bg-gradient-to-br from-blue-500/20 to-purple-500/20 backdrop-blur-sm flex items-center justify-center shadow-2xl border border-white/10">
                     <div className="w-48 h-48 lg:w-56 lg:h-56 rounded-full bg-gradient-to-br from-blue-600/30 to-indigo-600/30 flex items-center justify-center">
-                      <img 
-                        src={currentContent.image} 
-                        alt={currentContent.title} 
+                      <img
+                        src={currentContent.image}
+                        alt={currentContent.title}
                         className="w-32 h-32 lg:w-40 lg:h-40 object-contain filter drop-shadow-lg"
                       />
                     </div>
                   </div>
-                  
+
                   {/* Decorative corner elements */}
                   <div className="absolute -top-4 -left-4 w-16 h-16 opacity-30">
-                    <img src={badgeIcon1} alt="" className="w-full h-full object-contain" />
+                    <img
+                      src={badgeIcon1}
+                      alt=""
+                      className="w-full h-full object-contain"
+                    />
                   </div>
                   <div className="absolute -bottom-4 -right-4 w-16 h-16 opacity-30">
-                    <img src={userIcon2} alt="" className="w-full h-full object-contain" />
+                    <img
+                      src={userIcon2}
+                      alt=""
+                      className="w-full h-full object-contain"
+                    />
                   </div>
                 </div>
               </div>
-              
+
               {/* Rotating decorative elements */}
               <div className="absolute inset-0 rounded-full opacity-40 animate-spin-slow-reverse">
                 <div className="absolute top-0 left-1/2 w-3 h-3 bg-blue-400 rounded-full transform -translate-x-1/2"></div>
@@ -237,10 +287,10 @@ export default function Onboarding() {
             {/* Enhanced Content Box with 3D flip effect */}
             <div
               className={`min-h-60 p-8 rounded-3xl backdrop-blur-xl bg-white/10 border border-white/20 transform transition-all duration-700 shadow-2xl ${
-                isFlipping 
-                  ? (direction > 0 
-                      ? "scale-95 opacity-0 rotate-y-90" 
-                      : "scale-95 opacity-0 -rotate-y-90")
+                isFlipping
+                  ? direction > 0
+                    ? "scale-95 opacity-0 rotate-y-90"
+                    : "scale-95 opacity-0 -rotate-y-90"
                   : "scale-100 opacity-100"
               }`}
               style={{
@@ -254,7 +304,9 @@ export default function Onboarding() {
                 }`}
               >
                 <div className="flex items-center gap-4">
-                  <div className={`p-3 rounded-2xl bg-gradient-to-br ${currentContent.color} shadow-lg`}>
+                  <div
+                    className={`p-3 rounded-2xl bg-gradient-to-br ${currentContent.color} shadow-lg`}
+                  >
                     {currentContent.icon}
                   </div>
                   <h2
@@ -266,12 +318,18 @@ export default function Onboarding() {
                 <p className="text-gray-200 text-lg leading-relaxed pr-2">
                   {currentContent.description}
                 </p>
-                
+
                 {/* Feature highlights */}
                 <div className="flex flex-wrap gap-2 mt-4">
-                  <span className="px-3 py-1 bg-blue-500/20 text-blue-200 rounded-full text-sm">سهل الاستخدام</span>
-                  <span className="px-3 py-1 bg-purple-500/20 text-purple-200 rounded-full text-sm">آمن وموثوق</span>
-                  <span className="px-3 py-1 bg-emerald-500/20 text-emerald-200 rounded-full text-sm">حديث وسريع</span>
+                  <span className="px-3 py-1 bg-blue-500/20 text-blue-200 rounded-full text-sm">
+                    سهل الاستخدام
+                  </span>
+                  <span className="px-3 py-1 bg-purple-500/20 text-purple-200 rounded-full text-sm">
+                    آمن وموثوق
+                  </span>
+                  <span className="px-3 py-1 bg-emerald-500/20 text-emerald-200 rounded-full text-sm">
+                    حديث وسريع
+                  </span>
                 </div>
               </div>
             </div>
@@ -293,30 +351,6 @@ export default function Onboarding() {
             </div>
 
             {/* Enhanced Navigation Controls */}
-            <div className="flex items-center justify-between pt-4">
-              <button
-                onClick={prevSlide}
-                className="flex items-center gap-2 px-5 py-3 bg-white/10 hover:bg-white/20 rounded-xl transition-all backdrop-blur-sm border border-white/20"
-              >
-                <ArrowRight className="w-5 h-5 rotate-180" />
-                <span>السابق</span>
-              </button>
-              
-              <button
-                onClick={toggleAutoPlay}
-                className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl transition-all backdrop-blur-sm border border-white/20 text-sm"
-              >
-                {isAutoPlaying ? "⏸️ إيقاف" : "▶️ تشغيل"}
-              </button>
-              
-              <button
-                onClick={nextSlide}
-                className="flex items-center gap-2 px-5 py-3 bg-white/10 hover:bg-white/20 rounded-xl transition-all backdrop-blur-sm border border-white/20"
-              >
-                <span>التالي</span>
-                <ArrowRight className="w-5 h-5" />
-              </button>
-            </div>
 
             {/* Enhanced Action Button */}
             <div className="pt-4">
@@ -333,69 +367,89 @@ export default function Onboarding() {
 
         {/* Enhanced Bottom info */}
         <div className="mt-16 text-center text-gray-300">
-          <p className="text-lg">© {new Date().getFullYear()} مديرية التنمية الإدارية - جميع الحقوق محفوظة</p>
-          <p className="text-sm mt-2 opacity-70">نظام متطور لإدارة الموارد البشرية والوثائق</p>
+          <p className="text-lg">
+            © {new Date().getFullYear()} مديرية التنمية الإدارية - جميع الحقوق
+            محفوظة
+          </p>
+          <p className="text-sm mt-2 opacity-70">
+            نظام متطور لإدارة الموارد البشرية والوثائق
+          </p>
         </div>
       </div>
 
       {/* Enhanced custom animations */}
       <style jsx>{`
         @keyframes blob {
-          0%, 100% { transform: translate(0, 0) scale(1); }
-          33% { transform: translate(30px, -50px) scale(1.1); }
-          66% { transform: translate(-20px, 20px) scale(0.9); }
+          0%,
+          100% {
+            transform: translate(0, 0) scale(1);
+          }
+          33% {
+            transform: translate(30px, -50px) scale(1.1);
+          }
+          66% {
+            transform: translate(-20px, 20px) scale(0.9);
+          }
         }
 
         @keyframes spin-slow {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
+          }
         }
 
         @keyframes spin-slow-reverse {
-          from { transform: rotate(360deg); }
-          to { transform: rotate(0deg); }
+          from {
+            transform: rotate(360deg);
+          }
+          to {
+            transform: rotate(0deg);
+          }
         }
 
         @keyframes fadeSlide {
-          from { 
-            opacity: 0; 
+          from {
+            opacity: 0;
             transform: translateY(20px);
           }
-          to { 
-            opacity: 1; 
+          to {
+            opacity: 1;
             transform: translateY(0);
           }
         }
 
         @keyframes fadeInUp {
-          from { 
-            opacity: 0; 
+          from {
+            opacity: 0;
             transform: translateY(30px);
           }
-          to { 
-            opacity: 1; 
+          to {
+            opacity: 1;
             transform: translateY(0);
           }
         }
 
         @keyframes rotate-y-90 {
-          from { 
-            opacity: 1; 
+          from {
+            opacity: 1;
             transform: perspective(1000px) rotateY(0deg);
           }
-          to { 
-            opacity: 0; 
+          to {
+            opacity: 0;
             transform: perspective(1000px) rotateY(90deg);
           }
         }
 
         @keyframes rotate-y--90 {
-          from { 
-            opacity: 1; 
+          from {
+            opacity: 1;
             transform: perspective(1000px) rotateY(0deg);
           }
-          to { 
-            opacity: 0; 
+          to {
+            opacity: 0;
             transform: perspective(1000px) rotateY(-90deg);
           }
         }
@@ -433,7 +487,9 @@ export default function Onboarding() {
         }
 
         @media (prefers-reduced-motion: reduce) {
-          *, *::before, *::after {
+          *,
+          *::before,
+          *::after {
             animation-duration: 0.01ms !important;
             animation-iteration-count: 1 !important;
             transition-duration: 0.01ms !important;

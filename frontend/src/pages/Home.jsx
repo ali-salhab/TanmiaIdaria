@@ -42,10 +42,12 @@ export default function Home() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  //
   const fetchUserData = useCallback(async () => {
     try {
       const response = await API.get("/auth/me");
       setUser(response.data.user);
+
       localStorage.setItem("userId", response.data.user._id);
       localStorage.setItem("username", response.data.user.username);
     } catch (error) {
@@ -53,7 +55,7 @@ export default function Home() {
       navigate("/login");
     }
   }, [navigate]);
-
+  // get user notifications
   const fetchNotifications = useCallback(async () => {
     try {
       const response = await API.get("/notifications");
@@ -287,64 +289,17 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Hover Cards Demo */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
-            ميزات النظام
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <HoverCard
-              title="إدارة الموظفين"
-              description="إدارة شاملة لبيانات الموظفين والرواتب والإجازات"
-              hoverContent={{
-                title: "إحصائيات الموظفين",
-                description:
-                  "عرض تفصيلي لجميع الموظفين مع إمكانية التعديل والإضافة",
-                stats: [
-                  { value: "150+", label: "موظف" },
-                  { value: "12", label: "قسم" },
-                ],
-              }}
-              className="bg-gradient-to-br from-blue-50 to-indigo-50"
-            />
-            <HoverCard
-              title="نظام الإشعارات"
-              description="إشعارات فورية للتحديثات والأحداث المهمة"
-              hoverContent={{
-                title: "إشعارات اليوم",
-                description: "تابع آخر التحديثات والإعلانات في الوقت الفعلي",
-                stats: [
-                  { value: notifications.length, label: "إشعار جديد" },
-                  { value: "24/7", label: "متاح" },
-                ],
-              }}
-              className="bg-gradient-to-br from-emerald-50 to-teal-50"
-            />
-            <HoverCard
-              title="التعاميم والإعلانات"
-              description="نشر التعاميم والإعلانات لجميع الموظفين"
-              hoverContent={{
-                title: "إدارة التعاميم",
-                description: "إنشاء وإدارة التعاميم مع إمكانية التوزيع المحدد",
-                stats: [
-                  { value: "25", label: "تعميم نشط" },
-                  { value: "100%", label: "تغطية" },
-                ],
-              }}
-              className="bg-gradient-to-br from-purple-50 to-pink-50"
-            />
-          </div>
-        </div>
-
         {/* Sections Grid */}
-        <PermissionBasedSectionGrid
-          allowedSections={allowedSections}
-          user={user}
-        />
-
+        <div>
+          {" "}
+          <PermissionBasedSectionGrid
+            allowedSections={allowedSections}
+            user={user}
+          />
+        </div>
         {/* Quick Stats (if admin or has analytics permission) */}
         {isAdmin && allowedSections.length > 0 && (
-          <div className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="mt-12 grid grid-cols-2 sm:grid-cols-3 gap-4">
             <div className="bg-white rounded-xl p-6 shadow-lg border-l-4 border-emerald-500">
               <div className="text-2xl font-bold text-gray-800">
                 {allowedSections.length}

@@ -53,7 +53,7 @@ export default function HomepageBuilder() {
     },
     {
       id: "incidents",
-      label: "الحوادث",
+      label: "الوقوعات الوظيفية",
       defaultColor: "from-red-400 to-rose-500",
     },
     {
@@ -63,7 +63,7 @@ export default function HomepageBuilder() {
     },
     {
       id: "salary",
-      label: "الرواتب",
+      label: "العقوبات",
       defaultColor: "from-orange-400 to-amber-500",
     },
     {
@@ -435,10 +435,7 @@ export default function HomepageBuilder() {
 
       {/* Homepage Builder Tab */}
       {activeTab === "permission-manager" && (
-        <PermissionManager
-          allPermissions={allPermissions}
-          users={users}
-        />
+        <PermissionManager allPermissions={allPermissions} users={users} />
       )}
       {activeTab === "homepage" && (
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -638,13 +635,7 @@ export default function HomepageBuilder() {
                   onChange={(e) =>
                     setNewUser({ ...newUser, role: e.target.value })
                   }
-                  options={[
-                    { value: "admin", label: "مدير عام" },
-                    { value: "employee", label: "مدير فرعي" },
-                    { value: "viewer", label: "مشاهد" },
-                    { value: "hr", label: "شؤون الموظفين" },
-                    { value: "finance", label: "محاسب" },
-                  ]}
+                  options={[]}
                   placeholder="اختر الدور"
                   className="border rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-blue-400 outline-none"
                 />

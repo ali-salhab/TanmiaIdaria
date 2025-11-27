@@ -22,12 +22,16 @@ const userSchema = new mongoose.Schema(
         ref: "Permission",
       },
     ],
-    // Link to Employee model
+    // Link to Employee model (optional for admin users)
     employeeId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Employee",
-      required: true,
-      unique: true
+      required: function () {
+        return this.role !== "admin";
+      },
+      unique: function () {
+        return !!this.employeeId;
+      },
     },
 
     profile: {

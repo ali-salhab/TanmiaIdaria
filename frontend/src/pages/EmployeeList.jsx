@@ -59,6 +59,10 @@ export default function EmployeeList() {
   const navigate = useNavigate();
   const [employees, setEmployees] = useState([]);
   const [search, setSearch] = useState("");
+  const [phone, setPhone] = useState("");
+  const [selfNumber, setSelfNumber] = useState("");
+  const [nationalId, setNationalId] = useState("");
+  const [jobCategory, setjobCategory] = useState("");
   const [level4, setLevel4] = useState("");
   const [gender, setGender] = useState("");
   const [ageMin, setAgeMin] = useState("");
@@ -66,6 +70,7 @@ export default function EmployeeList() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [employmentType, setemploymentType] = useState("");
 
   const fetchEmployees = async () => {
     try {
@@ -80,6 +85,11 @@ export default function EmployeeList() {
           gender,
           ageMin,
           ageMax,
+          phone,
+          selfNumber,
+          nationalId,
+          jobCategory,
+          employmentType,
         },
       });
       console.log(employees);
@@ -95,7 +105,19 @@ export default function EmployeeList() {
 
   useEffect(() => {
     fetchEmployees();
-  }, [page, search, level4, gender, ageMin, ageMax]);
+  }, [
+    page,
+    search,
+    level4,
+    gender,
+    ageMin,
+    ageMax,
+    phone,
+    jobCategory,
+    selfNumber,
+    nationalId,
+    employmentType,
+  ]);
 
   const resetFilters = () => {
     setSearch("");
@@ -103,6 +125,12 @@ export default function EmployeeList() {
     setGender("");
     setAgeMin("");
     setAgeMax("");
+    setSelfNumber("");
+    setNationalId("");
+    setjobCategory("");
+    setPhone("");
+    setemploymentType("");
+
     setPage(1);
   };
   const calculateAge = (birthDate) => {
@@ -123,26 +151,18 @@ export default function EmployeeList() {
   };
   return (
     <div className="p-6 font-custom" dir="rtl">
-      <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="mb-6 flex flex-col md:flex-row  md:items-center md:justify-between gap-4">
         <h2 className="text-3xl text-gray-800 font-extrabold">
           قائمة الموظفين
         </h2>
         <button
           onClick={() => navigate("/employees/add")}
-          className="bg-gray-700 text-white px-4 py-2 ml-5 font-extrabold rounded hover:bg-gray-800 transition"
+          className="bg-gray-700 w-32 text-white px-4 py-2 ml-5 font-extrabold rounded hover:bg-gray-800 transition"
         >
-          + إضافة موظف جديد
+          + موظف جديد
         </button>
       </div>
       <div className="mb-4 flex justify-between items-center">
-        <input
-          type="text"
-          placeholder="ابحث ...."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="border p-2 rounded w-1/3"
-        />
-
         <div className="space-x-2 ml-3">
           <button
             onClick={exportExcel}
@@ -163,7 +183,7 @@ export default function EmployeeList() {
       <div className="bg-gray-50 p-4 rounded shadow mb-4 grid grid-cols-1 md:grid-cols-5 gap-4">
         <input
           type="text"
-          placeholder="Search by name or ID..."
+          placeholder="ابحث بالاسم"
           value={search}
           onChange={(e) => {
             console.log(e.target.value);
@@ -171,6 +191,87 @@ export default function EmployeeList() {
             setPage(1);
           }}
           className="border p-2 rounded w-full"
+        />
+
+        <input
+          type="Text"
+          className="p-2 rounded border w-full"
+          placeholder="ابحث برقم الموبايل"
+          value={phone}
+          onChange={(e) => {
+            setPhone(e.target.value);
+            setPage(1);
+          }}
+        />
+        <input
+          type="number"
+          placeholder="الرقم الوطني "
+          value={nationalId}
+          onChange={(e) => {
+            setNationalId(e.target.value);
+            setPage(1);
+          }}
+          className="border p-2 rounded"
+        />
+        <input
+          type="number"
+          placeholder="الرقم الداتي "
+          value={ageMin}
+          onChange={(e) => {
+            setSelfNumber(e.target.value);
+            setPage(1);
+          }}
+          className="border p-2 rounded"
+        />
+        <DropdownWithSettings
+          id="employee_list_department"
+          value={level4}
+          onChange={(e) => {
+            setemploymentType(e.target.value);
+            console.log(e.target.value);
+            setPage(1);
+          }}
+          options={[
+            { value: " مثبت", label: "مثبت" },
+            { value: "متعاقد", label: "متعاقد" },
+          ]}
+          placeholder="الحالة الوظيفية"
+          className="border p-2 rounded"
+        />
+        <DropdownWithSettings
+          // id="employee_list_department"
+          value={jobCategory}
+          onChange={(e) => {
+            setjobCategory(e.target.value);
+            console.log(e.target.value);
+            setPage(1);
+          }}
+          options={[
+            {
+              value: "الفئة الاولى",
+              label: "الفئة الاولى",
+            },
+
+            {
+              value: "الفئة الثانية",
+              label: "الفئة الثانية",
+            },
+
+            {
+              value: "الفئة الثالثة",
+              label: "الفئة الثالثة",
+            },
+            {
+              value: "الفئة الرابعة",
+              label: "الفئة الرابعة",
+            },
+            {
+              value: "الفئة  الخامسة",
+              label: "الفئة  الخامسة",
+            },
+          ]}
+          placeholder=" الفئات الوظيفية"
+          className="border p-2 rounded"
         />
         <DropdownWithSettings
           id="employee_list_department"
@@ -183,14 +284,24 @@ export default function EmployeeList() {
           options={[
             { value: "", label: "كل الاقسام" },
             { value: "مديرية المعلوماتية", label: "مديرية المعلوماتية" },
-            { value: "مديرية التنمية الإدارية", label: "مديرية التنمية الإدارية" },
+            {
+              value: "مديرية التنمية الإدارية",
+              label: "مديرية التنمية الإدارية",
+            },
             { value: "مكتب التنمية المحلية", label: "مكتب التنمية المحلية" },
-            { value: "مديرية إدارة النفايات الصلبة", label: "مديرية إدارة النفايات الصلبة" },
-            { value: "مديرية المجالس المحلية", label: "مديرية المجالس المحلية" },
+            {
+              value: "مديرية إدارة النفايات الصلبة",
+              label: "مديرية إدارة النفايات الصلبة",
+            },
+            {
+              value: "مديرية المجالس المحلية",
+              label: "مديرية المجالس المحلية",
+            },
           ]}
           placeholder="كل الاقسام"
           className="border p-2 rounded"
         />
+
         <DropdownWithSettings
           id="employee_list_gender"
           value={gender}
@@ -208,7 +319,7 @@ export default function EmployeeList() {
         />
         <input
           type="number"
-          placeholder="Min Age"
+          placeholder="العمر الادنى"
           value={ageMin}
           onChange={(e) => {
             setAgeMin(e.target.value);
@@ -216,9 +327,10 @@ export default function EmployeeList() {
           }}
           className="border p-2 rounded"
         />
+
         <input
           type="number"
-          placeholder="Max Age"
+          placeholder="العمر الاقصى"
           value={ageMax}
           onChange={(e) => {
             setAgeMax(e.target.value);
@@ -245,8 +357,10 @@ export default function EmployeeList() {
               <th className="border p-2">الجنس</th>
               <th className="border p-2">القسم</th>
               <th className="border p-2">رقم الموبايل</th>
+              <th className="border p-2">العمر</th>
+              <th className="border p-2">الفئة الوظيفية</th>
+
               <th className="border p-2">الاجراءات</th>
-              <th className="border p-2">شلث</th>
             </tr>
           </thead>
           <tbody>
@@ -288,6 +402,7 @@ export default function EmployeeList() {
                   <td className="border p-2 text-center">
                     {emp.birthDate ? calculateAge(emp.birthDate) : "-"}
                   </td>
+                  <td>{emp.jobCategory}</td>
                   <td className="border p-2 text-center">
                     <Link
                       to={`${emp._id}`}

@@ -1,6 +1,6 @@
 import User from "../models/User.js";
 
-export const checkPermission = (permissionKey) => {
+const checkPermission = (permissionKey) => {
   return async (req, res, next) => {
     try {
       const user = await User.findById(req.user._id)
@@ -22,7 +22,8 @@ export const checkPermission = (permissionKey) => {
 
       const hasGroupPermission = user.permissionGroups?.some((group) =>
         group.permissions?.some(
-          (perm) => perm.key === permissionKey || perm._id?.toString() === permissionKey
+          (perm) =>
+            perm.key === permissionKey || perm._id?.toString() === permissionKey
         )
       );
 
@@ -47,7 +48,7 @@ export const checkPermission = (permissionKey) => {
   };
 };
 
-export const hasAnyPermission = (permissionKeys) => {
+const hasAnyPermission = (permissionKeys) => {
   return async (req, res, next) => {
     try {
       const user = await User.findById(req.user._id)
@@ -92,3 +93,6 @@ export const hasAnyPermission = (permissionKeys) => {
     }
   };
 };
+
+export default checkPermission;
+export { hasAnyPermission };

@@ -1,6 +1,13 @@
-import { permissionDefinitions, getPermissionsByCategory } from './permissionDefinitions.js';
+import {
+  permissionDefinitions,
+  getPermissionsByCategory,
+} from "./permissionDefinitions.js";
+
+// this function checks if the user has a specific permission
 
 export const checkPermission = (permissionKey, user) => {
+  console.log(user);
+  console.log(permissionKey);
   // Input validation
   if (!user || !permissionKey) return false;
 
@@ -8,6 +15,8 @@ export const checkPermission = (permissionKey, user) => {
   if (user.role === "admin") return true;
 
   // Check direct permissions object (primary method)
+
+  // in user docunemt we have permissions document for chenck user direct permissions
   if (user.permissions?.[permissionKey]) {
     return true;
   }
@@ -44,7 +53,7 @@ export const checkCategoryPermission = (category, user) => {
   if (user.role === "admin") return true;
 
   const categoryPermissions = getPermissionsByCategory(category);
-  return categoryPermissions.some(perm => checkPermission(perm.key, user));
+  return categoryPermissions.some((perm) => checkPermission(perm.key, user));
 };
 
 // Get all permissions a user has for display
@@ -56,7 +65,7 @@ export const getUserPermissions = (user) => {
 
   // Check direct permissions object (primary method)
   if (user.permissions) {
-    Object.keys(user.permissions).forEach(key => {
+    Object.keys(user.permissions).forEach((key) => {
       if (user.permissions[key] && permissionDefinitions[key]) {
         userPerms.add(permissionDefinitions[key]);
       }
@@ -65,9 +74,9 @@ export const getUserPermissions = (user) => {
 
   // Check permission groups (secondary method)
   if (user.permissionGroups && Array.isArray(user.permissionGroups)) {
-    user.permissionGroups.forEach(group => {
+    user.permissionGroups.forEach((group) => {
       if (group.permissions && Array.isArray(group.permissions)) {
-        group.permissions.forEach(perm => {
+        group.permissions.forEach((perm) => {
           if (permissionDefinitions[perm.key]) {
             userPerms.add(permissionDefinitions[perm.key]);
           }
@@ -78,7 +87,7 @@ export const getUserPermissions = (user) => {
 
   // Check direct permissions array (legacy method)
   if (user.directPermissions && Array.isArray(user.directPermissions)) {
-    user.directPermissions.forEach(perm => {
+    user.directPermissions.forEach((perm) => {
       if (permissionDefinitions[perm.key]) {
         userPerms.add(permissionDefinitions[perm.key]);
       }

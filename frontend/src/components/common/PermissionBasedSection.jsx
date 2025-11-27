@@ -10,9 +10,10 @@ const PermissionBasedSection = ({ section, user }) => {
   // Get all permissions that user has for this section
   const sectionPermissions = useMemo(() => {
     if (!user || !section.requiredPermissions) return [];
-    
-    return section.requiredPermissions.filter(permKey => 
-      checkPermission(permKey, user) && permissionDefinitions[permKey]
+
+    return section.requiredPermissions.filter(
+      (permKey) =>
+        checkPermission(permKey, user) && permissionDefinitions[permKey]
     );
   }, [user, section]);
 
@@ -22,7 +23,7 @@ const PermissionBasedSection = ({ section, user }) => {
     <button
       key={section.category}
       onClick={() => navigate(section.path)}
-      className={`relative group bg-white shadow-lg rounded-2xl p-5 md:p-6 cursor-pointer overflow-hidden border-2 border-transparent transition-all transform hover:-translate-y-2 hover:shadow-2xl hover:border-emerald-200 text-right w-full`}
+      className={`  group relative bg-white  shadow-lg rounded-2xl p-5 md:p-6 cursor-pointer overflow-hidden border-2 border-transparent transition-all transform hover:-translate-y-2 hover:shadow-2xl hover:border-emerald-200 text-right w-full`}
     >
       {/* Gradient Background on Hover */}
       <div
@@ -38,7 +39,6 @@ const PermissionBasedSection = ({ section, user }) => {
           </div>
           {hasMultiplePerms && (
             <div className="bg-emerald-100 text-emerald-700 rounded-full px-2 py-1 text-xs font-medium flex items-center gap-1">
-              <CheckCircle2 className="w-3 h-3" />
               {sectionPermissions.length}
             </div>
           )}
@@ -76,16 +76,6 @@ const PermissionBasedSection = ({ section, user }) => {
             )}
           </div>
         )}
-
-        {/* Arrow Indicator */}
-        <div className="mt-4 flex items-center text-emerald-600 group-hover:text-white transition-colors">
-          <span className="text-sm font-medium">
-            افتح القسم
-          </span>
-          <span className="mr-2 transform group-hover:translate-x-1 transition-transform">
-            →
-          </span>
-        </div>
       </div>
     </button>
   );

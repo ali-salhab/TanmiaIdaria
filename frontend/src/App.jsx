@@ -99,7 +99,10 @@ function App() {
               }
             >
               <Route path="notifications" element={<Notifications />} />
-              <Route path="admin-notifications" element={<AdminNotifications />} />
+              <Route
+                path="admin-notifications"
+                element={<AdminNotifications />}
+              />
               <Route path="settings" element={<Settings />} />
               <Route path="dywan" element={<Dywan />} />
               <Route path="archive" element={<Archieve />} />
@@ -136,6 +139,7 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route path="/employees/add" element={<EmployeeUserDetails />} />
             <Route
               path="/employees"
               element={
@@ -267,8 +271,8 @@ function App() {
           </Routes>
         </BrowserRouter>
       </SocketProvider>
-      </SettingsProvider>
-    );
+    </SettingsProvider>
+  );
 }
 
 export default App;

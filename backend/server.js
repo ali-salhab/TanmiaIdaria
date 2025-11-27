@@ -22,6 +22,7 @@ import fileShareRoutes from "./routes/fileShare.js";
 import circularRoutes from "./routes/circulars.js";
 import messageRoutes from "./routes/messages.js";
 import legalRoutes from "./routes/legal.js";
+import reportRoutes from "./routes/reports.js";
 import { fileURLToPath } from "url";
 import http from "http";
 import { Server } from "socket.io";
@@ -102,6 +103,7 @@ app.use("/api/file-share", fileShareRoutes);
 app.use("/api/circulars", circularRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/legal", legalRoutes);
+app.use("/api/reports", reportRoutes);
 app.use("/api/operations", operationRoutes);
 app.get("/api/test", (req, res) => {
   res.send("connected successfully");

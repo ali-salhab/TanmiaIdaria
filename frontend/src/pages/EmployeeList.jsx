@@ -150,7 +150,48 @@ export default function EmployeeList() {
     return age;
   };
   return (
-    <div className="p-6 font-custom" dir="rtl">
+    <div
+      className="p-6 font-custom relative min-h-screen overflow-hidden"
+      dir="rtl"
+    >
+      {/* Animated Background */}
+      <div className="absolute inset-0 -z-10">
+        {[...Array(20)].map((_, i) => (
+          <div
+            key={i}
+            className={`absolute w-2 h-2 bg-white rounded-full opacity-20 animate-floatRandom`}
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 5}s`,
+              animationDuration: `${5 + Math.random() * 5}s`,
+            }}
+          />
+        ))}
+        {[...Array(15)].map((_, i) => (
+          <div
+            key={`circle-${i}`}
+            className={`absolute w-1 h-1 bg-white rounded-full opacity-30 animate-float`}
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 3}s`,
+              animationDuration: `${3 + Math.random() * 3}s`,
+            }}
+          />
+        ))}
+        {[...Array(10)].map((_, i) => (
+          <div
+            key={`square-${i}`}
+            className={`absolute w-1.5 h-1.5 bg-white rotate-45 opacity-25 animate-pulseGentle`}
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 2}s`,
+            }}
+          />
+        ))}
+      </div>
       <div className="mb-6 flex flex-col md:flex-row  md:items-center md:justify-between gap-4">
         <h2 className="text-3xl text-gray-800 font-extrabold">
           قائمة الموظفين

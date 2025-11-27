@@ -40,8 +40,14 @@ export default {
           "100%": { transform: "scale(1)" },
         },
         rotateIn: {
-          "0%": { opacity: "0", transform: "perspective(1000px) rotateX(90deg)" },
-          "100%": { opacity: "1", transform: "perspective(1000px) rotateX(0deg)" },
+          "0%": {
+            opacity: "0",
+            transform: "perspective(1000px) rotateX(90deg)",
+          },
+          "100%": {
+            opacity: "1",
+            transform: "perspective(1000px) rotateX(0deg)",
+          },
         },
         fadeOut: {
           "0%": { opacity: "1" },
@@ -52,8 +58,14 @@ export default {
           "100%": { opacity: "0", transform: "scale(0.8)" },
         },
         lift: {
-          "0%": { transform: "translateY(0)", boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)" },
-          "100%": { transform: "translateY(-4px)", boxShadow: "0 12px 24px rgba(0, 0, 0, 0.15)" },
+          "0%": {
+            transform: "translateY(0)",
+            boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+          },
+          "100%": {
+            transform: "translateY(-4px)",
+            boxShadow: "0 12px 24px rgba(0, 0, 0, 0.15)",
+          },
         },
         float: {
           "0%, 100%": { transform: "translateY(0px)" },
@@ -98,7 +110,8 @@ export default {
         fadeInLeft: "fadeInLeft 400ms cubic-bezier(0.4, 0, 0.2, 1) forwards",
         fadeInRight: "fadeInRight 400ms cubic-bezier(0.4, 0, 0.2, 1) forwards",
         scaleIn: "scaleIn 350ms cubic-bezier(0.4, 0, 0.2, 1) forwards",
-        bounceIn: "bounceIn 600ms cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards",
+        bounceIn:
+          "bounceIn 600ms cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards",
         rotateIn: "rotateIn 500ms cubic-bezier(0.4, 0, 0.2, 1) forwards",
         fadeOut: "fadeOut 200ms cubic-bezier(0.4, 0, 0.2, 1) forwards",
         scaleOut: "scaleOut 250ms cubic-bezier(0.4, 0, 0.2, 1) forwards",
@@ -107,17 +120,45 @@ export default {
         floatRandom: "floatRandom 5s ease-in-out infinite",
         shimmer: "shimmer 1.5s infinite",
         skeleton: "skeleton 1.5s linear infinite",
-        slideInFromBottom: "slideInFromBottom 400ms cubic-bezier(0.4, 0, 0.2, 1) forwards",
+        slideInFromBottom:
+          "slideInFromBottom 400ms cubic-bezier(0.4, 0, 0.2, 1) forwards",
         zoomIn: "zoomIn 300ms cubic-bezier(0.4, 0, 0.2, 1) forwards",
-        slideInRight: "slideInRight 400ms cubic-bezier(0.4, 0, 0.2, 1) forwards",
+        slideInRight:
+          "slideInRight 400ms cubic-bezier(0.4, 0, 0.2, 1) forwards",
         pulseGentle: "pulseGentle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
       },
       fontFamily: {
-        custom: ["Cairo", "sans-serif"],
+        custom: ["Tajawal", "Cairo", "sans-serif"],
+        amiri: ["Amiri", "serif"],
+        arabic: ["Tajawal", "sans-serif"],
       },
       colors: {
         primary: "#1E3A8A",
         secondary: "#2563EB",
+        governmentGrey: {
+          50: "#f9fafb",
+          100: "#f3f4f6",
+          200: "#e5e7eb",
+          300: "#d1d5db",
+          400: "#9ca3af",
+          500: "#6b7280",
+          600: "#4b5563",
+          700: "#374151",
+          800: "#1f2937",
+          900: "#111827",
+        },
+        governmentBlack: {
+          50: "#f9fafb",
+          100: "#f3f4f6",
+          200: "#e5e7eb",
+          300: "#d1d5db",
+          400: "#9ca3af",
+          500: "#6b7280",
+          600: "#4b5563",
+          700: "#374151",
+          800: "#1f2937",
+          900: "#111827",
+        },
       },
     },
   },

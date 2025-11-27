@@ -2,7 +2,16 @@ import React, { useEffect, useState, useCallback } from "react";
 import { jwtDecode } from "jwt-decode";
 import { useNavigate } from "react-router-dom";
 import { io } from "socket.io-client";
-import { Bell, MessageCircle, User, Shield, Award, FileText, Users, DollarSign } from "lucide-react";
+import {
+  Bell,
+  MessageCircle,
+  User,
+  Shield,
+  Award,
+  FileText,
+  Users,
+  DollarSign,
+} from "lucide-react";
 import EmployeesSVG from "../assets/employees.svg";
 import VacationsSVG from "../assets/vacation.svg";
 import ReportsSVG from "../assets/report.svg";
@@ -33,7 +42,7 @@ export default function ViewerHome() {
   const [stats, setStats] = useState({
     employees: 0,
     documents: 0,
-    salaryRecords: 0
+    salaryRecords: 0,
   });
 
   // ✅ Track scroll direction to hide header
@@ -54,20 +63,23 @@ export default function ViewerHome() {
   }, []);
 
   // Fetch user data
-  const fetchUserData = useCallback(async (token) => {
-    try {
-      const me = await API.get(`/auth/me`);
-      setUser(me.data.user);
-      localStorage.setItem("userId", me.data.user._id);
-      localStorage.setItem("username", me.data.user.username);
-      
-      // Fetch stats for dashboard cards
-      fetchDashboardStats(me.data.user);
-    } catch (err) {
-      console.error("❌ Error loading user:", err);
-      navigate("/login");
-    }
-  }, [navigate, fetchDashboardStats]);
+  const fetchUserData = useCallback(
+    async (token) => {
+      try {
+        const me = await API.get(`/auth/me`);
+        setUser(me.data.user);
+        localStorage.setItem("userId", me.data.user._id);
+        localStorage.setItem("username", me.data.user.username);
+
+        // Fetch stats for dashboard cards
+        fetchDashboardStats(me.data.user);
+      } catch (err) {
+        console.error("❌ Error loading user:", err);
+        navigate("/login");
+      }
+    },
+    [navigate, fetchDashboardStats]
+  );
 
   // Fetch dashboard statistics
   const fetchDashboardStats = useCallback(async (userData) => {
@@ -76,11 +88,11 @@ export default function ViewerHome() {
       const canViewEmployees = checkPermission("employees.view", userData);
       const canViewDocuments = checkPermission("documents.view", userData);
       const canViewSalary = checkPermission("salary.view", userData);
-      
+
       setStats({
         employees: canViewEmployees ? Math.floor(Math.random() * 100) + 50 : 0,
         documents: canViewDocuments ? Math.floor(Math.random() * 200) + 100 : 0,
-        salaryRecords: canViewSalary ? Math.floor(Math.random() * 50) + 20 : 0
+        salaryRecords: canViewSalary ? Math.floor(Math.random() * 50) + 20 : 0,
       });
     } catch (err) {
       console.log("Error loading stats:", err);
@@ -175,7 +187,7 @@ export default function ViewerHome() {
         className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 to-slate-100"
       >
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="w-16 h-16 border-4 border-governmentGrey-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-600">جاري تحميل لوحة التحكم...</p>
         </div>
       </div>
@@ -214,7 +226,7 @@ export default function ViewerHome() {
       svg: EmployeesSVG,
       color: "from-green-400 to-emerald-500",
       stat: stats.employees,
-      enabled: canViewEmployees
+      enabled: canViewEmployees,
     },
     {
       id: "documents",
@@ -224,7 +236,7 @@ export default function ViewerHome() {
       svg: ReportsSVG,
       color: "from-blue-400 to-sky-500",
       stat: stats.documents,
-      enabled: canViewDocuments
+      enabled: canViewDocuments,
     },
     {
       id: "salary",
@@ -234,9 +246,9 @@ export default function ViewerHome() {
       svg: VacationsSVG,
       color: "from-orange-400 to-amber-500",
       stat: stats.salaryRecords,
-      enabled: canViewSalary
-    }
-  ].filter(card => card.enabled);
+      enabled: canViewSalary,
+    },
+  ].filter((card) => card.enabled);
 
   return (
     <div
@@ -245,12 +257,20 @@ export default function ViewerHome() {
     >
       {/* Decorative background elements */}
       <div className="absolute top-0 left-0 w-64 h-64 opacity-20">
-        <img src={floatingOrb1} alt="" className="w-full h-full object-contain animate-float" />
+        <img
+          src={floatingOrb1}
+          alt=""
+          className="w-full h-full object-contain animate-float"
+        />
       </div>
       <div className="absolute bottom-0 right-0 w-64 h-64 opacity-20">
-        <img src={floatingOrb2} alt="" className="w-full h-full object-contain animate-floatRandom" />
+        <img
+          src={floatingOrb2}
+          alt=""
+          className="w-full h-full object-contain animate-floatRandom"
+        />
       </div>
-      
+
       {/* === App Bar === */}
       <header
         className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ease-in-out ${
@@ -276,7 +296,7 @@ export default function ViewerHome() {
               <div className="absolute top-full right-0 mt-2 w-80 bg-white border border-gray-200 rounded-2xl shadow-2xl p-4 space-y-3 max-h-96 overflow-y-auto z-50 text-right animate-fadeInUp">
                 <div className="font-semibold text-gray-800 pb-2 border-b border-gray-200 flex items-center justify-between">
                   <span>الإشعارات ({notifications.length})</span>
-                  <button 
+                  <button
                     onClick={() => setShowNotifications(false)}
                     className="text-gray-400 hover:text-gray-600"
                   >
@@ -287,14 +307,14 @@ export default function ViewerHome() {
                   notifications.map((notif, idx) => (
                     <div
                       key={idx}
-                      className="bg-blue-50/50 border border-blue-200 rounded-xl p-3 text-sm hover:shadow-md transition-all cursor-pointer animate-fadeIn delay-100"
+                      className="bg-governmentGrey-50/50 border border-governmentGrey-200 rounded-xl p-3 text-sm hover:shadow-md transition-all cursor-pointer animate-fadeIn delay-100"
                     >
                       <div className="flex items-start gap-2">
                         <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 mt-0.5">
                           <Bell className="w-4 h-4 text-blue-600" />
                         </div>
                         <div className="flex-1">
-                          <p className="font-medium text-blue-800">
+                          <p className="font-medium text-governmentGrey-800">
                             {notif.title || notif.message || notif}
                           </p>
                           <p className="text-gray-600 text-xs mt-1">
@@ -312,7 +332,11 @@ export default function ViewerHome() {
                 ) : (
                   <div className="text-center py-6">
                     <div className="w-12 h-12 mx-auto mb-3 bg-gray-100 rounded-full flex items-center justify-center">
-                      <img src={badgeIcon1} alt="" className="w-6 h-6 opacity-70" />
+                      <img
+                        src={badgeIcon1}
+                        alt=""
+                        className="w-6 h-6 opacity-70"
+                      />
                     </div>
                     <p className="text-gray-500 text-sm">لا توجد إشعارات</p>
                   </div>
@@ -350,9 +374,9 @@ export default function ViewerHome() {
             </div>
           </div>
         </div>
-        
+
         <div className="flex items-center">
-          <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg">
+          <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-gradient-to-br from-governmentGrey-500 to-governmentGrey-600 flex items-center justify-center shadow-lg">
             <img
               src={Logo}
               alt="App Logo"
@@ -374,22 +398,29 @@ export default function ViewerHome() {
         <div className="mb-8 animate-fadeInDown">
           <div className="flex items-center justify-between mb-2">
             <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
-              مرحباً بك، <span className="text-emerald-600">{user?.username}</span> 👋
+              مرحباً بك،{" "}
+              <span className="text-emerald-600">{user?.username}</span> 👋
             </h1>
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center">
               <img src={userIcon1} alt="" className="w-6 h-6" />
             </div>
           </div>
-          <p className="text-gray-600">هنا يمكنك الوصول إلى جميع الخدمات المتاحة لك</p>
+          <p className="text-gray-600">
+            هنا يمكنك الوصول إلى جميع الخدمات المتاحة لك
+          </p>
         </div>
 
         {/* Stats Overview */}
         {dashboardCards.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
             {dashboardCards.map((card, index) => (
-              <div 
+              <div
                 key={card.id}
-                className={`bg-gradient-to-br ${card.color} rounded-2xl p-5 text-white shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1 animate-fadeInUp delay-${index * 100}`}
+                className={`bg-gradient-to-br ${
+                  card.color
+                } rounded-2xl p-5 text-white shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1 animate-fadeInUp delay-${
+                  index * 100
+                }`}
               >
                 <div className="flex justify-between items-start">
                   <div>
@@ -435,7 +466,7 @@ export default function ViewerHome() {
             </p>
             <button
               onClick={() => notifyAdmin(`طلب صلاحيات من ${user.username}`)}
-              className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-6 py-3 rounded-xl font-medium shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 flex items-center gap-2"
+              className="bg-gradient-to-r from-governmentGrey-500 to-governmentGrey-600 hover:from-governmentGrey-600 hover:to-governmentGrey-700 text-white px-6 py-3 rounded-xl font-medium shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 flex items-center gap-2"
             >
               <Shield className="w-5 h-5" />
               طلب الصلاحيات
@@ -452,7 +483,9 @@ export default function ViewerHome() {
             فريق الدعم الفني
           </p>
           <button
-            onClick={() => notifyAdmin(`🔔 اختبار الإشعارات من ${user.username}`)}
+            onClick={() =>
+              notifyAdmin(`🔔 اختبار الإشعارات من ${user.username}`)
+            }
             className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg transition text-xs md:text-sm inline-block mt-2"
           >
             🔔 اختبار الإشعار
@@ -478,17 +511,25 @@ function DashboardCard({ title, subtitle, svg, color, onClick, index }) {
   return (
     <div
       onClick={onClick}
-      className={`relative group bg-white rounded-2xl p-6 cursor-pointer overflow-hidden border border-slate-200/50 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 animate-fadeInUp delay-${index * 100} perspective-1000`}
+      className={`relative group bg-white rounded-2xl p-6 cursor-pointer overflow-hidden border border-slate-200/50 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 animate-fadeInUp delay-${
+        index * 100
+      } perspective-1000`}
     >
       {/* Decorative background pattern */}
       <div className="absolute -top-6 -right-6 w-24 h-24 opacity-10">
-        <img src={purplePattern} alt="" className="w-full h-full object-contain" />
+        <img
+          src={purplePattern}
+          alt=""
+          className="w-full h-full object-contain"
+        />
       </div>
-      
+
       {/* Card content */}
       <div className="relative z-10 flex flex-col h-full">
         <div className="flex items-center gap-4 mb-4">
-          <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${color} flex items-center justify-center shadow-md group-hover:shadow-lg transition-all`}>
+          <div
+            className={`w-14 h-14 rounded-xl bg-gradient-to-br ${color} flex items-center justify-center shadow-md group-hover:shadow-lg transition-all`}
+          >
             <img
               src={svg}
               alt={title}
@@ -504,21 +545,33 @@ function DashboardCard({ title, subtitle, svg, color, onClick, index }) {
             </p>
           </div>
         </div>
-        
+
         <div className="mt-auto pt-4 border-t border-slate-100/50">
           <div className="flex items-center justify-between">
             <span className="text-xs text-slate-400">انقر للفتح</span>
             <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center group-hover:bg-emerald-100 transition-colors">
-              <svg className="w-3 h-3 text-slate-400 group-hover:text-emerald-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              <svg
+                className="w-3 h-3 text-slate-400 group-hover:text-emerald-600 transition-colors"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5l7 7-7 7"
+                />
               </svg>
             </div>
           </div>
         </div>
       </div>
-      
+
       {/* Hover effect overlay */}
-      <div className={`absolute inset-0 bg-gradient-to-br ${color} opacity-0 group-hover:opacity-5 transition-opacity duration-300`}></div>
+      <div
+        className={`absolute inset-0 bg-gradient-to-br ${color} opacity-0 group-hover:opacity-5 transition-opacity duration-300`}
+      ></div>
     </div>
   );
 }
@@ -534,7 +587,7 @@ function UserInfoModal({ user, onClose }) {
         >
           ✕
         </button>
-        
+
         <div className="flex flex-col items-center mb-6">
           <div className="w-20 h-20 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-white font-bold text-2xl mb-4 shadow-lg">
             {user?.username?.charAt(0).toUpperCase()}
@@ -544,13 +597,13 @@ function UserInfoModal({ user, onClose }) {
           </h2>
           <p className="text-gray-500">{user.role}</p>
         </div>
-        
+
         <div className="bg-gray-50 rounded-2xl p-4 mb-6">
           <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
             <Shield className="w-5 h-5 text-emerald-600" />
             معلومات الحساب
           </h3>
-          
+
           <div className="space-y-3">
             <div className="flex justify-between items-center py-2 border-b border-gray-100">
               <span className="text-gray-600">تاريخ الإنشاء</span>
@@ -572,13 +625,13 @@ function UserInfoModal({ user, onClose }) {
             </div>
           </div>
         </div>
-        
+
         <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-4">
           <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
             <Award className="w-5 h-5 text-blue-600" />
             الصلاحيات
           </h3>
-          
+
           {user.permissions && Object.keys(user.permissions).length > 0 ? (
             <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto">
               {Object.entries(user.permissions).map(([key, val]) => (
@@ -586,7 +639,9 @@ function UserInfoModal({ user, onClose }) {
                   key={key}
                   className="flex items-center justify-between p-2 bg-white rounded-lg text-sm border border-gray-100"
                 >
-                  <span className="capitalize text-gray-700 truncate mr-2">{key}</span>
+                  <span className="capitalize text-gray-700 truncate mr-2">
+                    {key}
+                  </span>
                   <span
                     className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-bold ${
                       val
@@ -600,10 +655,12 @@ function UserInfoModal({ user, onClose }) {
               ))}
             </div>
           ) : (
-            <p className="text-gray-500 text-center py-4">لا توجد صلاحيات محددة</p>
+            <p className="text-gray-500 text-center py-4">
+              لا توجد صلاحيات محددة
+            </p>
           )}
         </div>
-        
+
         <div className="mt-6 flex justify-center">
           <button
             onClick={onClose}

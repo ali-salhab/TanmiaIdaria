@@ -1,53 +1,55 @@
 import { Link, useLocation } from "react-router-dom";
 import { LogOut } from "lucide-react";
 
-export default function DashboardSidebar({ 
-  isOpen, 
-  onClose, 
-  onLogout 
-}) {
+export default function DashboardSidebar({ isOpen, onClose, onLogout }) {
   const location = useLocation();
 
   const menuItems = [
-    { 
-      label: "📋 الموظفين", 
+    {
+      label: " الموظفين",
       to: "/dashboard/employees",
-      icon: "👥"
+      icon: "👥",
     },
-    { 
-      label: "📤 ادارة قاعدة البيانات", 
-      to: "/dashboard/upload",
-      icon: "💾"
-    },
-    { 
-      label: "📃 الديوان", 
+
+    {
+      label: " الديوان",
       to: "/dashboard/dywan",
-      icon: "📄"
+      icon: "📄",
     },
-    { 
-      label: "📃 DropDown Manager", 
+    {
+      label: " DropDown Manager",
       to: "/dashboard/dropdown-manager",
-      icon: "⚙️"
+      icon: "🔻",
     },
-    { 
-      label: "🖨️ الأرشيف", 
+    {
+      label: " الأرشيف",
       to: "/dashboard",
-      icon: "📦"
+      icon: "📦",
     },
-    { 
-      label: "🔔 الاشعارات", 
+    {
+      label: " الاشعارات",
       to: "/dashboard/notifications",
-      icon: "🔔"
+      icon: "🔔",
     },
-    { 
-      label: "🎨 تخصيص الصفحة الرئيسية", 
+    {
+      label: " الصفحة الرئيسية",
       to: "/dashboard/homepage-builder",
-      icon: "🎨"
+      icon: "🎨",
     },
-    { 
-      label: "⚙️ الإعدادات", 
+    {
+      label: " التقارير",
+      to: "/dashboard/reports",
+      icon: "📰",
+    },
+    {
+      label: " ادارة قاعدة البيانات",
+      to: "/dashboard/upload",
+      icon: "💾",
+    },
+    {
+      label: " الإعدادات",
       to: "/dashboard/settings",
-      icon: "⚙️"
+      icon: "⚙️",
     },
   ];
 
@@ -86,7 +88,11 @@ export default function DashboardSidebar({
           shadow-2xl
           z-50
           transition-transform duration-300 ease-in-out
-          ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0 lg:block'}
+          ${
+            isOpen
+              ? "translate-x-0"
+              : "-translate-x-full lg:translate-x-0 lg:block"
+          }
         `}
         dir="rtl"
       >
@@ -95,9 +101,7 @@ export default function DashboardSidebar({
           <h1 className="text-2xl font-bold text-white drop-shadow-lg">
             التنمية الإدارية
           </h1>
-          <p className="text-sm text-gray-300 mt-1 font-medium">
-            لوحة التحكم
-          </p>
+          <p className="text-sm text-gray-300 mt-1 font-medium">لوحة التحكم</p>
         </div>
 
         {/* Navigation */}
@@ -114,8 +118,8 @@ export default function DashboardSidebar({
                 font-medium text-sm
                 ${
                   isActive(item.to)
-                    ? 'bg-gray-700 text-white shadow-lg border-l-4 border-teal-500'
-                    : 'bg-gray-700/50 hover:bg-gray-600 text-gray-200 hover:text-white'
+                    ? "bg-gray-700 text-white shadow-lg border-l-4 border-teal-500"
+                    : "bg-gray-700/50 hover:bg-gray-600 text-gray-200 hover:text-white"
                 }
               `}
             >
@@ -141,4 +145,3 @@ export default function DashboardSidebar({
     </>
   );
 }
-

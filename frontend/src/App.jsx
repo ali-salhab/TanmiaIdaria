@@ -37,6 +37,7 @@ import PermissionGroupsPage from "./pages/permissions/PermissionGroupsPage";
 import PermissionManager from "./pages/permissions/PermissionsManager";
 import PermissionsPage from "./pages/permissions/PermissionsPage";
 import EmployeeUserDetails from "./pages/user/EmployeeDetails";
+import Reports from "./components/Reports";
 
 function ProtectedRoute({ children, allowedRoles }) {
   const token = localStorage.getItem("token");
@@ -104,6 +105,7 @@ function App() {
                 element={<AdminNotifications />}
               />
               <Route path="settings" element={<Settings />} />
+              <Route path="reports" element={<Reports />} />
               <Route path="dywan" element={<Dywan />} />
               <Route path="archive" element={<Archieve />} />
               <Route path="employees/:id" element={<EmployeeEdit />} />

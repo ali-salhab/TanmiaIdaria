@@ -133,8 +133,8 @@ export default {
         arabic: ["Tajawal", "sans-serif"],
       },
       colors: {
-        primary: "#1E3A8A",
-        secondary: "#2563EB",
+        primary: "#222325ff",
+        secondary: "#11151cff",
         governmentGrey: {
           50: "#f9fafb",
           100: "#f3f4f6",

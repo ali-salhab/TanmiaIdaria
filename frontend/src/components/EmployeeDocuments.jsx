@@ -1,6 +1,14 @@
 import { useState, useEffect } from "react";
 import API from "../api/api";
-import { PlusCircle, Download, Trash2, Eye, Search, X } from "lucide-react";
+import {
+  PlusCircle,
+  Download,
+  Trash2,
+  Eye,
+  Search,
+  X,
+  Printer,
+} from "lucide-react";
 import { toast } from "react-hot-toast";
 
 const apiUrl = import.meta.env.VITE_API_URL;
@@ -98,6 +106,23 @@ export default function EmployeeDocuments({ employeeId }) {
     toast.success("جاري تحميل الملف");
   };
 
+  const handleView = (doc) => {
+    const url = `${apiUrl}${doc.path}`;
+    window.open(url, "_blank");
+  };
+
+  const handlePrint = (doc) => {
+    const url = `${apiUrl}${doc.path}`;
+    const printWindow = window.open(url, "_blank");
+    if (printWindow) {
+      printWindow.onload = () => {
+        printWindow.print();
+      };
+    } else {
+      toast.error("يرجى السماح بالنوافذ المنبثقة للطباعة");
+    }
+  };
+
   const filteredDocs = docs.filter(
     (doc) =>
       doc.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -166,20 +191,34 @@ export default function EmployeeDocuments({ employeeId }) {
                   {doc.path?.split("/").pop()}
                 </p>
 
-                <div className="flex gap-2">
+                <div className="flex gap-2 mt-2">
+                  <button
+                    onClick={() => handleView(doc)}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-1.5 rounded text-xs font-medium flex items-center justify-center gap-1 transition"
+                    title="عرض"
+                  >
+                    <Eye className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => handlePrint(doc)}
+                    className="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-1.5 rounded text-xs font-medium flex items-center justify-center gap-1 transition"
+                    title="طباعة"
+                  >
+                    <Printer className="w-4 h-4" />
+                  </button>
                   <button
                     onClick={() => handleDownload(doc)}
                     className="flex-1 bg-green-600 hover:bg-green-700 text-white py-1.5 rounded text-xs font-medium flex items-center justify-center gap-1 transition"
+                    title="تنزيل"
                   >
                     <Download className="w-4 h-4" />
-                    تنزيل
                   </button>
                   <button
                     onClick={() => handleDelete(i)}
                     className="flex-1 bg-red-600 hover:bg-red-700 text-white py-1.5 rounded text-xs font-medium flex items-center justify-center gap-1 transition"
+                    title="حذف"
                   >
                     <Trash2 className="w-4 h-4" />
-                    حذف
                   </button>
                 </div>
               </div>
@@ -195,10 +234,15 @@ export default function EmployeeDocuments({ employeeId }) {
       {/* New Files Upload */}
       {newFiles.length > 0 && (
         <div className="mt-6 border-t pt-4">
-          <h3 className="font-medium mb-3">📝 وثائق جديدة ({newFiles.length})</h3>
+          <h3 className="font-medium mb-3">
+            📝 وثائق جديدة ({newFiles.length})
+          </h3>
           <div className="space-y-2 mb-4 max-h-40 overflow-y-auto">
             {newFiles.map((item, index) => (
-              <div key={index} className="flex items-center gap-2 border p-2 rounded bg-blue-50">
+              <div
+                key={index}
+                className="flex items-center gap-2 border p-2 rounded bg-blue-50"
+              >
                 <span className="text-gray-700 text-sm flex-1 truncate">
                   {item.file.name}
                 </span>
@@ -221,7 +265,9 @@ export default function EmployeeDocuments({ employeeId }) {
                   type="text"
                   placeholder="أدخل وصف الملف..."
                   value={item.description}
-                  onChange={(e) => handleDescriptionChange(index, e.target.value)}
+                  onChange={(e) =>
+                    handleDescriptionChange(index, e.target.value)
+                  }
                   className="w-full border rounded px-2 py-1 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
                 />
               </div>
@@ -275,18 +321,24 @@ export default function EmployeeDocuments({ employeeId }) {
 
             <div className="p-6 space-y-4">
               <div className="text-center">
-                <div className="text-6xl mb-4">{getFileIcon(selectedDoc.path)}</div>
+                <div className="text-6xl mb-4">
+                  {getFileIcon(selectedDoc.path)}
+                </div>
               </div>
 
               <div className="space-y-3">
                 <div className="bg-gray-50 p-3 rounded">
                   <p className="text-xs text-gray-600 mb-1">الوصف</p>
-                  <p className="font-medium">{selectedDoc.description || "بدون وصف"}</p>
+                  <p className="font-medium">
+                    {selectedDoc.description || "بدون وصف"}
+                  </p>
                 </div>
 
                 <div className="bg-gray-50 p-3 rounded">
                   <p className="text-xs text-gray-600 mb-1">اسم الملف</p>
-                  <p className="font-medium break-all">{selectedDoc.path?.split("/").pop()}</p>
+                  <p className="font-medium break-all">
+                    {selectedDoc.path?.split("/").pop()}
+                  </p>
                 </div>
 
                 <div className="bg-gray-50 p-3 rounded">

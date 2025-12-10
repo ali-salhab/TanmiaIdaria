@@ -22,16 +22,14 @@ const userSchema = new mongoose.Schema(
         ref: "Permission",
       },
     ],
-    // Link to Employee model (optional for admin users)
     employeeId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Employee",
       required: function () {
         return this.role !== "admin";
       },
-      unique: function () {
-        return !!this.employeeId;
-      },
+      unique: true,
+      sparse: true,
     },
 
     profile: {
@@ -61,6 +59,28 @@ const userSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+userSchema.virtual("permissions").get(function () {
+  const perms = {};
+  if (Array.isArray(this.directPermissions)) {
+    this.directPermissions.forEach((perm) => {
+      if (perm && perm.key) perms[perm.key] = true;
+    });
+  }
+  if (Array.isArray(this.permissionGroups)) {
+    this.permissionGroups.forEach((group) => {
+      if (group && Array.isArray(group.permissions)) {
+        group.permissions.forEach((perm) => {
+          if (perm && perm.key) perms[perm.key] = true;
+        });
+      }
+    });
+  }
+  return perms;
+});
+
+userSchema.set("toObject", { virtuals: true });
+userSchema.set("toJSON", { virtuals: true });
 
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();

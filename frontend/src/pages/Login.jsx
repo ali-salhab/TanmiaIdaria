@@ -2,10 +2,13 @@ import { useState } from "react";
 import API from "../api/api";
 import { useNavigate } from "react-router-dom";
 import ErrorModal from "../components/login/ErrorModal";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+import logo from "../assets/logo.png";
 
 export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -22,9 +25,36 @@ export default function Login() {
       console.log(res.data);
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("role", res.data.user.role);
+      localStorage.setItem("userId", res.data.user._id);
+      localStorage.setItem("username", res.data.user.username);
+
+      // Store permissions
+      const permissions = [];
+      if (res.data.user.role === "admin") {
+        permissions.push("*");
+      } else {
+        if (res.data.user.directPermissions) {
+          res.data.user.directPermissions.forEach((p) =>
+            permissions.push(p.key)
+          );
+        }
+        if (res.data.user.permissionGroups) {
+          res.data.user.permissionGroups.forEach((g) => {
+            if (g.permissions) {
+              g.permissions.forEach((p) => permissions.push(p.key));
+            }
+          });
+        }
+      }
+      localStorage.setItem("permissions", JSON.stringify(permissions));
+
       console.log("response from loging function", res.data);
 
-      navigate("/onboarding");
+      if (res.data.user.role === "admin") {
+        navigate("/dashboard");
+      } else {
+        navigate("/user/dashboard");
+      }
     } catch (err) {
       console.error("Login error:", err);
       const errMsg = err.response?.data?.message || "Login failed";
@@ -40,11 +70,11 @@ export default function Login() {
   };
 
   return (
-    <div className="relative flex items-center justify-center min-h-screen overflow-hidden  bg-gradient-to-br from-blue-900 via-indigo-900 to-gray-900">
+    <div className="relative flex items-center justify-center min-h-screen overflow-hidden bg-gradient-to-br from-gray-200 via-gray-100 to-gray-300">
       {/* floating glass blur backgroundoverlay */}
       <div
         dir="rtl"
-        className="fixed flex-col p-4 r items-start justify-start    right-0 font-extrabold text-yellow-50 z-0 top-0 w-max "
+        className="fixed flex-col p-4 r items-start justify-start right-0 font-extrabold text-gray-700 z-0 top-0 w-max "
       >
         <div className="lg:block sm:hidden sm: md:hidden">
           {" "}
@@ -53,52 +83,71 @@ export default function Login() {
           <p>مديرية التنمية الادارية</p>
         </div>
       </div>
-      <div className="fixed flex-col p-4  items-start   left-0   z-0 bottom-0 w-max ">
+      <div className="fixed flex-col p-4 items-start left-0 z-0 bottom-0 w-max text-gray-500">
         <p>&copy; copy right </p>
         {/* <p>alisalhab@gmail.com</p> */}
       </div>
-      <div className="absolute inset-0 backdrop-blur-none bg-white/5"></div>
+      <div className="absolute inset-0 backdrop-blur-none bg-white/30"></div>
 
       {/* login card */}
       <form
         dir="rtl"
         onSubmit={handleSubmit}
-        className="relative z-10 backdrop-blur-xl bg-white/20 border border-white/30 text-white rounded-2xl shadow-2xl p-10 w-full max-w-sm animate-fadeSlide"
+        className="relative z-10 backdrop-blur-2xl bg-white/40 border border-white/60 text-gray-800 rounded-2xl shadow-[0_8px_32px_0_rgba(31,38,135,0.15)] p-10 w-full max-w-sm animate-fadeSlide font-['Tajawal'] flex flex-col items-center"
       >
-        <h2 className="text-3xl font-bold mb-8 text-center tracking-wide">
+        <img
+          src={logo}
+          alt="Logo"
+          className="w-24 h-24 mb-4 object-contain drop-shadow-md grayscale opacity-80 hover:grayscale-0 transition-all duration-500"
+        />
+        <h2 className="text-3xl font-bold mb-8 text-center tracking-wide text-gray-800 drop-shadow-sm">
           مديرية التنمية الإدارية
         </h2>
-        <label className="mb-2 p-3 tracking-wide " htmlFor="">
-          اسم المستخدم
-        </label>
-        <input
-          dir="rtl"
-          type="text"
-          placeholder="اسم المستخدم"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          className="w-full p-3 mb-5 mt-2 rounded-lg bg-white/20 border border-white/40 placeholder-gray-200 text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
-        />
-        <label className="mb-2" htmlFor="">
-          كلمة المرور
-        </label>
-        <input
-          dir="rtl"
-          type="password"
-          placeholder="كلمة المرور"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full p-3 mb-6 mt-2 rounded-lg bg-white/20 border border-white/40 placeholder-gray-200 text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
-        />
+        <div className="w-full">
+          <label
+            className="mb-2 p-3 tracking-wide text-gray-700 font-semibold"
+            htmlFor=""
+          >
+            اسم المستخدم
+          </label>
+          <input
+            dir="rtl"
+            type="text"
+            placeholder="اسم المستخدم"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            className="w-full p-3 mb-5 mt-2 rounded-lg bg-white/60 border border-gray-200 placeholder-gray-500 text-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-400 shadow-inner"
+          />
+          <label className="mb-2 text-gray-700 font-semibold" htmlFor="">
+            كلمة المرور
+          </label>
+          <div className="relative w-full mb-6 mt-2">
+            <input
+              dir="rtl"
+              type={showPassword ? "text" : "password"}
+              placeholder="كلمة المرور"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full p-3 rounded-lg bg-white/60 border border-gray-200 placeholder-gray-500 text-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-400 shadow-inner"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-800"
+            >
+              {showPassword ? <FaEyeSlash size={20} /> : <FaEye size={20} />}
+            </button>
+          </div>
+        </div>
 
         <button
           onClick={handleSubmit}
           type="submit"
           disabled={loading}
-          className={`w-full py-3 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2 ${
+          className={`w-full py-3 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2 shadow-lg ${
             loading
-              ? "bg-blue-500/50 cursor-not-allowed opacity-75"
-              : "bg-blue-500/70 hover:bg-blue-500 cursor-pointer"
+              ? "bg-gray-400 cursor-not-allowed opacity-75 text-white"
+              : "bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-800 hover:to-gray-900 text-white cursor-pointer transform hover:-translate-y-0.5"
           }`}
         >
           {loading ? (
@@ -113,13 +162,20 @@ export default function Login() {
           )}
         </button>
 
-        <div className="text-gray-200 mt-6 text-center">
+        <div className="text-gray-600 mt-6 text-center">
           <span
             onClick={() => navigate("/register")}
-            className="text-blue-300 cursor-pointer hover:text-blue-400 transition"
+            className="text-gray-700 font-semibold cursor-pointer hover:text-gray-900 transition underline decoration-gray-400 underline-offset-4"
           >
             انشاء حساب
           </span>
+        </div>
+
+        <div className="mt-4 p-3 bg-white/50 rounded-lg text-xs text-center text-gray-600 border border-gray-200 w-full shadow-sm">
+          <p className="font-bold mb-1 text-gray-800">
+            بيانات المدير الافتراضية:
+          </p>
+          <p dir="ltr">User: admin | Pass: admin123</p>
         </div>
       </form>
 

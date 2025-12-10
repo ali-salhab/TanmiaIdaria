@@ -100,6 +100,11 @@ const permissions = [
   "settings.update_dropdowns",
   "settings.update_homepage",
 
+  // Chat & Messaging
+  "chat.view_history",
+  "chat.send",
+  "chat.receive",
+
   // Notifications
   "notifications.view",
   "notifications.mark_read",
@@ -114,6 +119,12 @@ const permissions = [
   "analytics.export",
   "reports.view",
   "reports.export",
+
+  // Legal
+  "legal.view",
+  "legal.create",
+  "legal.edit",
+  "legal.delete",
 ];
 
 async function seed() {

@@ -6,6 +6,11 @@ body {
   font-family: "Tajawal", "Amiri", serif;
 }
 
+::selection {
+  background-color: #b49148; /* Primary Gold */
+  color: #1f2937; /* Secondary Dark */
+}
+
 /* Dark mode support */
 .dark {
   color-scheme: dark;

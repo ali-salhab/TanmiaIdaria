@@ -89,6 +89,72 @@ const permissions = [
     description: "القدرة على اعتماد أو رفض طلبات الإجازات",
   },
 
+  // المكافآت
+  {
+    key: "rewards.view",
+    label: "عرض المكافآت",
+    category: "المكافآت",
+    description: "القدرة على عرض المكافآت",
+  },
+  {
+    key: "rewards.create",
+    label: "إضافة مكافآت",
+    category: "المكافآت",
+    description: "القدرة على إضافة مكافآت جديدة",
+  },
+  {
+    key: "rewards.delete",
+    label: "حذف المكافآت",
+    category: "المكافآت",
+    description: "القدرة على حذف المكافآت",
+  },
+
+  // العقوبات
+  {
+    key: "penalties.view",
+    label: "عرض العقوبات",
+    category: "العقوبات",
+    description: "القدرة على عرض العقوبات",
+  },
+  {
+    key: "penalties.create",
+    label: "إضافة عقوبات",
+    category: "العقوبات",
+    description: "القدرة على إضافة عقوبات جديدة",
+  },
+  {
+    key: "penalties.edit",
+    label: "تعديل العقوبات",
+    category: "العقوبات",
+    description: "القدرة على تعديل العقوبات",
+  },
+  {
+    key: "penalties.delete",
+    label: "حذف العقوبات",
+    category: "العقوبات",
+    description: "القدرة على حذف العقوبات",
+  },
+
+  // الدورات التدريبية
+  {
+    key: "courses.view",
+    label: "عرض الدورات",
+    category: "الدورات",
+    description: "القدرة على عرض الدورات التدريبية",
+  },
+  {
+    key: "courses.create",
+    label: "إضافة دورات",
+    category: "الدورات",
+    description: "القدرة على إضافة دورات تدريبية جديدة",
+  },
+  {
+    key: "courses.delete",
+    label: "حذف الدورات",
+    category: "الدورات",
+    description: "القدرة على حذف الدورات التدريبية",
+  },
+
   // المستخدمين
   {
     key: "users.view",
@@ -224,9 +290,30 @@ const permissions = [
     category: "التعاميم",
     description: "القدرة على نشر التعاميم للمستخدمين",
   },
+
+  // الدردشة
+  {
+    key: "chat.access",
+    label: "الوصول للدردشة",
+    category: "الدردشة",
+    description: "القدرة على الوصول لوظيفة الدردشة",
+  },
+  {
+    key: "chat.send",
+    label: "إرسال رسائل",
+    category: "الدردشة",
+    description: "القدرة على إرسال رسائل في الدردشة",
+  },
+  {
+    key: "chat.view_history",
+    label: "عرض سجل الدردشة",
+    category: "الدردشة",
+    description: "القدرة على عرض سجل الرسائل السابقة",
+  },
 ];
 
 async function initPermissions() {
+  console.log("Starting initPermissions...");
   try {
     await mongoose.connect("mongodb://localhost:27017/Emp", {
       useNewUrlParser: true,

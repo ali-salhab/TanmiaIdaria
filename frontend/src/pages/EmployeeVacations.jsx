@@ -13,6 +13,7 @@ export default function EmployeeVacations() {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedVacation, setSelectedVacation] = useState(null);
   const [user, setUser] = useState(null);
+  const [employee, setEmployee] = useState(null);
 
   const [formData, setFormData] = useState({
     type: "",
@@ -58,8 +59,18 @@ export default function EmployeeVacations() {
       }
     };
 
+    const fetchEmployee = async () => {
+      try {
+        const res = await API.get(`/employees/${id}`);
+        setEmployee(res.data);
+      } catch (err) {
+        console.error("Failed to fetch employee:", err);
+      }
+    };
+
     fetchUser();
     fetchVacations();
+    fetchEmployee();
   }, [id, navigate]);
 
   const handleAdd = () => {
@@ -195,6 +206,95 @@ export default function EmployeeVacations() {
     }
   };
 
+  const getRemainingDays = () => {
+    const adminTotal = vacations
+      .filter((v) => v.type === "إجازة إدارية")
+      .reduce((acc, curr) => acc + parseFloat(curr.days || 0), 0);
+
+    const healthTotal = vacations
+      .filter((v) => v.type === "إجازة صحية")
+      .reduce((acc, curr) => acc + parseFloat(curr.days || 0), 0);
+
+    return {
+      admin: Math.max(0, 15 - adminTotal),
+      health: Math.max(0, 180 - healthTotal),
+      adminTaken: adminTotal,
+      healthTaken: healthTotal,
+    };
+  };
+
+  const handlePrintCircular = () => {
+    const printWindow = window.open("", "_blank");
+    const remaining = getRemainingDays();
+
+    const htmlContent = `
+      <html dir="rtl">
+        <head>
+          <title>بيان إجازات موظف</title>
+          <style>
+            body { font-family: 'Arial', sans-serif; padding: 20px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            th, td { border: 1px solid #000; padding: 8px; text-align: center; }
+            th { background-color: #f0f0f0; }
+            .header { text-align: center; margin-bottom: 30px; }
+            .summary { margin-top: 20px; border: 1px solid #000; padding: 10px; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h2>الجمهورية العربية السورية</h2>
+            <h3>وزارة التنمية الإدارية</h3>
+            <h1>بيان وضع إجازات</h1>
+          </div>
+          
+          <div class="summary">
+            <p><strong>اسم الموظف:</strong> ${employee?.fullName || ""}</p>
+            <p><strong>الرصيد الإداري المتبقي:</strong> ${
+              remaining.admin
+            } يوم</p>
+            <p><strong>الرصيد الصحي المتبقي:</strong> ${
+              remaining.health
+            } يوم</p>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>نوع الإجازة</th>
+                <th>المدة (أيام)</th>
+                <th>تاريخ البدء</th>
+                <th>ملاحظات</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${vacations
+                .map(
+                  (v) => `
+                <tr>
+                  <td>${v.type}</td>
+                  <td>${v.days}</td>
+                  <td>${new Date(v.startDate).toLocaleDateString("ar-SY")}</td>
+                  <td>${v.notes || "-"}</td>
+                </tr>
+              `
+                )
+                .join("")}
+            </tbody>
+          </table>
+          
+          <div style="margin-top: 50px; display: flex; justify-content: space-between;">
+            <div>توقيع الموظف المختص</div>
+            <div>توقيع المدير المباشر</div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+    printWindow.print();
+  };
+
   const handlePrint = () => {
     const printWindow = window.open("", "", "width=800,height=600");
     const htmlContent = `
@@ -250,73 +350,95 @@ export default function EmployeeVacations() {
 
   return (
     <div className="p-6 font-custom text-right" dir="rtl">
-      <h2 className="text-2xl font-bold mb-4">إجازات الموظف</h2>
-
-      <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
-        <p>إدارة الإجازات الخاصة بالموظف رقم: {id}</p>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold text-gray-800">سجل الإجازات</h2>
         <div className="flex gap-2">
           <button
-            onClick={handlePrint}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition flex items-center gap-2"
+            onClick={handlePrintCircular}
+            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded flex items-center gap-2 transition"
           >
             <Printer size={18} />
-            طباعة
+            طباعة بيان وضع
           </button>
           <button
             onClick={handleExportWord}
-            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition flex items-center gap-2"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded flex items-center gap-2 transition"
           >
             <Download size={18} />
-            تحميل Word
+            تصدير Word
           </button>
           <button
             onClick={handleAdd}
-            className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800 transition"
+            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded transition"
           >
-            + إضافة إجازة جديدة
+            تسجيل إجازة
           </button>
         </div>
       </div>
 
-      {/* جدول الإجازات */}
-      <table className="min-w-full bg-white border rounded">
-        <thead className="bg-gray-100">
-          <tr>
-            <th className="p-2 border">النوع</th>
-            <th className="p-2 border">عدد الأيام</th>
-            <th className="p-2 border">تاريخ البداية</th>
-            <th className="p-2 border">إجراءات</th>
-          </tr>
-        </thead>
-        <tbody>
-          {vacations.map((v) => (
-            <tr key={v.id} className="border-t">
-              <td className="p-2 border">{v.type}</td>
-              <td className="p-2 border">{v.days}</td>
-              <td className="p-2 border">{v.startDate}</td>
-              <td className="p-2 border">
-                <div className="flex flex-row">
-                  {" "}
-                  <button
-                    onClick={() => handleDownloadTemplate(v.id)}
-                    className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 ml-2 transition flex items-center gap-1 text-sm"
-                    title="تحميل استمارة الإجازة"
-                  >
-                    <Download size={14} />
-                    استمارة
-                  </button>
-                  <button
-                    onClick={() => handleEdit(v)}
-                    className="bg-gray-600 text-white px-3 py-1 rounded hover:bg-gray-700 ml-2 transition"
-                  >
-                    تعديل
-                  </button>
-                </div>
-              </td>
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div className="bg-white p-4 rounded-lg shadow border-r-4 border-blue-500">
+          <h3 className="text-gray-500 text-sm font-medium">
+            الرصيد الإداري المتبقي
+          </h3>
+          <p className="text-2xl font-bold text-gray-800">
+            {getRemainingDays().admin} يوم
+          </p>
+          <p className="text-xs text-gray-400 mt-1">من أصل 15 يوم</p>
+        </div>
+        <div className="bg-white p-4 rounded-lg shadow border-r-4 border-green-500">
+          <h3 className="text-gray-500 text-sm font-medium">
+            الرصيد الصحي المتبقي
+          </h3>
+          <p className="text-2xl font-bold text-gray-800">
+            {getRemainingDays().health} يوم
+          </p>
+          <p className="text-xs text-gray-400 mt-1">من أصل 180 يوم</p>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-lg shadow overflow-hidden">
+        {/* جدول الإجازات */}
+        <table className="min-w-full bg-white border rounded">
+          <thead className="bg-gray-100">
+            <tr>
+              <th className="p-2 border">النوع</th>
+              <th className="p-2 border">عدد الأيام</th>
+              <th className="p-2 border">تاريخ البداية</th>
+              <th className="p-2 border">إجراءات</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {vacations.map((v) => (
+              <tr key={v.id} className="border-t">
+                <td className="p-2 border">{v.type}</td>
+                <td className="p-2 border">{v.days}</td>
+                <td className="p-2 border">{v.startDate}</td>
+                <td className="p-2 border">
+                  <div className="flex flex-row">
+                    {" "}
+                    <button
+                      onClick={() => handleDownloadTemplate(v.id)}
+                      className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 ml-2 transition flex items-center gap-1 text-sm"
+                      title="تحميل استمارة الإجازة"
+                    >
+                      <Download size={14} />
+                      استمارة
+                    </button>
+                    <button
+                      onClick={() => handleEdit(v)}
+                      className="bg-gray-600 text-white px-3 py-1 rounded hover:bg-gray-700 ml-2 transition"
+                    >
+                      تعديل
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       {/* مودال */}
       {modalOpen && (

@@ -91,14 +91,15 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-blue-900 via-indigo-900 to-gray-900 font-custom text-white relative overflow-hidden">
-      <div className="absolute inset-0 backdrop-blur-3xl bg-white/10"></div>
+    <div className="flex min-h-screen bg-gradient-to-br from-secondary via-secondary/95 to-secondary/90 font-custom text-white relative overflow-hidden">
+      <div className="absolute inset-0 backdrop-blur-3xl bg-white/5"></div>
 
       {/* Sidebar Component */}
       <DashboardSidebar
         isOpen={sidebarOpen}
         onClose={closeSidebar}
         onLogout={handleLogout}
+        userInfo={userInfo}
       />
 
       {/* Main Content */}
@@ -113,7 +114,7 @@ export default function Dashboard() {
         <main className="flex-1 p-2 sm:p-4 md:p-6 overflow-y-auto mt-16">
           <div className="backdrop-blur-xl bg-white/15 border border-white/20 rounded-lg md:rounded-2xl shadow-lg p-3 md:p-6 animate-scaleUp">
             <div className="bg-white rounded-lg md:rounded-xl shadow-md p-3 md:p-4 text-gray-800 overflow-x-auto">
-              <Outlet />
+              <Outlet context={{ userInfo }} />
             </div>
           </div>
         </main>

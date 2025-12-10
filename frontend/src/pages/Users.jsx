@@ -4,7 +4,6 @@ import { toast } from "react-hot-toast";
 import { FaEdit, FaEye, FaEyeSlash } from "react-icons/fa";
 import API from "../api/api";
 import DropdownWithSettings from "../components/DropdownWithSettings";
-import { permissionDefinitions, getAllPermissions, getPermissionsByCategory, getAllCategories } from "../utils/permissionDefinitions";
 
 export default function Users() {
   const [users, setUsers] = useState([]);
@@ -14,7 +13,7 @@ export default function Users() {
     username: "",
     password: "",
     role: "employee",
-    employeeId: ""
+    employeeId: "",
   });
   const [deleteModal, setDeleteModal] = useState({
     show: false,
@@ -24,17 +23,29 @@ export default function Users() {
   const [editUserId, setEditUserId] = useState(null);
   const [editedUser, setEditedUser] = useState({});
   const [showPasswords, setShowPasswords] = useState({});
-  const [editingPermissions, setEditingPermissions] = useState(null);
-  const [tempPermissions, setTempPermissions] = useState({});
+  const [editingGroups, setEditingGroups] = useState(null);
+  const [tempGroups, setTempGroups] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [showEmployeeDropdown, setShowEmployeeDropdown] = useState(false);
+  const [permissionGroups, setPermissionGroups] = useState([]);
+  const [selectedGroups, setSelectedGroups] = useState([]);
 
   const token = localStorage.getItem("token");
 
   useEffect(() => {
     fetchUsers();
+    fetchPermissionGroups();
   }, []);
+
+  const fetchPermissionGroups = async () => {
+    try {
+      const res = await API.get("/permissions/groups");
+      setPermissionGroups(res.data);
+    } catch (error) {
+      console.error("Error fetching permission groups:", error);
+    }
+  };
 
   const fetchUsers = async () => {
     try {
@@ -61,7 +72,7 @@ export default function Users() {
       setEmployees([]);
       return;
     }
-    
+
     try {
       const res = await API.get(`/users/search/employees?q=${query}`);
       setEmployees(res.data);
@@ -74,12 +85,16 @@ export default function Users() {
 
   // Handle employee selection
   const handleEmployeeSelect = (employee) => {
-    setNewUser(prev => ({
+    setNewUser((prev) => ({
       ...prev,
       employeeId: employee._id,
-      username: employee.fullName || `${employee.firstName} ${employee.lastName}`.trim()
+      username:
+        employee.fullName ||
+        `${employee.firstName} ${employee.lastName}`.trim(),
     }));
-    setSearchQuery(employee.fullName || `${employee.firstName} ${employee.lastName}`.trim());
+    setSearchQuery(
+      employee.fullName || `${employee.firstName} ${employee.lastName}`.trim()
+    );
     setShowEmployeeDropdown(false);
     setEmployees([]);
   };
@@ -91,18 +106,27 @@ export default function Users() {
         toast.error("❌ يرجى اختيار موظف");
         return;
       }
-      
+
       // Validate that password is provided
       if (!newUser.password) {
         toast.error("❌ يرجى إدخال كلمة المرور");
         return;
       }
-      
-      await API.post("/users", newUser);
+
+      await API.post("/users", {
+        ...newUser,
+        permissionGroups: selectedGroups,
+      });
 
       toast.success("✅ تم إنشاء المستخدم بنجاح!");
-      setNewUser({ username: "", password: "", role: "employee", employeeId: "" });
+      setNewUser({
+        username: "",
+        password: "",
+        role: "employee",
+        employeeId: "",
+      });
       setSearchQuery("");
+      setSelectedGroups([]);
       fetchUsers();
     } catch (error) {
       const msg = error.response?.data?.message || "❌ فشل في إنشاء المستخدم!";
@@ -152,33 +176,36 @@ export default function Users() {
     setShowPasswords((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const startEditPermissions = (user) => {
-    setEditingPermissions(user._id);
-    setTempPermissions({ ...user.permissions });
+  const startEditGroups = (user) => {
+    setEditingGroups(user._id);
+    setTempGroups(
+      user.permissionGroups ? user.permissionGroups.map((g) => g._id) : []
+    );
   };
 
-  const cancelEditPermissions = () => {
-    setEditingPermissions(null);
-    setTempPermissions({});
+  const cancelEditGroups = () => {
+    setEditingGroups(null);
+    setTempGroups([]);
   };
 
-  const savePermissions = async (id) => {
+  const saveGroups = async (id) => {
     try {
-      await API.put(`/users/${id}/permissions`, { permissions: tempPermissions });
-      toast.success("✅ تم تحديث الصلاحيات بنجاح!");
-      setEditingPermissions(null);
-      setTempPermissions({});
+      await API.put(`/users/${id}`, { permissionGroups: tempGroups });
+      toast.success("✅ تم تحديث المجموعات بنجاح!");
+      setEditingGroups(null);
+      setTempGroups([]);
       fetchUsers();
     } catch (error) {
-      toast.error("❌ فشل في تحديث الصلاحيات");
+      toast.error("❌ فشل في تحديث المجموعات");
     }
   };
 
-  const togglePermission = (key) => {
-    setTempPermissions((prev) => ({
-      ...prev,
-      [key]: !prev[key],
-    }));
+  const toggleGroup = (groupId) => {
+    if (tempGroups.includes(groupId)) {
+      setTempGroups(tempGroups.filter((id) => id !== groupId));
+    } else {
+      setTempGroups([...tempGroups, groupId]);
+    }
   };
 
   return (
@@ -214,7 +241,7 @@ export default function Users() {
               }}
               className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 outline-none w-full"
             />
-            
+
             {/* Employee Dropdown */}
             {showEmployeeDropdown && employees.length > 0 && (
               <div className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
@@ -224,9 +251,13 @@ export default function Users() {
                     className="px-4 py-2 hover:bg-blue-50 cursor-pointer"
                     onClick={() => handleEmployeeSelect(employee)}
                   >
-                    <div className="font-medium">{employee.fullName || `${employee.firstName} ${employee.lastName}`}</div>
+                    <div className="font-medium">
+                      {employee.fullName ||
+                        `${employee.firstName} ${employee.lastName}`}
+                    </div>
                     <div className="text-sm text-gray-500">
-                      {employee.nationalId && `الرقم الوطني: ${employee.nationalId}`}
+                      {employee.nationalId &&
+                        `الرقم الوطني: ${employee.nationalId}`}
                       {employee.phone && ` | الهاتف: ${employee.phone}`}
                     </div>
                   </div>
@@ -234,7 +265,7 @@ export default function Users() {
               </div>
             )}
           </div>
-          
+
           {/* Password Field */}
           <input
             type="password"
@@ -245,7 +276,7 @@ export default function Users() {
             }
             className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 outline-none"
           />
-          
+
           {/* Role Dropdown */}
           <DropdownWithSettings
             id="users_new_user_role"
@@ -253,14 +284,42 @@ export default function Users() {
             onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
             options={[
               { value: "admin", label: "مدير عام" },
-              { value: "employee", label: "مدير فرعي" },
-              { value: "viewer", label: "مشاهد" },
-              { value: "hr", label: "شؤون الموظفين" },
-              { value: "finance", label: "محاسب" },
+              { value: "employee", label: "موظف" },
             ]}
             placeholder="اختر الدور"
             className="border rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-blue-400 outline-none"
           />
+
+          {/* Permission Groups Selection */}
+          <div className="sm:col-span-3 mt-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              مجموعات الصلاحيات
+            </label>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 max-h-40 overflow-y-auto border p-3 rounded-lg bg-gray-50">
+              {permissionGroups.map((group) => (
+                <label
+                  key={group._id}
+                  className="flex items-center space-x-2 space-x-reverse cursor-pointer hover:bg-blue-50 p-1 rounded"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedGroups.includes(group._id)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedGroups([...selectedGroups, group._id]);
+                      } else {
+                        setSelectedGroups(
+                          selectedGroups.filter((id) => id !== group._id)
+                        );
+                      }
+                    }}
+                    className="form-checkbox h-4 w-4 text-blue-600 rounded focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-gray-700">{group.name}</span>
+                </label>
+              ))}
+            </div>
+          </div>
         </div>
         <button
           onClick={createUser}
@@ -303,7 +362,7 @@ export default function Users() {
                 كلمة المرور
               </th>
               <th className="py-3 px-4 text-right text-gray-700 font-semibold">
-                الصلاحيات
+                المجموعات
               </th>
               <th className="py-3 px-4 text-right text-gray-700 font-semibold">
                 تاريخ الإنشاء
@@ -346,12 +405,15 @@ export default function Users() {
                       <FaEdit />
                     </button>
                   </td>
-                  
+
                   {/* الموظف */}
                   <td className="py-3 px-4 text-gray-700">
                     {u.employeeId ? (
                       <div>
-                        <div>{u.employeeId.fullName || `${u.employeeId.firstName} ${u.employeeId.lastName}`}</div>
+                        <div>
+                          {u.employeeId.fullName ||
+                            `${u.employeeId.firstName} ${u.employeeId.lastName}`}
+                        </div>
                         {u.employeeId.nationalId && (
                           <div className="text-sm text-gray-500">
                             الرقم الوطني: {u.employeeId.nationalId}
@@ -401,56 +463,65 @@ export default function Users() {
                     </div>
                   </td>
 
-                  {/* الصلاحيات */}
+                  {/* المجموعات */}
                   <td className="py-3 px-4">
-                    {editingPermissions === u._id ? (
-                      <div className="space-y-3 max-h-60 overflow-y-auto">
-                        {getAllCategories().map((category) => (
-                          <div key={category} className="border rounded-lg p-2 bg-gray-50">
-                            <h4 className="font-semibold text-sm text-gray-800 mb-2">{category}</h4>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
-                              {getPermissionsByCategory(category).map((perm) => (
-                                <label
-                                  key={perm.key}
-                                  className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer"
-                                >
-                                  <input
-                                    type="checkbox"
-                                    checked={tempPermissions[perm.key] || false}
-                                    onChange={() => togglePermission(perm.key)}
-                                    className="accent-blue-600 h-3 w-3"
-                                  />
-                                  {perm.label}
-                                </label>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
+                    {editingGroups === u._id ? (
+                      <div className="space-y-2 max-h-60 overflow-y-auto min-w-[200px] bg-white border rounded p-2 shadow-sm">
+                        <div className="grid grid-cols-1 gap-1">
+                          {permissionGroups.map((group) => (
+                            <label
+                              key={group._id}
+                              className="flex items-center space-x-2 space-x-reverse cursor-pointer hover:bg-blue-50 p-1 rounded"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={tempGroups.includes(group._id)}
+                                onChange={() => toggleGroup(group._id)}
+                                className="form-checkbox h-4 w-4 text-blue-600 rounded focus:ring-blue-500"
+                              />
+                              <span className="text-sm text-gray-700">
+                                {group.name}
+                              </span>
+                            </label>
+                          ))}
+                        </div>
+                        <div className="flex justify-end gap-2 mt-2 pt-2 border-t">
+                          <button
+                            onClick={() => saveGroups(u._id)}
+                            className="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600"
+                          >
+                            حفظ
+                          </button>
+                          <button
+                            onClick={cancelEditGroups}
+                            className="bg-gray-300 text-gray-700 px-3 py-1 rounded text-xs hover:bg-gray-400"
+                          >
+                            إلغاء
+                          </button>
+                        </div>
                       </div>
                     ) : (
-                      <div className="space-y-2 max-h-40 overflow-y-auto">
-                        {getAllCategories().map((category) => {
-                          const categoryPerms = getPermissionsByCategory(category).filter(perm =>
-                            u.permissions?.[perm.key]
-                          );
-                          if (categoryPerms.length === 0) return null;
-
-                          return (
-                            <div key={category} className="border rounded p-1 bg-blue-50">
-                              <span className="font-medium text-xs text-blue-800">{category}:</span>
-                              <div className="flex flex-wrap gap-1 mt-1">
-                                {categoryPerms.map((perm) => (
-                                  <span
-                                    key={perm.key}
-                                    className="text-xs bg-blue-100 text-blue-700 px-1 py-0.5 rounded"
-                                  >
-                                    {perm.action}
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
-                          );
-                        })}
+                      <div className="flex flex-wrap gap-1 items-center">
+                        {u.permissionGroups && u.permissionGroups.length > 0 ? (
+                          u.permissionGroups.map((g) => (
+                            <span
+                              key={g._id}
+                              className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full"
+                            >
+                              {g.name}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-gray-400 text-xs">
+                            لا توجد مجموعات
+                          </span>
+                        )}
+                        <button
+                          onClick={() => startEditGroups(u)}
+                          className="mr-2 text-blue-600 hover:text-blue-800 text-xs border border-blue-200 px-2 py-1 rounded hover:bg-blue-50"
+                        >
+                          تعديل
+                        </button>
                       </div>
                     )}
                   </td>
@@ -462,37 +533,14 @@ export default function Users() {
 
                   {/* الإجراءات */}
                   <td className="py-3 px-4 text-center">
-                    {editingPermissions === u._id ? (
-                      <div className="flex gap-2 justify-center flex-wrap">
-                        <button
-                          onClick={() => savePermissions(u._id)}
-                          className="text-green-600 hover:text-green-800 font-medium border border-green-200 px-2 py-1 rounded-lg transition text-sm"
-                        >
-                          حفظ ✓
-                        </button>
-                        <button
-                          onClick={cancelEditPermissions}
-                          className="text-gray-600 hover:text-gray-800 font-medium border border-gray-200 px-2 py-1 rounded-lg transition text-sm"
-                        >
-                          إلغاء ✕
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="flex gap-2 justify-center flex-wrap">
-                        <button
-                          onClick={() => startEditPermissions(u)}
-                          className="text-blue-600 hover:text-blue-800 font-medium border border-blue-200 px-2 py-1 rounded-lg transition text-sm"
-                        >
-                          تعديل الصلاحيات
-                        </button>
-                        <button
-                          onClick={() => confirmDeleteUser(u._id, u.username)}
-                          className="text-red-600 hover:text-red-800 font-medium border border-red-200 px-2 py-1 rounded-lg transition text-sm"
-                        >
-                          حذف ❌
-                        </button>
-                      </div>
-                    )}
+                    <div className="flex gap-2 justify-center flex-wrap">
+                      <button
+                        onClick={() => confirmDeleteUser(u._id, u.username)}
+                        className="text-red-600 hover:text-red-800 font-medium border border-red-200 px-2 py-1 rounded-lg transition text-sm"
+                      >
+                        حذف ❌
+                      </button>
+                    </div>
                   </td>
                 </tr>
               );

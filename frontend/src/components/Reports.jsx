@@ -574,6 +574,65 @@ function Reports() {
             </BarChart>
           </ResponsiveContainer>
         </div>
+
+        {/* Department Distribution */}
+        <div className="bg-white p-4 rounded-lg shadow md:col-span-2 lg:col-span-3">
+          <h3 className="text-xl font-semibold mb-4">توزيع الأقسام</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={statistics.departmentData || []}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="count" fill="#8884d8" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Education Level Distribution */}
+        <div className="bg-white p-4 rounded-lg shadow">
+          <h3 className="text-xl font-semibold mb-4">المستوى التعليمي</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={statistics.educationData || []} layout="vertical">
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis type="number" />
+              <YAxis dataKey="name" type="category" width={100} />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="count" fill="#00C49F" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Marital Status Distribution */}
+        <div className="bg-white p-4 rounded-lg shadow">
+          <h3 className="text-xl font-semibold mb-4">الحالة الاجتماعية</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie
+                data={statistics.maritalStatusData || []}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={({ name, percent }) =>
+                  `${name} ${(percent * 100).toFixed(0)}%`
+                }
+                outerRadius={80}
+                fill="#8884d8"
+                dataKey="value"
+              >
+                {(statistics.maritalStatusData || []).map((entry, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={COLORS[index % COLORS.length]}
+                  />
+                ))}
+              </Pie>
+              <Tooltip />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
       </div>
 
       {/* Data Table */}
@@ -596,12 +655,16 @@ function Reports() {
               <tbody>
                 {data.map((employee, index) => (
                   <tr key={index} className="border-t">
-                    <td className="px-4 py-2">{employee.name}</td>
+                    <td className="px-4 py-2">{employee.fullName}</td>
                     <td className="px-4 py-2">{employee.currentJobTitle}</td>
-                    <td className="px-4 py-2">{employee.workLocation}</td>
+                    <td className="px-4 py-2">
+                      {employee.level4 || employee.workLocation}
+                    </td>
                     <td className="px-4 py-2">{employee.status}</td>
                     <td className="px-4 py-2">
-                      {new Date(employee.hiringDate).toLocaleDateString("ar")}
+                      {employee.hiringDate
+                        ? new Date(employee.hiringDate).toLocaleDateString("ar")
+                        : "-"}
                     </td>
                   </tr>
                 ))}

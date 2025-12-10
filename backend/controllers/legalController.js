@@ -3,6 +3,7 @@ import User from "../models/User.js";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { notifyAdmin } from "../services/notificationService.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -43,6 +44,17 @@ export const createLegalCase = async (req, res) => {
         select: "username profile.firstName profile.lastName",
       },
     ]);
+
+    // Notify admin if action is performed by non-admin user
+    if (req.user && req.user.role !== "admin") {
+      await notifyAdmin({
+        actionBy: req.user._id,
+        section: "legal",
+        action: "create",
+        title: "تم إنشاء قضية قانونية جديدة",
+        message: `تم إنشاء قضية قانونية جديدة: ${legalCase.title}`,
+      });
+    }
 
     res.status(201).json(legalCase);
   } catch (error) {
@@ -161,6 +173,17 @@ export const updateLegalCase = async (req, res) => {
       .populate("createdBy", "username profile.firstName profile.lastName")
       .populate("assignedTo", "username profile.firstName profile.lastName");
 
+    // Notify admin if action is performed by non-admin user
+    if (req.user && req.user.role !== "admin") {
+      await notifyAdmin({
+        actionBy: req.user._id,
+        section: "legal",
+        action: "update",
+        title: "تم تحديث قضية قانونية",
+        message: `تم تحديث القضية القانونية: ${updatedCase.title}`,
+      });
+    }
+
     res.json(updatedCase);
   } catch (error) {
     console.error("Error updating legal case:", error);
@@ -180,6 +203,17 @@ export const deleteLegalCase = async (req, res) => {
 
     // Soft delete by archiving
     await LegalCase.findByIdAndUpdate(id, { isArchived: true });
+
+    // Notify admin if action is performed by non-admin user
+    if (req.user && req.user.role !== "admin") {
+      await notifyAdmin({
+        actionBy: req.user._id,
+        section: "legal",
+        action: "delete",
+        title: "تم أرشفة قضية قانونية",
+        message: `تم أرشفة القضية القانونية: ${legalCase.title}`,
+      });
+    }
 
     res.json({ message: "تم أرشفة القضية بنجاح" });
   } catch (error) {

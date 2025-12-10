@@ -11,6 +11,7 @@ import {
   X,
 } from "lucide-react";
 import { useSocket } from "../context/SocketContext";
+import logo from "../assets/logo.png";
 
 export default function Sidebar({ onLogout, isOpen, onClose }) {
   const [expandedMenu, setExpandedMenu] = useState(null);
@@ -46,12 +47,17 @@ export default function Sidebar({ onLogout, isOpen, onClose }) {
   ];
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-64 bg-gradient-to-b from-teal-600 via-teal-700 to-teal-800 text-white flex flex-col shadow-2xl border-l border-teal-400/20 overflow-hidden z-40 animate-slideInLeft md:block hidden">
-      <div className="p-6 border-b border-teal-400/30 text-center backdrop-blur-sm bg-teal-600/50">
-        <h1 className="text-2xl font-bold drop-shadow-lg text-white">
+    <aside className="fixed left-0 top-0 h-screen w-64 bg-white/90 backdrop-blur-md text-gray-800 hidden md:flex flex-col shadow-2xl border-l border-gray-200 overflow-hidden z-40 animate-slideInLeft">
+      <div className="p-6 border-b border-gray-200 text-center bg-white/50 flex flex-col items-center">
+        <img
+          src={logo}
+          alt="Logo"
+          className="w-20 h-20 mb-3 object-contain drop-shadow-md grayscale opacity-90 hover:grayscale-0 transition-all duration-500"
+        />
+        <h1 className="text-xl font-bold drop-shadow-sm text-gray-800">
           التنمية الإدارية
         </h1>
-        <p className="text-sm text-teal-100 mt-1 font-medium">لوحة التحكم</p>
+        <p className="text-sm text-gray-500 mt-1 font-medium">لوحة التحكم</p>
       </div>
 
       <nav className="flex-1 p-4 space-y-2 overflow-y-auto" dir="rtl">
@@ -59,16 +65,16 @@ export default function Sidebar({ onLogout, isOpen, onClose }) {
           <Link
             key={idx}
             to={item.to}
-            className="group block py-3 px-4 rounded-lg bg-white/10 hover:bg-white/25 transition-all transform hover:translate-x-1 hover:scale-105 backdrop-blur-sm border border-white/10 hover:border-white/30 font-medium text-sm"
+            className="group block py-3 px-4 rounded-lg bg-white/50 hover:bg-gray-100 transition-all transform hover:translate-x-1 hover:scale-105 border border-transparent hover:border-gray-200 font-medium text-sm text-gray-700 hover:text-gray-900 shadow-sm hover:shadow-md"
           >
             {item.label}
           </Link>
         ))}
       </nav>
 
-      <div className="border-t border-teal-400/30 p-4 space-y-4">
-        <div className="bg-teal-500/30 backdrop-blur-sm border border-teal-400/30 rounded-lg p-3 space-y-2">
-          <h3 className="text-xs font-semibold text-teal-100 uppercase tracking-wider flex items-center gap-2">
+      <div className="border-t border-gray-200 p-4 space-y-4">
+        <div className="bg-gray-50/80 backdrop-blur-sm border border-gray-200 rounded-lg p-3 space-y-2 shadow-inner">
+          <h3 className="text-xs font-semibold text-gray-600 uppercase tracking-wider flex items-center gap-2">
             <Users className="w-4 h-4" /> المستخدمون المتصلون
           </h3>
           <div className="space-y-1 max-h-24 overflow-y-auto">
@@ -76,14 +82,14 @@ export default function Sidebar({ onLogout, isOpen, onClose }) {
               onlineUsers.map((user, idx) => (
                 <div
                   key={idx}
-                  className="flex items-center gap-2 text-xs text-teal-100"
+                  className="flex items-center gap-2 text-xs text-gray-600"
                 >
-                  <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                   {user}
                 </div>
               ))
             ) : (
-              <p className="text-xs text-teal-300 italic">
+              <p className="text-xs text-gray-400 italic">
                 لا توجد مستخدمون متصلون
               </p>
             )}
@@ -93,9 +99,9 @@ export default function Sidebar({ onLogout, isOpen, onClose }) {
         <div className="relative">
           <button
             onClick={() => setShowNotifications(!showNotifications)}
-            className="w-full flex items-center justify-between bg-teal-500/30 hover:bg-teal-500/50 backdrop-blur-sm border border-teal-400/30 rounded-lg p-3 transition-all group"
+            className="w-full flex items-center justify-between bg-gray-50 hover:bg-gray-100 backdrop-blur-sm border border-gray-200 rounded-lg p-3 transition-all group shadow-sm"
           >
-            <span className="flex items-center gap-2 font-medium text-sm">
+            <span className="flex items-center gap-2 font-medium text-sm text-gray-700 group-hover:text-gray-900">
               <Bell className="w-4 h-4" /> الإشعارات
             </span>
             {notifications.length > 0 && (

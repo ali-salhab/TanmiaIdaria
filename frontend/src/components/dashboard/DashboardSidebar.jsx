@@ -1,57 +1,80 @@
 import { Link, useLocation } from "react-router-dom";
 import { LogOut } from "lucide-react";
+import logo from "../../assets/logo.png";
+import { checkPermission } from "../../utils/permissionHelper";
 
-export default function DashboardSidebar({ isOpen, onClose, onLogout }) {
+export default function DashboardSidebar({
+  isOpen,
+  onClose,
+  onLogout,
+  userInfo,
+}) {
   const location = useLocation();
 
-  const menuItems = [
+  const allMenuItems = [
     {
       label: " الموظفين",
       to: "/dashboard/employees",
       icon: "👥",
+      permission: "employees.view",
     },
 
     {
       label: " الديوان",
       to: "/dashboard/dywan",
       icon: "📄",
+      permission: "dywan.receive_files", // Check this permission key
     },
     {
       label: " DropDown Manager",
       to: "/dashboard/dropdown-manager",
       icon: "🔻",
+      permission: "dropdowns.view",
     },
     {
       label: " الأرشيف",
-      to: "/dashboard",
+      to: "/dashboard/archive",
       icon: "📦",
+      permission: "documents.view",
     },
     {
       label: " الاشعارات",
       to: "/dashboard/notifications",
       icon: "🔔",
+      // No permission needed, or basic user permission
     },
     {
       label: " الصفحة الرئيسية",
       to: "/dashboard/homepage-builder",
       icon: "🎨",
+      permission: "homepage.edit_layout",
     },
     {
       label: " التقارير",
       to: "/dashboard/reports",
       icon: "📰",
+      permission: "reports.view", // Assuming this key exists or similar
     },
     {
       label: " ادارة قاعدة البيانات",
       to: "/dashboard/upload",
       icon: "💾",
+      permission: "employees.import", // Or similar admin permission
     },
     {
       label: " الإعدادات",
       to: "/dashboard/settings",
       icon: "⚙️",
+      permission: "settings.view",
     },
   ];
+
+  const menuItems = allMenuItems.filter((item) => {
+    if (!userInfo) return false;
+    if (userInfo.role === "admin") return true;
+    if (!item.permission) return true; // Always show if no permission required
+    return checkPermission(item.permission, userInfo);
+  });
 
   const isActive = (path) => {
     return location.pathname === path;
@@ -82,8 +105,8 @@ export default function DashboardSidebar({ isOpen, onClose, onLogout }) {
           left-0 top-0
           h-screen
           w-64
-          bg-gradient-to-b from-gray-800 via-gray-800 to-gray-900
-          border-r border-gray-700
+          bg-white/90 backdrop-blur-md
+          border-r border-gray-200
           flex flex-col
           shadow-2xl
           z-50
@@ -97,11 +120,16 @@ export default function DashboardSidebar({ isOpen, onClose, onLogout }) {
         dir="rtl"
       >
         {/* Header */}
-        <div className="p-6 border-b border-gray-700 bg-gradient-to-r from-gray-700 to-gray-800 text-center">
-          <h1 className="text-2xl font-bold text-white drop-shadow-lg">
+        <div className="p-6 border-b border-gray-200 bg-white/50 text-center flex flex-col items-center">
+          <img
+            src={logo}
+            alt="Logo"
+            className="w-16 h-16 mb-2 object-contain drop-shadow-md grayscale opacity-90 hover:grayscale-0 transition-all duration-500"
+          />
+          <h1 className="text-xl font-bold text-gray-800 drop-shadow-sm">
             التنمية الإدارية
           </h1>
-          <p className="text-sm text-gray-300 mt-1 font-medium">لوحة التحكم</p>
+          <p className="text-xs text-gray-500 mt-1">لوحة التحكم</p>
         </div>
 
         {/* Navigation */}
@@ -118,8 +146,8 @@ export default function DashboardSidebar({ isOpen, onClose, onLogout }) {
                 font-medium text-sm
                 ${
                   isActive(item.to)
-                    ? "bg-gray-700 text-white shadow-lg border-l-4 border-teal-500"
-                    : "bg-gray-700/50 hover:bg-gray-600 text-gray-200 hover:text-white"
+                    ? "bg-gray-100 text-gray-900 shadow-md border-l-4 border-gray-600"
+                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                 }
               `}
             >

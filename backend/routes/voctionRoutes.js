@@ -1,4 +1,6 @@
 import express from "express";
+import { protect } from "../middleware/auth.js";
+import checkPermission from "../middleware/checkPermission.js";
 import {
   getVacationsByEmployee,
   addVacation,
@@ -10,11 +12,41 @@ import {
 
 const router = express.Router();
 
-router.get("/employees/:id/vacations", getVacationsByEmployee);
-router.post("/employees/:id/vacations", addVacation);
-router.put("/vacations/:id", updateVacation);
-router.delete("/vacations/:id", deleteVacation);
-router.get("/employees/:id/vacations/export/word", generateVacationDocument);
-router.get("/vacations/:vacationId/template", generateSingleVacationTemplate);
+router.get(
+  "/employees/:id/vacations",
+  protect,
+  checkPermission("vacations.view"),
+  getVacationsByEmployee
+);
+router.post(
+  "/employees/:id/vacations",
+  protect,
+  checkPermission("vacations.create"),
+  addVacation
+);
+router.put(
+  "/vacations/:id",
+  protect,
+  checkPermission("vacations.edit"),
+  updateVacation
+);
+router.delete(
+  "/vacations/:id",
+  protect,
+  checkPermission("vacations.delete"),
+  deleteVacation
+);
+router.get(
+  "/employees/:id/vacations/export/word",
+  protect,
+  checkPermission("vacations.export"),
+  generateVacationDocument
+);
+router.get(
+  "/vacations/:vacationId/template",
+  protect,
+  checkPermission("vacations.generate_template"),
+  generateSingleVacationTemplate
+);
 
 export default router;

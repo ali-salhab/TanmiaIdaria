@@ -178,10 +178,38 @@ export const getReportData = async (req, res) => {
 
     statistics.averageAge = ageCount > 0 ? (totalAge / ageCount).toFixed(1) : 0;
 
+    // Transform statistics for frontend charts
+    const formattedStatistics = {
+      ...statistics,
+      genderData: Object.entries(statistics.byGender).map(([name, value]) => ({
+        name,
+        value,
+      })),
+      departmentData: Object.entries(statistics.byDepartment).map(
+        ([name, count]) => ({ name, count })
+      ),
+      employmentTypeData: Object.entries(statistics.byEmploymentType).map(
+        ([name, value]) => ({ name, value })
+      ),
+      jobCategoryData: Object.entries(statistics.byJobCategory).map(
+        ([name, count]) => ({ name, count })
+      ),
+      ageData: Object.entries(statistics.byAge).map(([age, count]) => ({
+        age,
+        count,
+      })),
+      educationData: Object.entries(statistics.byEducation).map(
+        ([name, count]) => ({ name, count })
+      ),
+      maritalStatusData: Object.entries(statistics.byMaritalStatus).map(
+        ([name, value]) => ({ name, value })
+      ),
+    };
+
     res.json({
       success: true,
       data: employees,
-      statistics,
+      statistics: formattedStatistics,
       filters: req.query,
     });
   } catch (error) {
@@ -407,6 +435,7 @@ export const exportReportExcel = async (req, res) => {
     const excelData = employees.map((emp) => ({
       "الرقم الذاتي": emp.selfNumber || "",
       "الاسم الثلاثي": emp.fullName || "",
+      "اسم الأب": emp.fatherName || "",
       "الرقم الوطني": emp.nationalId || "",
       الجنس: emp.gender || "",
       المحافظة: emp.governorate || "",

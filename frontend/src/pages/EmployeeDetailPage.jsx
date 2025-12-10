@@ -1,9 +1,20 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import API from "../api/api";
-import { ArrowLeft, User, AlertCircle, Calendar, Gift, Edit2, Save, X } from "lucide-react";
+import {
+  ArrowLeft,
+  User,
+  AlertCircle,
+  Calendar,
+  Gift,
+  Edit2,
+  Save,
+  X,
+  FileText,
+} from "lucide-react";
 import { toast } from "react-hot-toast";
 import { checkPermission } from "../utils/permissionHelper";
+import EmployeeDocuments from "../components/EmployeeDocuments";
 
 export default function EmployeeDetailPage() {
   const { id } = useParams();
@@ -23,6 +34,12 @@ export default function EmployeeDetailPage() {
       label: "البيانات الشخصية",
       icon: User,
       permission: null,
+    },
+    {
+      id: "documents",
+      label: "الوثائق",
+      icon: FileText,
+      permission: "employees.view", // Assuming view permission is enough
     },
     {
       id: "incidents",
@@ -121,7 +138,10 @@ export default function EmployeeDetailPage() {
 
   if (loading || !employee || !user) {
     return (
-      <div dir="rtl" className="flex items-center justify-center min-h-screen bg-gray-100">
+      <div
+        dir="rtl"
+        className="flex items-center justify-center min-h-screen bg-gray-100"
+      >
         <div className="text-gray-600">جاري تحميل البيانات...</div>
       </div>
     );
@@ -130,7 +150,10 @@ export default function EmployeeDetailPage() {
   const accessibleTabs = getAccessibleTabs();
 
   return (
-    <div dir="rtl" className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+    <div
+      dir="rtl"
+      className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100"
+    >
       {/* Header */}
       <div className="bg-white shadow-md border-b border-gray-200">
         <div className="max-w-7xl mx-auto p-4 md:p-6">
@@ -152,7 +175,9 @@ export default function EmployeeDetailPage() {
                 title={isEditing ? "إغلاق التحرير" : "تحرير البيانات"}
               >
                 <Edit2 className="w-5 h-5" />
-                <span className="text-sm font-medium">{isEditing ? "إلغاء" : "تحرير"}</span>
+                <span className="text-sm font-medium">
+                  {isEditing ? "إلغاء" : "تحرير"}
+                </span>
               </button>
             )}
           </div>
@@ -164,8 +189,12 @@ export default function EmployeeDetailPage() {
                 <User className="w-8 h-8" />
               </div>
               <div className="flex-1">
-                <h2 className="text-2xl font-bold">{employee.fullName || "N/A"}</h2>
-                <p className="text-emerald-50">رقم الموظف: {employee.selfNumber || "N/A"}</p>
+                <h2 className="text-2xl font-bold">
+                  {employee.fullName || "N/A"}
+                </h2>
+                <p className="text-emerald-50">
+                  رقم الموظف: {employee.selfNumber || "N/A"}
+                </p>
               </div>
               <div className="text-right">
                 <div className="text-sm opacity-90">الوظيفة</div>
@@ -184,7 +213,9 @@ export default function EmployeeDetailPage() {
             ].map((item, idx) => (
               <div key={idx} className="bg-white rounded-lg p-3 shadow-sm">
                 <div className="text-xs text-gray-500 mb-1">{item.label}</div>
-                <div className="font-semibold text-gray-800 text-sm">{item.value}</div>
+                <div className="font-semibold text-gray-800 text-sm">
+                  {item.value}
+                </div>
               </div>
             ))}
           </div>
@@ -248,21 +279,35 @@ export default function EmployeeDetailPage() {
             </>
           )}
 
-          {activeTab === "incidents" && user && checkPermission("incidents.view", user) && (
-            <IncidentsSection employeeId={id} />
-          )}
+          {activeTab === "documents" &&
+            user &&
+            checkPermission("employees.view", user) && (
+              <EmployeeDocuments employeeId={id} />
+            )}
 
-          {activeTab === "vacations" && user && checkPermission("vacations.view", user) && (
-            <VacationsSection employeeId={id} />
-          )}
+          {activeTab === "incidents" &&
+            user &&
+            checkPermission("incidents.view", user) && (
+              <IncidentsSection employeeId={id} />
+            )}
 
-          {activeTab === "rewards" && user && checkPermission("rewards.view", user) && (
-            <RewardsSection employeeId={id} />
-          )}
+          {activeTab === "vacations" &&
+            user &&
+            checkPermission("vacations.view", user) && (
+              <VacationsSection employeeId={id} />
+            )}
 
-          {activeTab === "punishments" && user && checkPermission("punishments.view", user) && (
-            <PunishmentsSection employeeId={id} />
-          )}
+          {activeTab === "rewards" &&
+            user &&
+            checkPermission("rewards.view", user) && (
+              <RewardsSection employeeId={id} />
+            )}
+
+          {activeTab === "punishments" &&
+            user &&
+            checkPermission("punishments.view", user) && (
+              <PunishmentsSection employeeId={id} />
+            )}
         </div>
       </div>
     </div>
@@ -302,7 +347,12 @@ function EmployeeInfoSection({ employee, isEditing, onFieldChange }) {
         { label: "القسم", value: employee.level2 },
         { label: "مركز العمل", value: employee.workCenter },
         { label: "حالة العقد", value: employee.contractStatus },
-        { label: "تاريخ المباشرة", value: employee.hireDate ? new Date(employee.hireDate).toLocaleDateString("ar-EG") : "N/A" },
+        {
+          label: "تاريخ المباشرة",
+          value: employee.hireDate
+            ? new Date(employee.hireDate).toLocaleDateString("ar-EG")
+            : "N/A",
+        },
       ],
     },
     {
@@ -311,7 +361,13 @@ function EmployeeInfoSection({ employee, isEditing, onFieldChange }) {
         { label: "الراتب الأساسي", value: employee.baseSalary || "N/A" },
         { label: "البدلات", value: employee.allowances || "0" },
         { label: "الخصومات", value: employee.deductions || "0" },
-        { label: "الراتب الإجمالي", value: (employee.baseSalary || 0) + (employee.allowances || 0) - (employee.deductions || 0) },
+        {
+          label: "الراتب الإجمالي",
+          value:
+            (employee.baseSalary || 0) +
+            (employee.allowances || 0) -
+            (employee.deductions || 0),
+        },
       ],
     },
   ];
@@ -325,7 +381,12 @@ function EmployeeInfoSection({ employee, isEditing, onFieldChange }) {
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {section.fields.map((field, fieldIdx) => (
-              <div key={fieldIdx} className={`rounded-lg p-4 ${isEditing ? "bg-blue-50 border border-blue-200" : "bg-gray-50"}`}>
+              <div
+                key={fieldIdx}
+                className={`rounded-lg p-4 ${
+                  isEditing ? "bg-blue-50 border border-blue-200" : "bg-gray-50"
+                }`}
+              >
                 <div className="text-sm text-gray-600 mb-1">{field.label}</div>
                 {isEditing ? (
                   <input
@@ -336,7 +397,9 @@ function EmployeeInfoSection({ employee, isEditing, onFieldChange }) {
                     placeholder={field.label}
                   />
                 ) : (
-                  <div className="text-lg font-semibold text-gray-800">{employee[field.key] || "N/A"}</div>
+                  <div className="text-lg font-semibold text-gray-800">
+                    {employee[field.key] || "N/A"}
+                  </div>
                 )}
               </div>
             ))}
@@ -370,7 +433,9 @@ function IncidentsSection({ employeeId }) {
   };
 
   if (loading) {
-    return <div className="text-center py-8 text-gray-600">جاري التحميل...</div>;
+    return (
+      <div className="text-center py-8 text-gray-600">جاري التحميل...</div>
+    );
   }
 
   return (
@@ -388,18 +453,31 @@ function IncidentsSection({ employeeId }) {
             </thead>
             <tbody>
               {incidents.map((incident, idx) => (
-                <tr key={idx} className="border-t border-gray-200 hover:bg-gray-50">
-                  <td className="px-4 py-3 text-sm">{incident.change_date || "N/A"}</td>
-                  <td className="px-4 py-3 text-sm">{incident.job_title || "N/A"}</td>
-                  <td className="px-4 py-3 text-sm">{incident.reason || "N/A"}</td>
-                  <td className="px-4 py-3 text-sm">{incident.document_type || "N/A"}</td>
+                <tr
+                  key={idx}
+                  className="border-t border-gray-200 hover:bg-gray-50"
+                >
+                  <td className="px-4 py-3 text-sm">
+                    {incident.change_date || "N/A"}
+                  </td>
+                  <td className="px-4 py-3 text-sm">
+                    {incident.job_title || "N/A"}
+                  </td>
+                  <td className="px-4 py-3 text-sm">
+                    {incident.reason || "N/A"}
+                  </td>
+                  <td className="px-4 py-3 text-sm">
+                    {incident.document_type || "N/A"}
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       ) : (
-        <div className="text-center py-12 text-gray-500">لا توجد وقوعات مسجلة</div>
+        <div className="text-center py-12 text-gray-500">
+          لا توجد وقوعات مسجلة
+        </div>
       )}
     </div>
   );
@@ -428,7 +506,9 @@ function VacationsSection({ employeeId }) {
   };
 
   if (loading) {
-    return <div className="text-center py-8 text-gray-600">جاري التحميل...</div>;
+    return (
+      <div className="text-center py-8 text-gray-600">جاري التحميل...</div>
+    );
   }
 
   return (
@@ -446,10 +526,19 @@ function VacationsSection({ employeeId }) {
             </thead>
             <tbody>
               {vacations.map((vacation, idx) => (
-                <tr key={idx} className="border-t border-gray-200 hover:bg-gray-50">
-                  <td className="px-4 py-3 text-sm">{vacation.type || "N/A"}</td>
-                  <td className="px-4 py-3 text-sm font-semibold text-emerald-600">{vacation.days || "0"}</td>
-                  <td className="px-4 py-3 text-sm">{vacation.startDate || "N/A"}</td>
+                <tr
+                  key={idx}
+                  className="border-t border-gray-200 hover:bg-gray-50"
+                >
+                  <td className="px-4 py-3 text-sm">
+                    {vacation.type || "N/A"}
+                  </td>
+                  <td className="px-4 py-3 text-sm font-semibold text-emerald-600">
+                    {vacation.days || "0"}
+                  </td>
+                  <td className="px-4 py-3 text-sm">
+                    {vacation.startDate || "N/A"}
+                  </td>
                   <td className="px-4 py-3 text-sm">
                     <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">
                       {vacation.status || "قيد الانتظار"}
@@ -461,7 +550,9 @@ function VacationsSection({ employeeId }) {
           </table>
         </div>
       ) : (
-        <div className="text-center py-12 text-gray-500">لا توجد إجازات مسجلة</div>
+        <div className="text-center py-12 text-gray-500">
+          لا توجد إجازات مسجلة
+        </div>
       )}
     </div>
   );
@@ -489,7 +580,9 @@ function RewardsSection({ employeeId }) {
   }, [employeeId]);
 
   if (loading) {
-    return <div className="text-center py-8 text-gray-600">جاري التحميل...</div>;
+    return (
+      <div className="text-center py-8 text-gray-600">جاري التحميل...</div>
+    );
   }
 
   return (
@@ -497,23 +590,39 @@ function RewardsSection({ employeeId }) {
       {rewards.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {rewards.map((reward) => (
-            <div key={reward._id} className="bg-gradient-to-br from-yellow-50 to-amber-50 rounded-lg p-4 border border-amber-200">
+            <div
+              key={reward._id}
+              className="bg-gradient-to-br from-yellow-50 to-amber-50 rounded-lg p-4 border border-amber-200"
+            >
               <div className="flex items-start gap-2 mb-3">
                 <Gift className="w-5 h-5 text-amber-600 mt-1" />
                 <div className="flex-1">
-                  <h4 className="font-semibold text-gray-800">{reward.title || "مكافأة"}</h4>
-                  <p className="text-sm text-gray-600">{reward.description || "بدون وصف"}</p>
+                  <h4 className="font-semibold text-gray-800">
+                    {reward.title || "مكافأة"}
+                  </h4>
+                  <p className="text-sm text-gray-600">
+                    {reward.description || "بدون وصف"}
+                  </p>
                 </div>
               </div>
               <div className="flex justify-between text-sm text-gray-600">
-                <span>التاريخ: {reward.date ? new Date(reward.date).toLocaleDateString("ar-EG") : "N/A"}</span>
-                <span className="font-semibold text-amber-600">{reward.amount || "N/A"}</span>
+                <span>
+                  التاريخ:{" "}
+                  {reward.date
+                    ? new Date(reward.date).toLocaleDateString("ar-EG")
+                    : "N/A"}
+                </span>
+                <span className="font-semibold text-amber-600">
+                  {reward.amount || "N/A"}
+                </span>
               </div>
             </div>
           ))}
         </div>
       ) : (
-        <div className="text-center py-12 text-gray-500">لا توجد مكافآت مسجلة</div>
+        <div className="text-center py-12 text-gray-500">
+          لا توجد مكافآت مسجلة
+        </div>
       )}
     </div>
   );
@@ -541,7 +650,9 @@ function PunishmentsSection({ employeeId }) {
   }, [employeeId]);
 
   if (loading) {
-    return <div className="text-center py-8 text-gray-600">جاري التحميل...</div>;
+    return (
+      <div className="text-center py-8 text-gray-600">جاري التحميل...</div>
+    );
   }
 
   return (
@@ -549,23 +660,39 @@ function PunishmentsSection({ employeeId }) {
       {punishments.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {punishments.map((punishment) => (
-            <div key={punishment._id} className="bg-gradient-to-br from-red-50 to-rose-50 rounded-lg p-4 border border-red-200">
+            <div
+              key={punishment._id}
+              className="bg-gradient-to-br from-red-50 to-rose-50 rounded-lg p-4 border border-red-200"
+            >
               <div className="flex items-start gap-2 mb-3">
                 <AlertCircle className="w-5 h-5 text-red-600 mt-1" />
                 <div className="flex-1">
-                  <h4 className="font-semibold text-gray-800">{punishment.title || "جزاء"}</h4>
-                  <p className="text-sm text-gray-600">{punishment.description || "بدون وصف"}</p>
+                  <h4 className="font-semibold text-gray-800">
+                    {punishment.title || "جزاء"}
+                  </h4>
+                  <p className="text-sm text-gray-600">
+                    {punishment.description || "بدون وصف"}
+                  </p>
                 </div>
               </div>
               <div className="flex justify-between text-sm text-gray-600">
-                <span>التاريخ: {punishment.date ? new Date(punishment.date).toLocaleDateString("ar-EG") : "N/A"}</span>
-                <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded">{punishment.level || "عادي"}</span>
+                <span>
+                  التاريخ:{" "}
+                  {punishment.date
+                    ? new Date(punishment.date).toLocaleDateString("ar-EG")
+                    : "N/A"}
+                </span>
+                <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded">
+                  {punishment.level || "عادي"}
+                </span>
               </div>
             </div>
           ))}
         </div>
       ) : (
-        <div className="text-center py-12 text-gray-500">لا توجد جزاءات مسجلة</div>
+        <div className="text-center py-12 text-gray-500">
+          لا توجد جزاءات مسجلة
+        </div>
       )}
     </div>
   );

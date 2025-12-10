@@ -125,13 +125,14 @@ export const addUserToGroup = async (req, res) => {
     }
 
     if (!user.permissionGroups.includes(groupId)) {
-      user.permissionGroups.push(groupId);
-      await user.save();
+      await User.findByIdAndUpdate(userId, {
+        $addToSet: { permissionGroups: groupId },
+      });
     }
 
     await group.populate([
       { path: "permissions" },
-      { path: "members", select: "-password" }
+      { path: "members", select: "-password" },
     ]);
     res.json(group);
   } catch (error) {
@@ -164,7 +165,7 @@ export const removeUserFromGroup = async (req, res) => {
 
     await group.populate([
       { path: "permissions" },
-      { path: "members", select: "-password" }
+      { path: "members", select: "-password" },
     ]);
 
     res.json({ message: "User removed from group", group });
@@ -215,29 +216,36 @@ export const updateUserPermissions = async (req, res) => {
     const { userId } = req.params;
     const { directPermissions } = req.body;
 
+    console.log("updateUserPermissions request:", { userId, body: req.body });
+
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
     if (!Array.isArray(directPermissions)) {
-      return res.status(400).json({ message: "directPermissions must be an array of permission IDs" });
+      console.error("directPermissions is not an array:", directPermissions);
+      return res.status(400).json({
+        message: "directPermissions must be an array of permission IDs",
+      });
     }
 
-    user.directPermissions = directPermissions;
-    await user.save();
+    await User.findByIdAndUpdate(userId, { directPermissions });
 
-    await user.populate("directPermissions");
-    await user.populate({
-      path: "permissionGroups",
-      populate: { path: "permissions" }
-    });
+    // Re-fetch user to return populated data
+    const updatedUser = await User.findById(userId)
+      .populate("directPermissions")
+      .populate({
+        path: "permissionGroups",
+        populate: { path: "permissions" },
+      });
 
     res.json({
       message: "User direct permissions updated",
-      permissions: user.permissions,
+      permissions: updatedUser.permissions,
     });
   } catch (error) {
+    console.error("updateUserPermissions error:", error);
     res.status(400).json({ message: error.message });
   }
 };

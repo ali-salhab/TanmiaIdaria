@@ -48,11 +48,16 @@ export const generateEmployeeCV = async (req, res) => {
 
     // 4️⃣ Fill static employee info
     const safe = (val) => (val ? String(val) : "");
+    const formatDate = (date) => {
+      if (!date) return "";
+      const d = new Date(date);
+      return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;
+    };
 
     sheet.getCell("B7").value = safe(employee.fullName);
     sheet.getCell("D7").value = safe(employee.fatherName);
     sheet.getCell("E7").value = safe(employee.motherNameAndLastName);
-    sheet.getCell("G7").value = `${safe(employee.birthPlace)} ${safe(
+    sheet.getCell("G7").value = `${safe(employee.birthPlace)} ${formatDate(
       employee.birthDate
     )}`;
     sheet.getCell("H7").value = safe(employee.registrationNumber);
@@ -60,8 +65,20 @@ export const generateEmployeeCV = async (req, res) => {
     sheet.getCell("L7").value = safe(employee.nationality);
     sheet.getCell("H5").value = safe(employee.nationalId);
 
+    // Add Excel Data Fields (Levels) - Adjust cell references as needed based on template
+    sheet.getCell("B8").value = safe(employee.level1);
+    sheet.getCell("D8").value = safe(employee.level2);
+    sheet.getCell("F8").value = safe(employee.level3);
+    sheet.getCell("H8").value = safe(employee.level4);
+    sheet.getCell("J8").value = safe(employee.level5);
+    sheet.getCell("L8").value = safe(employee.level6);
+
+    sheet.getCell("B9").value = safe(employee.selfNumber);
+    sheet.getCell("D9").value = safe(employee.currentJobTitle);
+    sheet.getCell("F9").value = safe(employee.jobCategory);
+
     // 5️⃣ Find the row where incidents should start (for example, row 14)
-    const startRow = 14;
+    const startRow = 15;
 
     // 6️⃣ Insert new rows dynamically (push existing rows down)
     sheet.spliceRows(startRow, 0, ...Array(employee.incidents.length).fill([]));
@@ -71,27 +88,25 @@ export const generateEmployeeCV = async (req, res) => {
       const row = startRow + index;
       const r = sheet.getRow(row);
 
-      r.getCell(2).value = safe(incident.work_center);
-      r.getCell(3).value = safe(incident.job_title);
-      r.getCell(4).value = safe(incident.job_type);
-      r.getCell(5).value = safe(incident.salary);
-      r.getCell(6).value = safe(incident.category);
-      r.getCell(7).value = safe(incident.start_date);
-      r.getCell(8).value = safe(incident.change_date);
-      r.getCell(9).value = safe(incident.reason);
-      r.getCell(10).value = safe(incident.document_type);
-      r.getCell(11).value = safe(incident.document_number);
-      r.getCell(12).value = safe(incident.document_date);
-      r.getCell(13).value = safe(incident.start_date);
+      r.getCell(1).value = safe(incident.work_center);
+      r.getCell(2).value = safe(incident.job_title);
+      r.getCell(3).value = safe(incident.job_type);
+      r.getCell(4).value = safe(incident.salary);
+      r.getCell(5).value = safe(incident.category);
+      r.getCell(6).value = formatDate(incident.start_date);
+      r.getCell(7).value = formatDate(incident.change_date);
+      r.getCell(8).value = safe(incident.reason);
+      r.getCell(9).value = safe(incident.document_type);
+      r.getCell(10).value = safe(incident.document_number);
+      r.getCell(11).value = formatDate(incident.document_date);
+      r.getCell(12).value = formatDate(incident.start_date);
 
       // Optional: copy style from the previous (template) row for consistency
       const templateRow = sheet.getRow(startRow - 1);
       templateRow.eachCell({ includeEmpty: true }, (cell, colNumber) => {
         if (cell.style) r.getCell(colNumber).style = { ...cell.style };
       });
-    });
-
-    // 8️⃣ Adjust column widths if necessary
+    }); // 8️⃣ Adjust column widths if necessary
     sheet.columns.forEach((col) => {
       let maxLength = 0;
       col.eachCell({ includeEmpty: true }, (cell) => {
@@ -119,7 +134,7 @@ export const generateEmployeeCV = async (req, res) => {
 export const createIncident = async (req, res) => {
   try {
     const incident = await Incident.create(req.body);
-    
+
     // Notify admin if action is performed by non-admin user
     if (req.user && req.user.role !== "admin") {
       // Get employee info for better notification context
@@ -129,12 +144,14 @@ export const createIncident = async (req, res) => {
         section: "incidents",
         action: "create",
         title: "تم إنشاء حادث جديد",
-        message: `تم إنشاء حادث جديد للموظف: ${employee?.fullName || "غير محدد"}`,
+        message: `تم إنشاء حادث جديد للموظف: ${
+          employee?.fullName || "غير محدد"
+        }`,
         employeeName: employee?.fullName,
         department: employee?.level4 || employee?.currentJobTitle || null,
       });
     }
-    
+
     res.status(201).json(incident);
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -163,7 +180,7 @@ export const deleteIncident = async (req, res) => {
       return res.status(404).send({ message: "content not found" });
     } else {
       console.log("================else====================");
-      
+
       // Notify admin if action is performed by non-admin user
       if (req.user && req.user.role !== "admin") {
         // Get employee info for better notification context
@@ -200,7 +217,7 @@ export const updateIncident = async (req, res) => {
     });
     if (!incident)
       return res.status(404).json({ message: "Incident not found" });
-    
+
     // Notify admin if action is performed by non-admin user
     if (req.user && req.user.role !== "admin") {
       // Get employee info for better notification context
@@ -210,12 +227,14 @@ export const updateIncident = async (req, res) => {
         section: "incidents",
         action: "update",
         title: "تم تحديث بيانات حادث",
-        message: `تم تحديث بيانات الحادث للموظف: ${employee?.fullName || "غير محدد"}`,
+        message: `تم تحديث بيانات الحادث للموظف: ${
+          employee?.fullName || "غير محدد"
+        }`,
         employeeName: employee?.fullName,
         department: employee?.level4 || employee?.currentJobTitle || null,
       });
     }
-    
+
     res.json(incident);
   } catch (error) {
     console.error(error);

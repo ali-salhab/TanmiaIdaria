@@ -3,6 +3,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { protect } from "../middleware/auth.js";
+import checkPermission from "../middleware/checkPermission.js";
 import * as circularController from "../controllers/circularController.js";
 
 const router = express.Router();
@@ -49,22 +50,69 @@ const upload = multer({
   limits: { fileSize: 50 * 1024 * 1024 },
 });
 
-router.post("/", protect, upload.any(), circularController.createCircular);
+router.post(
+  "/",
+  protect,
+  checkPermission("circulars.create"),
+  upload.any(),
+  circularController.createCircular
+);
 
-router.get("/", protect, circularController.getAllCirculars);
+router.get(
+  "/",
+  protect,
+  checkPermission("circulars.view"),
+  circularController.getAllCirculars
+);
 
-router.get("/stats", protect, circularController.getCircularStats);
+router.get(
+  "/stats",
+  protect,
+  checkPermission("circulars.view"),
+  circularController.getCircularStats
+);
 
-router.get("/unviewed-count", protect, circularController.getUnviewedCount);
+router.get(
+  "/unviewed-count",
+  protect,
+  checkPermission("circulars.view"),
+  circularController.getUnviewedCount
+);
 
-router.get("/:id", protect, circularController.getCircularById);
+router.get(
+  "/:id",
+  protect,
+  checkPermission("circulars.view"),
+  circularController.getCircularById
+);
 
-router.put("/:id", protect, upload.any(), circularController.updateCircular);
+router.put(
+  "/:id",
+  protect,
+  checkPermission("circulars.edit"),
+  upload.any(),
+  circularController.updateCircular
+);
 
-router.delete("/:id", protect, circularController.deleteCircular);
+router.delete(
+  "/:id",
+  protect,
+  checkPermission("circulars.delete"),
+  circularController.deleteCircular
+);
 
-router.post("/:id/view", protect, circularController.markAsViewed);
+router.post(
+  "/:id/view",
+  protect,
+  checkPermission("circulars.view"),
+  circularController.markAsViewed
+);
 
-router.get("/:id/viewers", protect, circularController.getCircularViewers);
+router.get(
+  "/:id/viewers",
+  protect,
+  checkPermission("circulars.view"),
+  circularController.getCircularViewers
+);
 
 export default router;

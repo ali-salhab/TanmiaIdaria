@@ -12,6 +12,9 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useSocket } from "../context/SocketContext";
 import { useSettings } from "../context/SettingsContext";
+import API from "../api/api";
+import GlobalSearchModal from "./GlobalSearchModal";
+
 const navbarMessages = [
   "🎯 مرحباً بك في نظام إدارة التنمية الإدارية",
   "📊 إدارة فعالة للموارد البشرية",
@@ -35,6 +38,21 @@ export default function Navbar({
   const [isFlipping, setIsFlipping] = useState(false);
   const { socket } = useSocket();
   const isAdmin = userInfo?.role === "admin";
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const res = await API.get("/notifications");
+        setNotifications(res.data);
+      } catch (error) {
+        console.error("Failed to fetch notifications", error);
+      }
+    };
+    if (userInfo) {
+      fetchNotifications();
+    }
+  }, [userInfo]);
+
   useEffect(() => {
     const messageInterval = setInterval(() => {
       setIsFlipping(true);
@@ -88,11 +106,11 @@ export default function Navbar({
 
   return (
     <>
-      <nav className="fixed top-0 right-0 left-0 h-16 bg-gradient-to-r from-white/80 via-white/70 to-white/80 backdrop-blur-md border-b border-teal-200/50 flex items-center justify-between px-4 md:px-6 z-30 shadow-md">
+      <nav className="fixed top-0 right-0 left-0 h-16 bg-white/90 backdrop-blur-md border-b border-gray-200 flex items-center justify-between px-4 md:px-6 z-30 shadow-sm">
         <div className="flex items-center gap-2 md:gap-4 flex-1">
           <button
             onClick={onToggleSidebar}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-all transform hover:scale-110 lg:hidden"
+            className="p-2 hover:bg-primary/10 rounded-lg transition-all transform hover:scale-110 lg:hidden text-secondary"
             title={
               sidebarOpen ? "إغلاق القائمة الجانبية" : "فتح القائمة الجانبية"
             }
@@ -103,6 +121,15 @@ export default function Navbar({
               <Menu className="w-5 h-5 text-gray-600 animate-pulse" />
             )}
           </button>
+
+          {/* Logo */}
+          <div className="hidden md:flex items-center gap-2">
+            <img
+              src="/logo.png"
+              alt="Logo"
+              className="h-12 w-auto object-contain"
+            />
+          </div>
 
           {/* Animated Message with 3D Flip */}
           {/* <div className="relative  sm:flex items-center gap-3 flex-1 max-w-md hidden">
@@ -127,10 +154,9 @@ export default function Navbar({
             <input
               type="text"
               placeholder="ابحث..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              readOnly
               onFocus={() => setShowSearchModal(true)}
-              className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-200 border-r-8 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm text-black"
+              className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-200 border-r-8 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm text-black cursor-pointer"
               dir="rtl"
             />
           </div>
@@ -185,7 +211,9 @@ export default function Navbar({
               </div>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => navigate(isAdmin ? "/dashboard/settings" : "/settings")}
+                  onClick={() =>
+                    navigate(isAdmin ? "/dashboard/settings" : "/settings")
+                  }
                   className="p-2 hover:bg-gray-100 rounded-lg transition"
                   title="الإعدادات"
                 >
@@ -255,6 +283,10 @@ export default function Navbar({
 }
 
     `}</style>
+      <GlobalSearchModal
+        show={showSearchModal}
+        onClose={() => setShowSearchModal(false)}
+      />
     </>
   );
 }

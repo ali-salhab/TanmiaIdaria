@@ -9,11 +9,14 @@ import EmployeeIncidents from "../pages/EmployeeIncidents";
 import EmployeeVacations from "../pages/EmployeeVacations";
 import EmployeeRewards from "../pages/EmployeeRewards";
 import EmployeePenalties from "../pages/EmployeePenalties";
+import EmployeeCourses from "../pages/EmployeeCourses";
 export default function EmployeeEdit() {
   const { id } = useParams();
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
   const docInputRef = useRef(null);
+
+  const isNew = id === "add";
 
   const [employee, setEmployee] = useState({});
   const [loading, setLoading] = useState(true);
@@ -23,6 +26,10 @@ export default function EmployeeEdit() {
 
   // 🔹 تحميل بيانات الموظف
   const fetchEmployee = async () => {
+    if (isNew) {
+      setLoading(false);
+      return;
+    }
     try {
       const res = await API.get(`/employees/${id}`);
       setEmployee(res.data || {});
@@ -45,8 +52,13 @@ export default function EmployeeEdit() {
 
   const handleSave = async () => {
     try {
-      await API.put(`/employees/${id}`, employee);
-      toast.success("تم حفظ البيانات بنجاح!");
+      if (isNew) {
+        await API.post("/employees", employee);
+        toast.success("تم إضافة الموظف بنجاح!");
+      } else {
+        await API.put(`/employees/${id}`, employee);
+        toast.success("تم حفظ البيانات بنجاح!");
+      }
       navigate("/dashboard/employees");
     } catch {
       toast.error("فشل في حفظ البيانات");
@@ -130,113 +142,117 @@ export default function EmployeeEdit() {
   return (
     <div className="p-6 max-w-7xl mx-auto font-custom text-right" dir="rtl">
       {/* 🪪 رأس الصفحة */}
-      <div className="bg-white shadow-md rounded-2xl border p-6 flex flex-col md:flex-row gap-6 items-start">
-        <div className="flex flex-col items-center md:w-1/3">
-          <img
-            src={
-              photoPreview ||
-              employee.photo ||
-              VITE_API_URL + "/uploads/default-avatar.png"
-            }
-            alt="صورة الموظف"
-            className="h-36 w-36 rounded-full border-4 border-blue-400 object-cover shadow-md"
-          />
-          <h3 className="text-xl font-bold mt-3">{employee.fullName}</h3>
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            disabled={uploading}
-            className="mt-2 bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700"
-          >
-            {uploading ? "جاري التحميل..." : "تغيير الصورة"}
-          </button>
-          <input
-            type="file"
-            accept="image/*"
-            ref={fileInputRef}
-            onChange={handlePhotoChange}
-            className="hidden"
-          />
-        </div>
+      {!isNew && (
+        <div className="bg-white shadow-md rounded-2xl border p-6 flex flex-col md:flex-row gap-6 items-start">
+          <div className="flex flex-col items-center md:w-1/3">
+            <img
+              src={
+                photoPreview ||
+                employee.photo ||
+                VITE_API_URL + "/uploads/default-avatar.png"
+              }
+              alt="صورة الموظف"
+              className="h-36 w-36 rounded-full border-4 border-blue-400 object-cover shadow-md"
+            />
+            <h3 className="text-xl font-bold mt-3">{employee.fullName}</h3>
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              className="mt-2 bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700"
+            >
+              {uploading ? "جاري التحميل..." : "تغيير الصورة"}
+            </button>
+            <input
+              type="file"
+              accept="image/*"
+              ref={fileInputRef}
+              onChange={handlePhotoChange}
+              className="hidden"
+            />
+          </div>
 
-        {/* معلومات سريعة */}
-        <div className="flex-1 grid grid-cols-2 gap-4">
-          <div>
-            <p className="text-sm text-gray-500">الرقم الذاتي</p>
-            <p className="font-semibold">{employee.selfNumber || "—"}</p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-500">الوظيفة</p>
-            <p className="font-semibold">{employee.job_title || "—"}</p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-500">المؤهل العلمي</p>
-            <p className="font-semibold">{employee.qualification || "—"}</p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-500">الراتب</p>
-            <p className="font-semibold">{employee.salary || "—"}</p>
+          {/* معلومات سريعة */}
+          <div className="flex-1 grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-sm text-gray-500">الرقم الذاتي</p>
+              <p className="font-semibold">{employee.selfNumber || "—"}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">الوظيفة</p>
+              <p className="font-semibold">{employee.job_title || "—"}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">المؤهل العلمي</p>
+              <p className="font-semibold">{employee.qualification || "—"}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">الراتب</p>
+              <p className="font-semibold">{employee.salary || "—"}</p>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* ✅ التبويبات */}
       <div className="mt-8">
-        <div className="flex flex-wrap gap-3 border-b border-gray-200 pb-2">
-          {[
-            { key: "info", label: "البيانات الشخصية" },
-            { key: "documents", label: "الوثائق" },
-            { key: "incidents", label: "الوقوعات" },
-            { key: "vacations", label: "الإجازات" },
-            { key: "rewards", label: "المكافآت" },
-            { key: "Penalties", label: "العقوبات" },
-          ].map((tab) => (
-            <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
-              className={`px-4 py-2 rounded-t-lg text-sm font-semibold ${
-                activeTab === tab.key
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
+        {!isNew && (
+          <div className="flex flex-wrap gap-3 border-b border-gray-200 pb-2">
+            {[
+              { key: "info", label: "البيانات الشخصية" },
+              { key: "documents", label: "الوثائق" },
+              { key: "incidents", label: "الوقوعات" },
+              { key: "vacations", label: "الإجازات" },
+              { key: "rewards", label: "المكافآت" },
+              { key: "Penalties", label: "العقوبات" },
+              { key: "courses", label: "الدورات" },
+            ].map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className={`px-4 py-2 rounded-t-lg text-sm font-semibold ${
+                  activeTab === tab.key
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* محتوى التبويبات */}
         <div className="bg-white rounded-b-lg shadow-md p-6 mt-2">
           {activeTab === "info" && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {Object.entries(employee)
-                .filter(([key]) => !excluded.includes(key))
-                .map(([key, value]) => (
-                  <div key={key} className="flex flex-col">
-                    <label className="mb-1 text-sm font-semibold text-gray-600">
-                      {fieldLabels[key] || key}
-                    </label>
-                    <input
-                      name={key}
-                      value={value || ""}
-                      onChange={handleChange}
-                      className="border rounded p-2 focus:ring-2 focus:ring-blue-400"
-                    />
-                  </div>
-                ))}
+              {Object.keys(fieldLabels).map((key) => (
+                <div key={key} className="flex flex-col">
+                  <label className="mb-1 text-sm font-semibold text-gray-600">
+                    {fieldLabels[key]}
+                  </label>
+                  <input
+                    name={key}
+                    value={employee[key] || ""}
+                    onChange={handleChange}
+                    className="border rounded p-2 focus:ring-2 focus:ring-blue-400"
+                  />
+                </div>
+              ))}
             </div>
           )}
 
-          {activeTab === "documents" && (
+          {!isNew && activeTab === "documents" && (
             <EmployeeDocuments
               employeeId={id}
               existingDocs={employee.documents || []}
             />
           )}
 
-          {activeTab === "incidents" && <EmployeeIncidents />}
-          {activeTab === "vacations" && <EmployeeVacations />}
-          {activeTab === "Penalties" && <EmployeePenalties />}
-          {activeTab === "rewards" && <EmployeeRewards />}
+          {!isNew && activeTab === "incidents" && <EmployeeIncidents />}
+          {!isNew && activeTab === "vacations" && <EmployeeVacations />}
+          {!isNew && activeTab === "Penalties" && <EmployeePenalties />}
+          {!isNew && activeTab === "rewards" && <EmployeeRewards />}
+          {!isNew && activeTab === "courses" && <EmployeeCourses />}
         </div>
       </div>
 
@@ -246,14 +262,16 @@ export default function EmployeeEdit() {
           onClick={handleSave}
           className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
         >
-          حفظ التعديلات
+          {isNew ? "إضافة الموظف" : "حفظ التعديلات"}
         </button>
-        <button
-          onClick={handleDelete}
-          className="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700"
-        >
-          حذف الموظف
-        </button>
+        {!isNew && (
+          <button
+            onClick={handleDelete}
+            className="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700"
+          >
+            حذف الموظف
+          </button>
+        )}
       </div>
     </div>
   );

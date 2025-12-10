@@ -17,6 +17,7 @@ export default function EmployeeIncidents() {
   const [selectedIncident, setSelectedIncident] = useState(null);
   const [currentEmployee, setCurrentEmployee] = useState(null);
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("general"); // general | internal
   const [user, setUser] = useState(null);
   const [dropdownSettings, setDropdownSettings] = useState({
     category: ["أولى", "تانية", "تالتة", "رابعة", "خامسة"],
@@ -87,8 +88,11 @@ export default function EmployeeIncidents() {
   };
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setSelectedIncident({ ...selectedIncident, [name]: value });
+    const { name, value, type, checked } = e.target;
+    setSelectedIncident({
+      ...selectedIncident,
+      [name]: type === "checkbox" ? checked : value,
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -172,10 +176,7 @@ export default function EmployeeIncidents() {
   };
 
   return (
-    <div
-      className="max-w-6xl mx-auto p-6 bg-gray-50 rounded-lg mt-6"
-      dir="rtl"
-    >
+    <div className="max-w-6xl mx-auto p-6 bg-gray-50 rounded-lg mt-6" dir="rtl">
       <div className="flex justify-between items-center mb-6 flex-wrap gap-3">
         <h2 className="text-2xl font-bold text-gray-800">الوقوعات للموظف</h2>
         <span className="text-gray-600 font-medium">
@@ -204,6 +205,30 @@ export default function EmployeeIncidents() {
         </div>
       </div>
 
+      {/* Tabs */}
+      <div className="flex border-b border-gray-300 mb-4">
+        <button
+          className={`py-2 px-4 font-medium transition ${
+            activeTab === "general"
+              ? "border-b-2 border-blue-600 text-blue-600"
+              : "text-gray-500 hover:text-gray-700"
+          }`}
+          onClick={() => setActiveTab("general")}
+        >
+          الوقوعات العامة
+        </button>
+        <button
+          className={`py-2 px-4 font-medium transition ${
+            activeTab === "internal"
+              ? "border-b-2 border-blue-600 text-blue-600"
+              : "text-gray-500 hover:text-gray-700"
+          }`}
+          onClick={() => setActiveTab("internal")}
+        >
+          الوقوعات الداخلية
+        </button>
+      </div>
+
       <div className="bg-white rounded-lg shadow overflow-x-auto">
         <table className="min-w-full border-collapse">
           <thead className="bg-gray-200 border-b border-gray-300">
@@ -220,26 +245,37 @@ export default function EmployeeIncidents() {
             </tr>
           </thead>
           <tbody>
-            {incidents.map((inc) => (
-              <tr key={inc._id} className="border-b border-gray-200 hover:bg-gray-100 text-sm transition">
-                <td className="py-2 px-4 text-gray-700">{inc.work_center}</td>
-                <td className="py-2 px-4 text-gray-700">{inc.job_title}</td>
-                <td className="py-2 px-4 text-gray-700">{inc.job_type}</td>
-                <td className="py-2 px-4 text-gray-700">{inc.salary}</td>
-                <td className="py-2 px-4 text-gray-700">{inc.category}</td>
-                <td className="py-2 px-4 text-gray-700">{inc.start_date?.split("T")[0]}</td>
-                <td className="py-2 px-4 text-gray-700">{inc.change_date?.split("T")[0]}</td>
-                <td className="py-2 px-4 text-gray-700">{inc.reason}</td>
-                <td className="py-2 px-4 text-center">
-                  <button
-                    onClick={() => openEditModal(inc)}
-                    className="text-gray-600 hover:text-gray-800 transition"
-                  >
-                    <FaEdit />
-                  </button>
-                </td>
-              </tr>
-            ))}
+            {incidents
+              .filter((inc) =>
+                activeTab === "internal" ? inc.isInternal : !inc.isInternal
+              )
+              .map((inc) => (
+                <tr
+                  key={inc._id}
+                  className="border-b border-gray-200 hover:bg-gray-100 text-sm transition"
+                >
+                  <td className="py-2 px-4 text-gray-700">{inc.work_center}</td>
+                  <td className="py-2 px-4 text-gray-700">{inc.job_title}</td>
+                  <td className="py-2 px-4 text-gray-700">{inc.job_type}</td>
+                  <td className="py-2 px-4 text-gray-700">{inc.salary}</td>
+                  <td className="py-2 px-4 text-gray-700">{inc.category}</td>
+                  <td className="py-2 px-4 text-gray-700">
+                    {inc.start_date?.split("T")[0]}
+                  </td>
+                  <td className="py-2 px-4 text-gray-700">
+                    {inc.change_date?.split("T")[0]}
+                  </td>
+                  <td className="py-2 px-4 text-gray-700">{inc.reason}</td>
+                  <td className="py-2 px-4 text-center">
+                    <button
+                      onClick={() => openEditModal(inc)}
+                      className="text-gray-600 hover:text-gray-800 transition"
+                    >
+                      <FaEdit />
+                    </button>
+                  </td>
+                </tr>
+              ))}
             {incidents.length === 0 && (
               <tr>
                 <td colSpan="9" className="text-center py-4 text-gray-500">
@@ -253,7 +289,9 @@ export default function EmployeeIncidents() {
       {cvModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
           <div className="bg-white rounded-lg p-6 max-w-md w-full transform transition-all duration-300 animate-fadeInUp overflow-y-auto max-h-[90vh]">
-            <h3 className="text-xl font-bold mb-4 text-center text-gray-800">البطاقة الداتية للموظف</h3>
+            <h3 className="text-xl font-bold mb-4 text-center text-gray-800">
+              البطاقة الداتية للموظف
+            </h3>
             <p className="text-gray-600 text-sm mb-4 text-center">
               يتم إنشاء ملف Excel يتضمن بيانات الموظف والوقوعات الخاصة به
             </p>
@@ -269,11 +307,16 @@ export default function EmployeeIncidents() {
                 type="button"
                 onClick={async () => {
                   try {
-                    const response = await API.get(`/incidents/${id}/generate-cv`, {
-                      responseType: "blob",
-                    });
-                    
-                    const url = window.URL.createObjectURL(new Blob([response.data]));
+                    const response = await API.get(
+                      `/incidents/${id}/generate-cv`,
+                      {
+                        responseType: "blob",
+                      }
+                    );
+
+                    const url = window.URL.createObjectURL(
+                      new Blob([response.data])
+                    );
                     const link = document.createElement("a");
                     link.href = url;
                     link.setAttribute("download", `البطاقة_الداتية.xlsx`);
@@ -281,7 +324,7 @@ export default function EmployeeIncidents() {
                     link.click();
                     link.parentNode.removeChild(link);
                     window.URL.revokeObjectURL(url);
-                    
+
                     setcvModalOpen(false);
                     toast.success("تم تحميل البطاقة الداتية بنجاح");
                   } catch (error) {
@@ -376,6 +419,17 @@ export default function EmployeeIncidents() {
                 </div>
               ))}
 
+              <div className="flex items-center gap-2 mt-2">
+                <input
+                  type="checkbox"
+                  name="isInternal"
+                  checked={selectedIncident.isInternal || false}
+                  onChange={handleChange}
+                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <label className="text-gray-700 font-medium">وقوع داخلي</label>
+              </div>
+
               <div className="flex justify-between mt-4">
                 <button
                   type="button"
@@ -405,7 +459,9 @@ export default function EmployeeIncidents() {
           className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
         >
           <div className="bg-white rounded-lg p-6 max-w-2xl w-full transform transition-all duration-300 scale-95 animate-fadeInUp overflow-y-auto max-h-[90vh]">
-            <h3 className="text-xl font-bold mb-4 text-center text-gray-800">إعدادات القائمات المنسدلة</h3>
+            <h3 className="text-xl font-bold mb-4 text-center text-gray-800">
+              إعدادات القائمات المنسدلة
+            </h3>
             <form className="space-y-4">
               {[
                 { label: "الفئة", key: "category" },
@@ -413,7 +469,9 @@ export default function EmployeeIncidents() {
                 { label: "نوع المستند", key: "document_type" },
               ].map((field) => (
                 <div key={field.key} className="flex flex-col">
-                  <label className="mb-2 font-semibold text-gray-800">{field.label}</label>
+                  <label className="mb-2 font-semibold text-gray-800">
+                    {field.label}
+                  </label>
                   <div className="space-y-2">
                     {(dropdownSettings[field.key] || []).map((item, idx) => (
                       <div key={idx} className="flex items-center gap-2">
@@ -432,7 +490,9 @@ export default function EmployeeIncidents() {
                           type="button"
                           onClick={() => {
                             const newSettings = { ...dropdownSettings };
-                            newSettings[field.key] = newSettings[field.key].filter((_, i) => i !== idx);
+                            newSettings[field.key] = newSettings[
+                              field.key
+                            ].filter((_, i) => i !== idx);
                             setDropdownSettings(newSettings);
                           }}
                           className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded transition"
@@ -446,7 +506,10 @@ export default function EmployeeIncidents() {
                     type="button"
                     onClick={() => {
                       const newSettings = { ...dropdownSettings };
-                      newSettings[field.key] = [...(newSettings[field.key] || []), ""];
+                      newSettings[field.key] = [
+                        ...(newSettings[field.key] || []),
+                        "",
+                      ];
                       setDropdownSettings(newSettings);
                     }}
                     className="mt-2 bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded transition w-full"

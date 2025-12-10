@@ -1,5 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { Settings, ChevronUp, ChevronDown, Eye, EyeOff, Plus, Edit2, Trash2, X } from "lucide-react";
+import {
+  Settings,
+  ChevronUp,
+  ChevronDown,
+  Eye,
+  EyeOff,
+  Plus,
+  Edit2,
+  Trash2,
+  X,
+} from "lucide-react";
 import API from "../api/api";
 
 export default function DropdownWithSettings({
@@ -10,6 +20,7 @@ export default function DropdownWithSettings({
   label,
   className = "",
   placeholder = "اختر...",
+  isAdmin = false,
 }) {
   const [showSettings, setShowSettings] = useState(false);
   const [visibleOptions, setVisibleOptions] = useState(options);
@@ -31,23 +42,27 @@ export default function DropdownWithSettings({
         // Encode options as query params for auto-creation
         const optionsParam = encodeURIComponent(JSON.stringify(options));
         const labelParam = encodeURIComponent(label || id);
-        
+
         const response = await API.get(
           `/dropdown-options/${id}?label=${labelParam}&options=${optionsParam}`
         );
         const backendSettings = response.data;
-        
-        if (backendSettings && backendSettings.options && backendSettings.options.length > 0) {
+
+        if (
+          backendSettings &&
+          backendSettings.options &&
+          backendSettings.options.length > 0
+        ) {
           const settings = {};
           const orderedOptions = [];
-          
+
           backendSettings.options.forEach((opt) => {
             settings[opt.value] = opt.visible !== false;
             if (opt.visible !== false) {
               orderedOptions.push(opt);
             }
           });
-          
+
           setOptionSettings(settings);
           setVisibleOptions(orderedOptions);
           setAllOptions(backendSettings.options);
@@ -55,7 +70,7 @@ export default function DropdownWithSettings({
           // If backend has no options, use the provided options
           const settings = {};
           const orderedOptions = [];
-          
+
           options.forEach((opt, idx) => {
             settings[opt.value] = true;
             orderedOptions.push({
@@ -64,11 +79,11 @@ export default function DropdownWithSettings({
               order: idx,
             });
           });
-          
+
           setOptionSettings(settings);
           setVisibleOptions(orderedOptions);
           setAllOptions(orderedOptions);
-          
+
           // Try to save to backend
           try {
             await API.post("/dropdown-options", {
@@ -125,8 +140,10 @@ export default function DropdownWithSettings({
     };
     setOptionSettings(updated);
     localStorage.setItem(storageKey, JSON.stringify(updated));
-    
-    const newVisibleOptions = allOptions.filter((opt) => updated[opt.value] !== false);
+
+    const newVisibleOptions = allOptions.filter(
+      (opt) => updated[opt.value] !== false
+    );
     setVisibleOptions(newVisibleOptions);
 
     try {
@@ -163,7 +180,10 @@ export default function DropdownWithSettings({
 
     if (swapIndex < 0 || swapIndex >= newOrder.length) return;
 
-    [newOrder[index], newOrder[swapIndex]] = [newOrder[swapIndex], newOrder[index]];
+    [newOrder[index], newOrder[swapIndex]] = [
+      newOrder[swapIndex],
+      newOrder[index],
+    ];
     setAllOptions(newOrder);
 
     try {
@@ -257,20 +277,23 @@ export default function DropdownWithSettings({
               order: allOptions.length,
             },
           ];
-          
+
           await API.post("/dropdown-options", {
             dropdownId: id,
             label: label || id,
             options: newOptions,
-            defaultOptions: [...options, { label: newOptionLabel, value: newOptionValue }],
+            defaultOptions: [
+              ...options,
+              { label: newOptionLabel, value: newOptionValue },
+            ],
           });
-          
+
           // Retry adding the option
           const response = await API.post(`/dropdown-options/${id}/options`, {
             label: newOptionLabel,
             value: newOptionValue,
           });
-          
+
           if (response.data && response.data.options) {
             setAllOptions(response.data.options);
             const settings = {};
@@ -284,7 +307,7 @@ export default function DropdownWithSettings({
             setOptionSettings(settings);
             setVisibleOptions(orderedOptions);
           }
-          
+
           setNewOptionLabel("");
           setNewOptionValue("");
           setShowAddModal(false);
@@ -335,19 +358,19 @@ export default function DropdownWithSettings({
       // If dropdown doesn't exist, create it first
       if (err.response?.status === 404) {
         try {
-          const updatedOptions = allOptions.map(opt => 
-            opt.value === editingOption.value 
+          const updatedOptions = allOptions.map((opt) =>
+            opt.value === editingOption.value
               ? { ...opt, label: newOptionLabel }
               : opt
           );
-          
+
           await API.post("/dropdown-options", {
             dropdownId: id,
             label: label || id,
             options: updatedOptions,
             defaultOptions: options,
           });
-          
+
           setAllOptions(updatedOptions);
           const settings = {};
           const orderedOptions = [];
@@ -359,7 +382,7 @@ export default function DropdownWithSettings({
           });
           setOptionSettings(settings);
           setVisibleOptions(orderedOptions);
-          
+
           setNewOptionLabel("");
           setEditingOption(null);
           setShowEditModal(false);
@@ -398,7 +421,9 @@ export default function DropdownWithSettings({
     } catch (err) {
       // If dropdown doesn't exist, just update local state
       if (err.response?.status === 404) {
-        const updatedOptions = allOptions.filter(opt => opt.value !== optionValue);
+        const updatedOptions = allOptions.filter(
+          (opt) => opt.value !== optionValue
+        );
         setAllOptions(updatedOptions);
         const settings = {};
         const orderedOptions = [];
@@ -438,13 +463,15 @@ export default function DropdownWithSettings({
             ))}
           </select>
 
-          <button
-            onClick={() => setShowSettings(!showSettings)}
-            className="absolute left-2 top-1/2 -translate-y-1/2 p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-all duration-200 group-hover:scale-110 shadow-sm hover:shadow-md border border-blue-200"
-            title="إعدادات القائمة المنسدلة"
-          >
-            <Settings className="w-4 h-4" />
-          </button>
+          {isAdmin && (
+            <button
+              onClick={() => setShowSettings(!showSettings)}
+              className="absolute left-2 top-1/2 -translate-y-1/2 p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-all duration-200 group-hover:scale-110 shadow-sm hover:shadow-md border border-blue-200"
+              title="إعدادات القائمة المنسدلة"
+            >
+              <Settings className="w-4 h-4" />
+            </button>
+          )}
         </div>
       </div>
 
@@ -552,7 +579,9 @@ export default function DropdownWithSettings({
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-800">إضافة خيار جديد</h3>
+              <h3 className="text-lg font-semibold text-gray-800">
+                إضافة خيار جديد
+              </h3>
               <button
                 onClick={() => {
                   setShowAddModal(false);
@@ -590,7 +619,9 @@ export default function DropdownWithSettings({
                 <input
                   type="text"
                   value={newOptionValue}
-                  onChange={(e) => setNewOptionValue(e.target.value.replace(/\s+/g, "_"))}
+                  onChange={(e) =>
+                    setNewOptionValue(e.target.value.replace(/\s+/g, "_"))
+                  }
                   placeholder="أدخل قيمة الخيار"
                   className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
@@ -623,7 +654,9 @@ export default function DropdownWithSettings({
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-800">تعديل الخيار</h3>
+              <h3 className="text-lg font-semibold text-gray-800">
+                تعديل الخيار
+              </h3>
               <button
                 onClick={() => {
                   setShowEditModal(false);

@@ -1,23 +1,43 @@
 import express from "express";
-import { protect, authorize } from "../middleware/auth.js";
+import { protect } from "../middleware/auth.js";
+import checkPermission from "../middleware/checkPermission.js";
 import * as reportCtrl from "../controllers/reportController.js";
 
 const router = express.Router();
 
-// All routes are protected and admin-only
+// All routes are protected
 router.use(protect);
-router.use(authorize("admin"));
 
 // Get report data with statistics
-router.get("/data", reportCtrl.getReportData);
+router.get("/data", checkPermission("reports.view"), reportCtrl.getReportData);
 
 // Archive management
-router.post("/archive", reportCtrl.saveReportConfig);
-router.get("/archive", reportCtrl.getArchivedReports);
-router.delete("/archive/:id", reportCtrl.deleteArchivedReport);
-router.put("/archive/:id/use", reportCtrl.updateReportLastUsed);
+router.post(
+  "/archive",
+  checkPermission("reports.archive"),
+  reportCtrl.saveReportConfig
+);
+router.get(
+  "/archive",
+  checkPermission("reports.view_archived"),
+  reportCtrl.getArchivedReports
+);
+router.delete(
+  "/archive/:id",
+  checkPermission("reports.delete"),
+  reportCtrl.deleteArchivedReport
+);
+router.put(
+  "/archive/:id/use",
+  checkPermission("reports.view"),
+  reportCtrl.updateReportLastUsed
+);
 
 // Export routes
-router.get("/export/excel", reportCtrl.exportReportExcel);
+router.get(
+  "/export/excel",
+  checkPermission("reports.export"),
+  reportCtrl.exportReportExcel
+);
 
 export default router;

@@ -5,7 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 import API from "../api/api";
 import Pagination from "../components/Pagination";
 import DropdownWithSettings from "../components/DropdownWithSettings";
-import * as XLSX from "xlsx";
+import XLSX from "xlsx-js-style";
 import { saveAs } from "file-saver";
 import jsPDF from "jspdf";
 // Correct import for autotable with Vite/ES6

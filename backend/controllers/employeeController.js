@@ -32,6 +32,19 @@ export const updateEmployeePhoto = async (req, res) => {
     employee.photo = `/uploads/${req.file.filename}`;
     await employee.save();
 
+    // Notify admin if action is performed by non-admin user
+    if (req.user && req.user.role !== "admin") {
+      await notifyAdmin({
+        actionBy: req.user._id,
+        section: "employees",
+        action: "update",
+        title: "تم تحديث صورة موظف",
+        message: `تم تحديث صورة الموظف: ${employee.fullName || "غير محدد"}`,
+        employeeName: employee.fullName,
+        department: employee.level4 || employee.currentJobTitle || null,
+      });
+    }
+
     res.json({
       message: "Profile photo updated successfully",
       photo: employee.photo,
@@ -67,6 +80,21 @@ export const uploadEmployeeDocs = async (req, res) => {
 
     await employee.save();
 
+    // Notify admin if action is performed by non-admin user
+    if (req.user && req.user.role !== "admin") {
+      await notifyAdmin({
+        actionBy: req.user._id,
+        section: "documents",
+        action: "create",
+        title: "تم إضافة وثائق لموظف",
+        message: `تم إضافة ${newDocs.length} وثيقة للموظف: ${
+          employee.fullName || "غير محدد"
+        }`,
+        employeeName: employee.fullName,
+        department: employee.level4 || employee.currentJobTitle || null,
+      });
+    }
+
     res.json({
       message: "Documents uploaded successfully",
       documents: employee.documents,
@@ -89,17 +117,51 @@ export const listEmployees = async (req, res) => {
       "currentJobTitle",
       "university",
       "workLocation",
+      "level1",
+      "level2",
+      "level3",
       "level4",
+      "level5",
+      "level6",
       "nationalId",
       "jobCategory",
       "status",
       "phone",
       "employmentType",
       "selfNumber",
+      "maritalStatus",
+      "educationLevel",
+      "specialization",
+      "contractType",
+      "bloodType",
     ];
     allowed.forEach((k) => {
       if (req.query[k]) filters[k] = req.query[k];
     });
+
+    // Age Filter
+    if (req.query.ageMin || req.query.ageMax) {
+      const today = new Date();
+      filters.birthDate = {};
+
+      if (req.query.ageMin) {
+        const maxBirthDate = new Date(
+          today.getFullYear() - parseInt(req.query.ageMin),
+          today.getMonth(),
+          today.getDate()
+        );
+        filters.birthDate.$lte = maxBirthDate;
+      }
+
+      if (req.query.ageMax) {
+        const minBirthDate = new Date(
+          today.getFullYear() - parseInt(req.query.ageMax) - 1,
+          today.getMonth(),
+          today.getDate()
+        );
+        filters.birthDate.$gte = minBirthDate;
+      }
+    }
 
     const searchQuery = req.query.q || req.query.search;
     if (searchQuery) {

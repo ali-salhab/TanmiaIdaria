@@ -3,6 +3,11 @@ export default {
   content: ["./index.html", "./src/**/*.{js,jsx,ts,tsx}"],
   theme: {
     extend: {
+      colors: {
+        primary: "#374151", // Gray 700
+        secondary: "#f3f4f6", // Gray 100
+        accent: "#9ca3af", // Gray 400
+      },
       keyframes: {
         slowBounce: {
           "0%, 100%": { transform: "translateY(0)" },

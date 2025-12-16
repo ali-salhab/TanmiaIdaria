@@ -15,7 +15,7 @@ export const getCourses = async (req, res) => {
 export const createCourse = async (req, res) => {
   try {
     const { employeeId } = req.params;
-    const { name, duration, startDate } = req.body;
+    const { name, duration, startDate, decisionNumber } = req.body;
     const file = req.file ? req.file.path : null;
 
     const newCourse = new Course({
@@ -23,6 +23,7 @@ export const createCourse = async (req, res) => {
       name,
       duration,
       startDate,
+      decisionNumber,
       file,
       createdBy: req.user.userId,
     });

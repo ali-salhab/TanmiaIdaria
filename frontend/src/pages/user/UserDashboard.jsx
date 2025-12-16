@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import API from "../../api/api";
 import toast from "react-hot-toast";
 import logo from "../../assets/logo.png";
+import { useSocket } from "../../context/SocketContext";
 import {
   FiUsers,
   FiCalendar,
@@ -32,12 +33,17 @@ export default function UserDashboard() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [permissions, setPermissions] = useState({});
+  const [permissionDetails, setPermissionDetails] = useState({
+    groups: [],
+    permissions: [],
+  });
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [recentCirculars, setRecentCirculars] = useState([]);
   const [recentNotifications, setRecentNotifications] = useState([]);
   const [unreadMessages, setUnreadMessages] = useState(0);
+  const { socket } = useSocket();
 
   useEffect(() => {
     fetchUserData();
@@ -70,6 +76,7 @@ export default function UserDashboard() {
 
       setPermissions(perms);
       await fetchDashboardData(perms);
+      await fetchUserPermissionDetails(userData._id);
     } catch (error) {
       console.error("Error fetching user:", error);
       toast.error("فشل تحميل بيانات المستخدم");
@@ -133,11 +140,71 @@ export default function UserDashboard() {
     return !!perms[permKey];
   };
 
+  const fetchUserPermissionDetails = async (userId) => {
+    if (!userId) return;
+    try {
+      const res = await API.get(`/permissions/user/${userId}/permissions`);
+      const userData = res.data.user || {};
+
+      const groupNames = (userData.permissionGroups || []).map(
+        (g) => g.name || g._id
+      );
+
+      const permLabels = new Set();
+      (userData.permissionGroups || []).forEach((group) => {
+        (group.permissions || []).forEach((perm) => {
+          if (perm?.label) permLabels.add(perm.label);
+        });
+      });
+      (userData.directPermissions || []).forEach((perm) => {
+        if (perm?.label) permLabels.add(perm.label);
+      });
+
+      setPermissionDetails({
+        groups: groupNames,
+        permissions: Array.from(permLabels),
+      });
+    } catch (error) {
+      console.error("Error fetching permission details:", error);
+    }
+  };
+
   const handleLogout = () => {
     localStorage.clear();
     navigate("/login");
     toast.success("تم تسجيل الخروج بنجاح");
   };
+
+  useEffect(() => {
+    if (!socket || !user) return;
+
+    const handlePermissionUpdate = (payload) => {
+      if (payload?.userId && payload.userId.toString() === user._id) {
+        toast.success("تم تحديث صلاحياتك");
+        fetchUserData();
+      }
+    };
+
+    const handlePersonalNotification = (notif) => {
+      if (
+        notif?.type === "permission_change" &&
+        notif.userId &&
+        user &&
+        notif.userId.toString() === user._id
+      ) {
+        toast.success("تم تعديل مجموعاتك أو صلاحياتك");
+        fetchUserPermissionDetails(user._id);
+      }
+    };
+
+    socket.on("permission_update", handlePermissionUpdate);
+    socket.on("personal_notification", handlePersonalNotification);
+
+    return () => {
+      socket.off("permission_update", handlePermissionUpdate);
+      socket.off("personal_notification", handlePersonalNotification);
+    };
+  }, [socket, user]);
 
   if (loading) {
     return (
@@ -482,29 +549,67 @@ export default function UserDashboard() {
               </div>
             </div>
 
-            {/* Permissions Summary (Compact) */}
+            {/* Permissions & Groups Snapshot */}
             {user?.role !== "admin" && (
               <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
                 <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
                   <FiAward className="text-gray-500" />
-                  صلاحياتي
+                  صلاحياتي ومجموعاتي
                 </h2>
-                <div className="flex flex-wrap gap-2">
-                  {Object.keys(permissions)
-                    .slice(0, 8)
-                    .map((perm, index) => (
-                      <span
-                        key={index}
-                        className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs border border-gray-200"
-                      >
-                        {perm}
-                      </span>
-                    ))}
-                  {Object.keys(permissions).length > 8 && (
-                    <span className="px-2 py-1 bg-gray-50 text-gray-500 rounded text-xs border border-gray-200">
-                      +{Object.keys(permissions).length - 8}
-                    </span>
+
+                <div className="mb-4">
+                  <p className="text-sm font-semibold text-gray-700 mb-2">
+                    المجموعات
+                  </p>
+                  {permissionDetails.groups.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {permissionDetails.groups.map((name) => (
+                        <span
+                          key={name}
+                          className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs border border-gray-200"
+                        >
+                          {name}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-gray-500">
+                      لا توجد مجموعات مخصصة
+                    </p>
                   )}
+                </div>
+
+                <div>
+                  <p className="text-sm font-semibold text-gray-700 mb-2">
+                    الصلاحيات
+                  </p>
+                  {permissionDetails.permissions.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {permissionDetails.permissions
+                        .slice(0, 10)
+                        .map((perm) => (
+                          <span
+                            key={perm}
+                            className="px-2 py-1 bg-gray-50 text-gray-700 rounded text-xs border border-gray-200"
+                          >
+                            {perm}
+                          </span>
+                        ))}
+                      {permissionDetails.permissions.length > 10 && (
+                        <span className="px-2 py-1 bg-gray-50 text-gray-500 rounded text-xs border border-gray-200">
+                          +{permissionDetails.permissions.length - 10}
+                        </span>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-gray-500">
+                      لا توجد صلاحيات مباشرة
+                    </p>
+                  )}
+                </div>
+
+                <div className="mt-4 text-xs text-gray-500">
+                  سيتم تنبيهك هنا عند تعديل صلاحياتك أو مجموعاتك.
                 </div>
               </div>
             )}

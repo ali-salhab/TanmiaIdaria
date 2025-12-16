@@ -13,6 +13,8 @@ import * as empCtrl from "../controllers/employeeController.js";
 import {
   uploadEmployeeDocs,
   updateEmployeePhoto,
+  deleteEmployeeDocument,
+  downloadEmployeeTemplate,
 } from "../controllers/employeeController.js";
 
 const router = express.Router();
@@ -30,9 +32,15 @@ const upload = multer({ storage });
 router.post(
   "/:id/upload",
   protect,
-  checkPermission("employees.upload_docs"),
+  hasAnyPermission(["employees.upload_docs", "documents.upload"]),
   upload.array("files"),
   uploadEmployeeDocs
+);
+router.delete(
+  "/:id/documents/:docIndex",
+  protect,
+  hasAnyPermission(["employees.upload_docs", "documents.delete"]),
+  deleteEmployeeDocument
 );
 router.post(
   "/:id/photo",
@@ -52,6 +60,12 @@ router.get(
   protect,
   checkPermission("employees.export"),
   empCtrl.exportExcel
+);
+router.get(
+  "/template",
+  protect,
+  checkPermission("employees.import"),
+  downloadEmployeeTemplate
 );
 router.get(
   "/:id",

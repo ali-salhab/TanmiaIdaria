@@ -15,6 +15,9 @@ const penaltySchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    decisionNumber: {
+      type: String,
+    },
     date: {
       type: Date,
       default: Date.now,

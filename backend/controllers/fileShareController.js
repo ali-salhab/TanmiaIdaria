@@ -3,6 +3,7 @@ import User from "../models/User.js";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { notifyAdmin } from "../services/notificationService.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -17,9 +18,12 @@ export const uploadAndShareFile = async (req, res) => {
     }
 
     const fileUrl = `/uploads/${req.file.filename}`;
-    const fileType = req.file.mimetype.startsWith("image/") 
-      ? "image" 
-      : req.file.mimetype.includes("document") || req.file.originalname.endsWith(".pdf") || req.file.originalname.endsWith(".docx") || req.file.originalname.endsWith(".xlsx")
+    const fileType = req.file.mimetype.startsWith("image/")
+      ? "image"
+      : req.file.mimetype.includes("document") ||
+        req.file.originalname.endsWith(".pdf") ||
+        req.file.originalname.endsWith(".docx") ||
+        req.file.originalname.endsWith(".xlsx")
       ? "document"
       : "other";
 
@@ -33,6 +37,17 @@ export const uploadAndShareFile = async (req, res) => {
       message,
     });
 
+    // Notify admin if action is performed by non-admin user
+    if (req.user && req.user.role !== "admin") {
+      await notifyAdmin({
+        actionBy: req.user._id,
+        section: "documents",
+        action: "create",
+        title: "تم مشاركة ملف جديد",
+        message: `تم مشاركة ملف: ${req.file.originalname}`,
+      });
+    }
+
     res.status(201).json(fileShare);
   } catch (error) {
     console.error("Error sharing file:", error);
@@ -45,7 +60,10 @@ export const getReceivedFiles = async (req, res) => {
     const userId = req.user._id;
 
     const files = await FileShare.find({ recipient: userId })
-      .populate("sender", "username profile.firstName profile.lastName profile.avatar")
+      .populate(
+        "sender",
+        "username profile.firstName profile.lastName profile.avatar"
+      )
       .sort({ createdAt: -1 });
 
     res.json(files);
@@ -60,7 +78,10 @@ export const getSentFiles = async (req, res) => {
     const userId = req.user._id;
 
     const files = await FileShare.find({ sender: userId })
-      .populate("recipient", "username profile.firstName profile.lastName profile.avatar")
+      .populate(
+        "recipient",
+        "username profile.firstName profile.lastName profile.avatar"
+      )
       .sort({ createdAt: -1 });
 
     res.json(files);
@@ -102,8 +123,13 @@ export const deleteFileShare = async (req, res) => {
       return res.status(404).json({ message: "File share not found" });
     }
 
-    if (fileShare.sender.toString() !== userId.toString() && fileShare.recipient.toString() !== userId.toString()) {
-      return res.status(403).json({ message: "Unauthorized to delete this file" });
+    if (
+      fileShare.sender.toString() !== userId.toString() &&
+      fileShare.recipient.toString() !== userId.toString()
+    ) {
+      return res
+        .status(403)
+        .json({ message: "Unauthorized to delete this file" });
     }
 
     const filePath = path.join(__dirname, "..", "public", fileShare.fileUrl);
@@ -112,6 +138,17 @@ export const deleteFileShare = async (req, res) => {
     }
 
     await FileShare.findByIdAndDelete(id);
+
+    // Notify admin if action is performed by non-admin user
+    if (req.user && req.user.role !== "admin") {
+      await notifyAdmin({
+        actionBy: req.user._id,
+        section: "documents",
+        action: "delete",
+        title: "تم حذف ملف مشترك",
+        message: `تم حذف الملف: ${fileShare.fileName}`,
+      });
+    }
 
     res.json({ message: "File share deleted successfully" });
   } catch (error) {

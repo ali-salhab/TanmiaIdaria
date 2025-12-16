@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useSocket } from "../context/SocketContext";
 import { X } from "lucide-react";
 import API from "../api/api";
+import { getCurrentUserId, getCurrentUsername } from "../utils/authIdentity";
 
 export default function AdminChat({ isAdmin, onClose }) {
   const { socket, onlineUsers } = useSocket();
@@ -14,7 +15,9 @@ export default function AdminChat({ isAdmin, onClose }) {
   useEffect(() => {
     if (isAdmin && onlineUsers.length > 0) {
       const currentUserId = localStorage.getItem("userId");
-      const filteredUsers = onlineUsers.filter(userId => userId !== currentUserId);
+      const filteredUsers = onlineUsers.filter(
+        (userId) => userId !== currentUserId
+      );
       setUsers(filteredUsers);
       fetchUsersInfo(filteredUsers);
     }
@@ -48,8 +51,14 @@ export default function AdminChat({ isAdmin, onClose }) {
   }, [socket]);
 
   const sendMessage = () => {
-    const from = localStorage.getItem("userId");
-    const fromUsername = localStorage.getItem("username") || "Admin";
+    const from = getCurrentUserId();
+    const fromUsername = getCurrentUsername() || "Admin";
+
+    if (!from) {
+      // Force a clear UX path rather than sending undefined
+      alert("تعذر تحديد المستخدم الحالي. يرجى تسجيل الدخول مرة أخرى.");
+      return;
+    }
 
     if (!input.trim()) return;
 
@@ -102,9 +111,10 @@ export default function AdminChat({ isAdmin, onClose }) {
             {users.length > 0 ? (
               users.map((userId) => {
                 const userInfo = usersInfo[userId];
-                const initials = userInfo?.username?.charAt(0).toUpperCase() || "U";
+                const initials =
+                  userInfo?.username?.charAt(0).toUpperCase() || "U";
                 const isSelected = selectedUser === userId;
-                
+
                 return (
                   <button
                     key={userId}
@@ -113,7 +123,9 @@ export default function AdminChat({ isAdmin, onClose }) {
                       setMessages([]);
                     }}
                     className={`flex flex-col items-center gap-1 transition-all ${
-                      isSelected ? "opacity-100" : "opacity-80 hover:opacity-100"
+                      isSelected
+                        ? "opacity-100"
+                        : "opacity-80 hover:opacity-100"
                     }`}
                     title={userInfo?.username || "User"}
                   >
@@ -194,7 +206,9 @@ export default function AdminChat({ isAdmin, onClose }) {
           className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder={isAdmin && !selectedUser ? "اختر مستخدماً أولاً..." : "رسالة..."}
+          placeholder={
+            isAdmin && !selectedUser ? "اختر مستخدماً أولاً..." : "رسالة..."
+          }
           onKeyDown={(e) => e.key === "Enter" && sendMessage()}
           disabled={isAdmin && !selectedUser}
           dir="rtl"

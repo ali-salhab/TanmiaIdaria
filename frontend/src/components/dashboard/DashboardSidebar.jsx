@@ -1,7 +1,9 @@
 import { Link, useLocation } from "react-router-dom";
-import { LogOut } from "lucide-react";
+import { LogOut, Code } from "lucide-react";
 import logo from "../../assets/logo.png";
 import { checkPermission } from "../../utils/permissionHelper";
+import { useState } from "react";
+import Copyright from "../Copyright";
 
 export default function DashboardSidebar({
   isOpen,
@@ -10,6 +12,7 @@ export default function DashboardSidebar({
   userInfo,
 }) {
   const location = useLocation();
+  const [showCopyright, setShowCopyright] = useState(false);
 
   const allMenuItems = [
     {
@@ -56,10 +59,22 @@ export default function DashboardSidebar({
       permission: "reports.view", // Assuming this key exists or similar
     },
     {
+      label: " الشكاوى",
+      to: "/dashboard/complaints",
+      icon: "📢",
+      permission: "complaints.view",
+    },
+    {
       label: " ادارة قاعدة البيانات",
       to: "/dashboard/upload",
       icon: "💾",
       permission: "employees.import", // Or similar admin permission
+    },
+    {
+      label: " الاستعادة والنسخ الاحتياطي",
+      to: "/dashboard/db-recovery",
+      icon: "🛟",
+      permission: "settings.backup",
     },
     {
       label: " الإعدادات",
@@ -159,8 +174,15 @@ export default function DashboardSidebar({
           ))}
         </nav>
 
-        {/* Footer - Logout */}
-        <div className="border-t border-gray-700 p-4">
+        {/* Footer - Logout & Copyright */}
+        <div className="border-t border-gray-700 p-4 space-y-2">
+          <button
+            onClick={() => setShowCopyright(true)}
+            className="w-full flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-lg transition-all font-medium text-xs"
+          >
+            <Code className="w-3 h-3" />
+            <span>حقوق التطوير</span>
+          </button>
           <button
             onClick={onLogout}
             className="w-full flex items-center justify-center gap-2 bg-red-700 hover:bg-red-600 text-white py-3 rounded-lg transition-all transform hover:scale-105 font-medium text-sm shadow-lg"
@@ -170,6 +192,8 @@ export default function DashboardSidebar({
           </button>
         </div>
       </aside>
+
+      {showCopyright && <Copyright onClose={() => setShowCopyright(false)} />}
     </>
   );
 }

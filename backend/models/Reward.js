@@ -15,6 +15,9 @@ const rewardSchema = new mongoose.Schema(
     description: {
       type: String,
     },
+    decisionNumber: {
+      type: String,
+    },
     date: {
       type: Date,
       default: Date.now,

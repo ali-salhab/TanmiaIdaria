@@ -2,7 +2,16 @@ import React, { useEffect, useState, useCallback } from "react";
 import { useAuth } from "../hooks/useAuth";
 import API from "../api/api";
 import ImageUploadWithScanner from "../components/ImageUploadWithScanner";
-import { FileText, Trash2, Download, User, Image, FileText as FileIcon, Briefcase } from "lucide-react";
+import {
+  FileText,
+  Trash2,
+  Download,
+  User,
+  Image,
+  FileText as FileIcon,
+  Briefcase,
+  Shield,
+} from "lucide-react";
 import { toast } from "react-hot-toast";
 // Import decorative circle images
 import bluePattern from "../assets/circles/patterns/circle-pattern-blue.svg";
@@ -32,6 +41,10 @@ export default function UserProfile() {
   const [documentName, setDocumentName] = useState("");
   const [activeTab, setActiveTab] = useState("profile");
   const [isEditing, setIsEditing] = useState(false);
+  const [permissionDetails, setPermissionDetails] = useState({
+    groups: [],
+    permissions: [], // [{label,key,category,source}]
+  });
 
   useEffect(() => {
     if (authUser?._id) {
@@ -43,15 +56,56 @@ export default function UserProfile() {
     try {
       const res = await API.get(`/users/${authUser?._id}`);
       setUserData(res.data);
-      
+
       // Set employee data if available
       if (res.data.employeeId) {
         setEmployeeData(res.data.employeeId);
       }
-      
+
       if (res.data.profile) {
         setProfile(res.data.profile);
       }
+
+      // Fetch permission details
+      try {
+        const permRes = await API.get(
+          `/permissions/user/${authUser?._id}/permissions`
+        );
+        const permData = permRes.data.user || {};
+
+        const groupNames = (permData.permissionGroups || []).map(
+          (g) => g.name || g._id
+        );
+
+        const perms = [];
+        const pushPerm = (perm, source) => {
+          if (!perm) return;
+          perms.push({
+            label: perm.label || perm.key || perm._id,
+            key: perm.key || perm._id,
+            category: perm.category || "غير مصنف",
+            source,
+          });
+        };
+
+        (permData.permissionGroups || []).forEach((group) => {
+          (group.permissions || []).forEach((perm) => {
+            pushPerm(perm, `مجموعة: ${group.name || group._id}`);
+          });
+        });
+
+        (permData.directPermissions || []).forEach((perm) => {
+          pushPerm(perm, "مباشر");
+        });
+
+        setPermissionDetails({
+          groups: groupNames,
+          permissions: perms,
+        });
+      } catch (permErr) {
+        console.error("Error fetching permissions:", permErr);
+      }
+
       setLoading(false);
     } catch {
       toast.error("فشل في تحميل الملف الشخصي");
@@ -152,6 +206,11 @@ export default function UserProfile() {
   const tabs = [
     { id: "profile", label: "الملف الشخصي", icon: <User size={20} /> },
     { id: "employee", label: "بيانات الموظف", icon: <Briefcase size={20} /> },
+    {
+      id: "permissions",
+      label: "الصلاحيات والمجموعات",
+      icon: <Shield size={20} />,
+    },
     { id: "images", label: "الصور", icon: <Image size={20} /> },
     { id: "documents", label: "المستندات", icon: <FileIcon size={20} /> },
   ];
@@ -168,37 +227,64 @@ export default function UserProfile() {
   }
 
   return (
-    <div dir="rtl" className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-4 md:p-6 relative overflow-hidden">
+    <div
+      dir="rtl"
+      className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-4 md:p-6 relative overflow-hidden"
+    >
       {/* Decorative background elements */}
       <div className="absolute top-0 left-0 w-64 h-64 opacity-20">
-        <img src={floatingOrb1} alt="" className="w-full h-full object-contain animate-float" />
+        <img
+          src={floatingOrb1}
+          alt=""
+          className="w-full h-full object-contain animate-float"
+        />
       </div>
       <div className="absolute bottom-0 right-0 w-64 h-64 opacity-20">
-        <img src={gradientSphere1} alt="" className="w-full h-full object-contain animate-floatRandom" />
+        <img
+          src={gradientSphere1}
+          alt=""
+          className="w-full h-full object-contain animate-floatRandom"
+        />
       </div>
-      
+
       <div className="max-w-6xl mx-auto relative z-10">
         {/* Header with decorative patterns */}
         <div className="relative mb-8">
           <div className="absolute -top-6 -left-6 w-32 h-32 opacity-30">
-            <img src={bluePattern} alt="" className="w-full h-full object-contain" />
+            <img
+              src={bluePattern}
+              alt=""
+              className="w-full h-full object-contain"
+            />
           </div>
           <div className="absolute -top-6 -right-6 w-32 h-32 opacity-30">
-            <img src={emeraldPattern} alt="" className="w-full h-full object-contain" />
+            <img
+              src={emeraldPattern}
+              alt=""
+              className="w-full h-full object-contain"
+            />
           </div>
-          
+
           <div className="text-center py-8 relative">
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-2 animate-fadeInDown">👤 الملف الشخصي</h1>
-            <p className="text-gray-600 animate-fadeInUp">إدارة معلوماتك الشخصية والمستندات</p>
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-2 animate-fadeInDown">
+              👤 الملف الشخصي
+            </h1>
+            <p className="text-gray-600 animate-fadeInUp">
+              إدارة معلوماتك الشخصية والمستندات
+            </p>
           </div>
         </div>
 
         {/* Profile Header Card */}
         <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl p-6 mb-8 border border-white/50 relative overflow-hidden animate-fadeIn">
           <div className="absolute top-0 right-0 w-32 h-32 opacity-10">
-            <img src={purplePattern} alt="" className="w-full h-full object-contain" />
+            <img
+              src={purplePattern}
+              alt=""
+              className="w-full h-full object-contain"
+            />
           </div>
-          
+
           <div className="flex flex-col md:flex-row gap-8 items-center">
             <div className="relative group">
               <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-400 to-indigo-600 p-1 shadow-lg">
@@ -211,7 +297,11 @@ export default function UserProfile() {
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-indigo-200">
-                      <img src={avatarBlue} alt="الصورة الشخصية" className="w-20 h-20 opacity-80" />
+                      <img
+                        src={avatarBlue}
+                        alt="الصورة الشخصية"
+                        className="w-20 h-20 opacity-80"
+                      />
                     </div>
                   )}
                 </div>
@@ -221,15 +311,21 @@ export default function UserProfile() {
                 <span className="text-white text-xs">✏️</span>
               </div>
             </div>
-            
+
             <div className="flex-1 text-center md:text-right">
               <h2 className="text-2xl font-bold text-gray-800">
                 {profile.firstName} {profile.lastName}
               </h2>
-              <p className="text-gray-600 mb-2">{profile.department || "غير محدد"}</p>
+              <p className="text-gray-600 mb-2">
+                {profile.department || "غير محدد"}
+              </p>
               <div className="flex flex-wrap justify-center md:justify-start gap-2 mt-4">
-                <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">البريد: {profile.email || "غير محدد"}</span>
-                <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">الهاتف: {profile.phone || "غير محدد"}</span>
+                <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+                  البريد: {profile.email || "غير محدد"}
+                </span>
+                <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
+                  الهاتف: {profile.phone || "غير محدد"}
+                </span>
               </div>
             </div>
           </div>
@@ -262,9 +358,11 @@ export default function UserProfile() {
                 <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
                   <img src={userIcon1} alt="" className="w-6 h-6" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-800">معلومات الملف الشخصي</h3>
+                <h3 className="text-xl font-bold text-gray-800">
+                  معلومات الملف الشخصي
+                </h3>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -351,7 +449,7 @@ export default function UserProfile() {
                   />
                 </div>
               </div>
-              
+
               <div className="flex flex-wrap gap-3 mt-8">
                 {!isEditing ? (
                   <button
@@ -395,81 +493,123 @@ export default function UserProfile() {
                 <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
                   <Briefcase className="w-6 h-6 text-blue-600" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-800">بيانات الموظف</h3>
+                <h3 className="text-xl font-bold text-gray-800">
+                  بيانات الموظف
+                </h3>
               </div>
-              
+
               {employeeData ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100">
-                    <h4 className="text-lg font-semibold text-gray-800 mb-4">المعلومات الأساسية</h4>
+                    <h4 className="text-lg font-semibold text-gray-800 mb-4">
+                      المعلومات الأساسية
+                    </h4>
                     <div className="space-y-3">
                       <div className="flex justify-between border-b pb-2">
                         <span className="text-gray-600">الاسم الثلاثي:</span>
-                        <span className="font-medium">{employeeData.fullName || "غير محدد"}</span>
+                        <span className="font-medium">
+                          {employeeData.fullName || "غير محدد"}
+                        </span>
                       </div>
                       <div className="flex justify-between border-b pb-2">
                         <span className="text-gray-600">الرقم الوطني:</span>
-                        <span className="font-medium">{employeeData.nationalId || "غير محدد"}</span>
+                        <span className="font-medium">
+                          {employeeData.nationalId || "غير محدد"}
+                        </span>
                       </div>
                       <div className="flex justify-between border-b pb-2">
                         <span className="text-gray-600">تاريخ الميلاد:</span>
                         <span className="font-medium">
-                          {employeeData.birthDate ? new Date(employeeData.birthDate).toLocaleDateString("ar-EG") : "غير محدد"}
+                          {employeeData.birthDate
+                            ? new Date(
+                                employeeData.birthDate
+                              ).toLocaleDateString("ar-EG")
+                            : "غير محدد"}
                         </span>
                       </div>
                       <div className="flex justify-between border-b pb-2">
                         <span className="text-gray-600">الجنس:</span>
-                        <span className="font-medium">{employeeData.gender || "غير محدد"}</span>
+                        <span className="font-medium">
+                          {employeeData.gender || "غير محدد"}
+                        </span>
                       </div>
                       <div className="flex justify-between border-b pb-2">
-                        <span className="text-gray-600">الحالة الاجتماعية:</span>
-                        <span className="font-medium">{employeeData.maritalStatus || "غير محدد"}</span>
+                        <span className="text-gray-600">
+                          الحالة الاجتماعية:
+                        </span>
+                        <span className="font-medium">
+                          {employeeData.maritalStatus || "غير محدد"}
+                        </span>
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-6 border border-green-100">
-                    <h4 className="text-lg font-semibold text-gray-800 mb-4">معلومات العمل</h4>
+                    <h4 className="text-lg font-semibold text-gray-800 mb-4">
+                      معلومات العمل
+                    </h4>
                     <div className="space-y-3">
                       <div className="flex justify-between border-b pb-2">
                         <span className="text-gray-600">المسمى الوظيفي:</span>
-                        <span className="font-medium">{employeeData.currentJobTitle || "غير محدد"}</span>
+                        <span className="font-medium">
+                          {employeeData.currentJobTitle || "غير محدد"}
+                        </span>
                       </div>
                       <div className="flex justify-between border-b pb-2">
                         <span className="text-gray-600">القسم:</span>
-                        <span className="font-medium">{employeeData.level4 || "غير محدد"}</span>
+                        <span className="font-medium">
+                          {employeeData.level4 || "غير محدد"}
+                        </span>
                       </div>
                       <div className="flex justify-between border-b pb-2">
                         <span className="text-gray-600">تاريخ التعيين:</span>
                         <span className="font-medium">
-                          {employeeData.hiringDate ? new Date(employeeData.hiringDate).toLocaleDateString("ar-EG") : "غير محدد"}
+                          {employeeData.hiringDate
+                            ? new Date(
+                                employeeData.hiringDate
+                              ).toLocaleDateString("ar-EG")
+                            : "غير محدد"}
                         </span>
                       </div>
                       <div className="flex justify-between border-b pb-2">
                         <span className="text-gray-600">نوع التوظيف:</span>
-                        <span className="font-medium">{employeeData.employmentType || "غير محدد"}</span>
+                        <span className="font-medium">
+                          {employeeData.employmentType || "غير محدد"}
+                        </span>
                       </div>
                       <div className="flex justify-between border-b pb-2">
                         <span className="text-gray-600">الراتب الأخير:</span>
-                        <span className="font-medium">{employeeData.lastSalary ? `${employeeData.lastSalary} دينار` : "غير محدد"}</span>
+                        <span className="font-medium">
+                          {employeeData.lastSalary
+                            ? `${employeeData.lastSalary} دينار`
+                            : "غير محدد"}
+                        </span>
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-6 border border-amber-100 md:col-span-2">
-                    <h4 className="text-lg font-semibold text-gray-800 mb-4">معلومات الاتصال</h4>
+                    <h4 className="text-lg font-semibold text-gray-800 mb-4">
+                      معلومات الاتصال
+                    </h4>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="flex justify-between border-b pb-2">
                         <span className="text-gray-600">الهاتف:</span>
-                        <span className="font-medium">{employeeData.phone || "غير محدد"}</span>
+                        <span className="font-medium">
+                          {employeeData.phone || "غير محدد"}
+                        </span>
                       </div>
                       <div className="flex justify-between border-b pb-2">
                         <span className="text-gray-600">المحافظة:</span>
-                        <span className="font-medium">{employeeData.governorate || "غير محدد"}</span>
+                        <span className="font-medium">
+                          {employeeData.governorate || "غير محدد"}
+                        </span>
                       </div>
                       <div className="flex justify-between border-b pb-2">
                         <span className="text-gray-600">المدينة:</span>
-                        <span className="font-medium">{employeeData.city || "غير محدد"}</span>
+                        <span className="font-medium">
+                          {employeeData.city || "غير محدد"}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -479,10 +619,105 @@ export default function UserProfile() {
                   <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
                     <Briefcase className="w-8 h-8 text-gray-500" />
                   </div>
-                  <h4 className="text-lg font-medium text-gray-700 mb-2">لا توجد بيانات موظف</h4>
-                  <p className="text-gray-500">يجب أن يكون لديك حساب مستخدم مرتبط بموظف</p>
+                  <h4 className="text-lg font-medium text-gray-700 mb-2">
+                    لا توجد بيانات موظف
+                  </h4>
+                  <p className="text-gray-500">
+                    يجب أن يكون لديك حساب مستخدم مرتبط بموظف
+                  </p>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Permissions Tab */}
+          {activeTab === "permissions" && (
+            <div className="animate-fadeIn">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                  <Shield className="w-6 h-6 text-indigo-600" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-800">
+                  الصلاحيات والمجموعات
+                </h3>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Groups Section */}
+                <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-6 border border-indigo-100">
+                  <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <span className="text-indigo-600">👥</span>
+                    مجموعات الصلاحيات
+                  </h4>
+                  {permissionDetails.groups.length > 0 ? (
+                    <div className="space-y-2">
+                      {permissionDetails.groups.map((group, idx) => (
+                        <div
+                          key={idx}
+                          className="flex items-center gap-3 p-3 bg-white rounded-lg border border-indigo-100 shadow-sm"
+                        >
+                          <span className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 text-sm font-bold">
+                            {idx + 1}
+                          </span>
+                          <span className="font-medium text-gray-800">
+                            {group}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 bg-white/50 rounded-lg border border-dashed border-indigo-200">
+                      <p className="text-gray-500">لا توجد مجموعات مخصصة</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Permissions Section */}
+                <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-6 border border-emerald-100">
+                  <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <span className="text-emerald-600">🔐</span>
+                    الصلاحيات الممنوحة
+                  </h4>
+                  {permissionDetails.permissions.length > 0 ? (
+                    <div className="space-y-2">
+                      {permissionDetails.permissions.map((perm, idx) => (
+                        <div
+                          key={`${perm.key}-${idx}`}
+                          className="p-3 bg-white rounded-lg border border-emerald-100 shadow-sm flex flex-wrap gap-2 justify-between"
+                        >
+                          <div>
+                            <div className="font-semibold text-gray-800">
+                              {perm.label}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              المفتاح: {perm.key} • الفئة: {perm.category}
+                            </div>
+                          </div>
+                          <span className="px-2 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-medium border border-emerald-200">
+                            {perm.source}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 bg-white/50 rounded-lg border border-dashed border-emerald-200">
+                      <p className="text-gray-500">لا توجد صلاحيات مخصصة</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Info Note */}
+              <div className="mt-6 p-4 bg-blue-50 rounded-xl border border-blue-100 flex items-start gap-3">
+                <span className="text-blue-600 text-xl">ℹ️</span>
+                <div>
+                  <p className="text-blue-800 font-medium">ملاحظة</p>
+                  <p className="text-blue-600 text-sm">
+                    الصلاحيات تحدد ما يمكنك الوصول إليه في النظام. إذا كنت بحاجة
+                    لصلاحيات إضافية، يرجى التواصل مع مدير النظام.
+                  </p>
+                </div>
+              </div>
             </div>
           )}
 
@@ -496,9 +731,11 @@ export default function UserProfile() {
                     <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
                       <span className="text-amber-600">💰</span>
                     </div>
-                    <h3 className="text-xl font-bold text-gray-800">صورة الراتب</h3>
+                    <h3 className="text-xl font-bold text-gray-800">
+                      صورة الراتب
+                    </h3>
                   </div>
-                  
+
                   {userData?.profile?.salaryInfo?.image ? (
                     <div className="mb-4 rounded-lg overflow-hidden h-48 shadow-inner">
                       <img
@@ -515,7 +752,7 @@ export default function UserProfile() {
                       </div>
                     </div>
                   )}
-                  
+
                   <ImageUploadWithScanner
                     label="تحميل صورة الراتب"
                     onUpload={handleSalaryImageUpload}
@@ -529,9 +766,11 @@ export default function UserProfile() {
                     <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center">
                       <span className="text-emerald-600">👥</span>
                     </div>
-                    <h3 className="text-xl font-bold text-gray-800">قائمة الموظفين</h3>
+                    <h3 className="text-xl font-bold text-gray-800">
+                      قائمة الموظفين
+                    </h3>
                   </div>
-                  
+
                   {userData?.profile?.employeeList?.image ? (
                     <div className="mb-4 rounded-lg overflow-hidden h-48 shadow-inner">
                       <img
@@ -548,7 +787,7 @@ export default function UserProfile() {
                       </div>
                     </div>
                   )}
-                  
+
                   <ImageUploadWithScanner
                     label="تحميل صورة قائمة الموظفين"
                     onUpload={handleEmployeeListImageUpload}
@@ -556,10 +795,12 @@ export default function UserProfile() {
                   />
                 </div>
               </div>
-              
+
               {/* Avatar Upload Section */}
               <div className="mt-8 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100 shadow-sm">
-                <h3 className="text-xl font-bold text-gray-800 mb-6">الصورة الشخصية</h3>
+                <h3 className="text-xl font-bold text-gray-800 mb-6">
+                  الصورة الشخصية
+                </h3>
                 <ImageUploadWithScanner
                   label="تحميل الصورة الشخصية"
                   onUpload={handleAvatarUpload}
@@ -576,9 +817,11 @@ export default function UserProfile() {
                 <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
                   <img src={documentIcon1} alt="" className="w-6 h-6" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-800">إدارة المستندات</h3>
+                <h3 className="text-xl font-bold text-gray-800">
+                  إدارة المستندات
+                </h3>
               </div>
-              
+
               {authUser?.permissions?.viewDocuments && (
                 <>
                   <div className="mb-8 p-6 bg-gradient-to-br from-purple-50 to-indigo-50 rounded-2xl border border-purple-100">
@@ -600,7 +843,8 @@ export default function UserProfile() {
                     </div>
                   </div>
 
-                  {userData?.profile?.documents && userData.profile.documents.length > 0 ? (
+                  {userData?.profile?.documents &&
+                  userData.profile.documents.length > 0 ? (
                     <div className="space-y-4">
                       {userData.profile.documents.map((doc, idx) => (
                         <div
@@ -612,9 +856,13 @@ export default function UserProfile() {
                               <FileText className="w-6 h-6 text-blue-600" />
                             </div>
                             <div className="flex-1">
-                              <p className="font-medium text-gray-800">{doc.name}</p>
+                              <p className="font-medium text-gray-800">
+                                {doc.name}
+                              </p>
                               <p className="text-sm text-gray-500">
-                                {new Date(doc.uploadedAt).toLocaleDateString("ar-EG")}
+                                {new Date(doc.uploadedAt).toLocaleDateString(
+                                  "ar-EG"
+                                )}
                               </p>
                             </div>
                           </div>
@@ -641,9 +889,15 @@ export default function UserProfile() {
                   ) : (
                     <div className="text-center py-12 bg-gradient-to-br from-gray-50 to-blue-50 rounded-2xl border border-gray-100">
                       <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
-                        <img src={badgeIcon1} alt="" className="w-8 h-8 opacity-70" />
+                        <img
+                          src={badgeIcon1}
+                          alt=""
+                          className="w-8 h-8 opacity-70"
+                        />
                       </div>
-                      <h4 className="text-lg font-medium text-gray-700 mb-2">لا توجد مستندات</h4>
+                      <h4 className="text-lg font-medium text-gray-700 mb-2">
+                        لا توجد مستندات
+                      </h4>
                       <p className="text-gray-500">ابدأ بتحميل مستند جديد</p>
                     </div>
                   )}
@@ -653,7 +907,7 @@ export default function UserProfile() {
           )}
         </div>
       </div>
-      
+
       {/* Custom styles for animations */}
       <style jsx>{`
         @media (prefers-reduced-motion: reduce) {

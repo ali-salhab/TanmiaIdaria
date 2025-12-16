@@ -1,4 +1,11 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  useNavigate,
+} from "react-router-dom";
+import { useEffect } from "react";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/DashBoard";
@@ -26,6 +33,7 @@ import FileSharing from "./pages/FileSharing";
 import UserNotifications from "./pages/UserNotifications";
 import Circulars from "./pages/Circulars";
 import Settings from "./pages/Settings";
+import DbRecovery from "./pages/DbRecovery";
 import EmployeePenalties from "./pages/EmployeePenalties";
 import EmployeeDetailPage from "./pages/EmployeeDetailPage";
 import PermissionGroupsPage from "./pages/permissions/PermissionGroupsPage";
@@ -33,6 +41,8 @@ import PermissionManager from "./pages/permissions/PermissionsManager";
 import PermissionsPage from "./pages/permissions/PermissionsPage";
 import Reports from "./components/Reports";
 import RequirePermission from "./components/RequirePermission";
+import WelcomeMessage from "./components/WelcomeMessage";
+import Complaints from "./pages/Complaints";
 
 function ProtectedRoute({ children, allowedRoles }) {
   const token = localStorage.getItem("token");
@@ -51,10 +61,25 @@ function ProtectedRoute({ children, allowedRoles }) {
 function App() {
   const role = localStorage.getItem("role");
 
+  function AuthLogoutListener() {
+    const navigate = useNavigate();
+
+    useEffect(() => {
+      const handler = () => {
+        navigate("/login", { replace: true });
+      };
+      window.addEventListener("auth:logout", handler);
+      return () => window.removeEventListener("auth:logout", handler);
+    }, [navigate]);
+
+    return null;
+  }
+
   return (
     <SettingsProvider>
       <SocketProvider>
         <BrowserRouter>
+          <AuthLogoutListener />
           <Toaster position="top-left" reverseOrder={false} />
           <Routes>
             {/* <Route
@@ -94,19 +119,11 @@ function App() {
                 </ProtectedRoute>
               }
             >
-              {/* Default route */}
-              <Route
-                index
-                element={
-                  <div className="flex flex-col items-center justify-center h-full text-gray-500 p-10">
-                    <div className="text-6xl mb-4">👋</div>
-                    <h2 className="text-2xl font-bold mb-2">
-                      مرحباً بك في لوحة التحكم
-                    </h2>
-                    <p>يرجى اختيار قسم من القائمة الجانبية للبدء</p>
-                  </div>
-                }
-              />
+              {/* Dashboard Home */}
+              <Route index element={<WelcomeMessage />} />
+
+              {/* Circulars */}
+              <Route path="circulars" element={<Circulars />} />
 
               {/* Employees */}
               <Route
@@ -147,7 +164,15 @@ function App() {
               />
 
               {/* Notifications */}
-              <Route path="notifications" element={<Notifications />} />
+              <Route path="notifications" element={<UserNotifications />} />
+              <Route
+                path="operations-notifications"
+                element={
+                  <RequirePermission permission="notifications.view_all">
+                    <Notifications />
+                  </RequirePermission>
+                }
+              />
               <Route
                 path="admin-notifications"
                 element={<AdminNotifications />}
@@ -163,12 +188,32 @@ function App() {
                 }
               />
 
+              {/* Database Recovery / Backup */}
+              <Route
+                path="db-recovery"
+                element={
+                  <RequirePermission permission="settings.backup">
+                    <DbRecovery />
+                  </RequirePermission>
+                }
+              />
+
               {/* Reports */}
               <Route
                 path="reports"
                 element={
                   <RequirePermission permission="reports.view">
                     <Reports />
+                  </RequirePermission>
+                }
+              />
+
+              {/* Complaints */}
+              <Route
+                path="complaints"
+                element={
+                  <RequirePermission permission="complaints.view">
+                    <Complaints />
                   </RequirePermission>
                 }
               />

@@ -36,145 +36,7 @@ export const getVacationsByEmployee = async (req, res) => {
   }
 };
 
-export const generateVacationDocument = async (req, res) => {
-  try {
-    const { id } = req.params;
-    console.log(id);
-    const employee = await Employee.findById(id);
-    if (!employee) {
-      return res.status(404).json({ message: "Employee not found" });
-    }
-    const vacations = await Vacation.find({ employeeId: employee._id });
-
-    console.log("Employee._id =", employee._id);
-    console.log("Vacations = ", vacations);
-    console.log("Vacations:", vacations);
-
-    // ----- Header (logo) -----
-    const header = new Header({
-      children: [
-        new Paragraph({
-          alignment: AlignmentType.RIGHT,
-          children: [
-            new ImageRun({
-              data: fs.readFileSync("assets/logo.png"),
-              transformation: { width: 120, height: 100 },
-            }),
-          ],
-        }),
-      ],
-    });
-
-    // ----- Footer -----
-    const footer = new Footer({
-      children: [
-        new Paragraph({
-          alignment: AlignmentType.CENTER,
-          children: [new TextRun("سري — إدارة تنمية إدارية")],
-        }),
-      ],
-    });
-
-    // ----- Table -----
-    const tableRows = [
-      new TableRow({
-        children: [
-          new TableCell({
-            children: [new Paragraph("الترتيب")],
-            shading: { fill: "D3D3D3" },
-          }),
-          new TableCell({
-            children: [new Paragraph("نوع الإجازة")],
-            shading: { fill: "D3D3D3" },
-          }),
-          new TableCell({
-            children: [new Paragraph("عدد الأيام")],
-            shading: { fill: "D3D3D3" },
-          }),
-          new TableCell({
-            children: [new Paragraph("تاريخ البداية")],
-            shading: { fill: "D3D3D3" },
-          }),
-        ],
-      }),
-    ];
-
-    vacations.forEach((v, idx) =>
-      tableRows.push(
-        new TableRow({
-          children: [
-            new TableCell({ children: [new Paragraph(String(idx + 1))] }),
-            new TableCell({ children: [new Paragraph(v.type || "")] }),
-            new TableCell({ children: [new Paragraph(String(v.days))] }),
-            new TableCell({
-              children: [new Paragraph(v.startDate?.split("T")[0] || "")],
-            }),
-          ],
-        })
-      )
-    );
-
-    // ----- Document -----
-    const doc = new Document({
-      sections: [
-        {
-          properties: {
-            page: {
-              margin: { top: 720, bottom: 720, left: 720, right: 720 },
-            },
-          },
-          headers: { default: header },
-          footers: { default: footer },
-          children: [
-            new Paragraph({
-              text: "إجازات الموظف",
-              alignment: AlignmentType.CENTER,
-              heading: HeadingLevel.TITLE,
-              spacing: { after: 300 },
-            }),
-
-            new Paragraph({
-              text: `الموظف: ${employee.fullName}`,
-              alignment: AlignmentType.RIGHT,
-              spacing: { after: 100 },
-            }),
-
-            new Paragraph({
-              text: `رقم الموظف: ${employee._id}`,
-              alignment: AlignmentType.RIGHT,
-              spacing: { after: 300 },
-            }),
-
-            new Table({
-              width: { size: 100, type: WidthType.PERCENTAGE },
-              rows: tableRows,
-            }),
-          ],
-        },
-      ],
-    });
-
-    // -------- Send doc as download --------
-    const buffer = await Packer.toBuffer(doc);
-
-    const fileName = `إجازات_${employee.fullName}.docx`;
-    const encoded = encodeURIComponent(fileName);
-
-    res.setHeader(
-      "Content-Disposition",
-      `attachment; filename="${encoded}.docx"; filename*=UTF-8''${encoded}.docx`
-    );
-    res.setHeader(
-      "Content-Type",
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-    );
-
-    return res.send(buffer);
-  } catch (error) {
-    console.error("Word generation error:", error);
-    return res.status(500).json({ message: "Error generating file" });
-  }
-};
+// Placeholder for Word export with proper route name; old copy removed to avoid duplicate identifier
 
 // Generate Word document for vacations
 // export const generateVacationDocument = async (req, res) => {
@@ -334,28 +196,50 @@ export const addVacation = async (req, res) => {
   try {
     const { type, days, hours, childOrder, startDate } = req.body;
 
+    // Normalize numeric inputs to avoid cast errors on empty strings
+    const parsedHours =
+      hours === "" || hours === null ? undefined : Number(hours);
+    const parsedDays = days === "" || days === null ? undefined : Number(days);
+    const parsedChildOrder =
+      childOrder === "" || childOrder === null || childOrder === undefined
+        ? undefined
+        : Number(childOrder);
+
     // Logic for automatic limits (optional business rules)
-    let calculatedDays = days;
+    let calculatedDays = parsedDays;
 
     if (type === "إجازة أمومة") {
-      if (childOrder === 1) calculatedDays = 120;
-      else if (childOrder === 2) calculatedDays = 90;
-      else if (childOrder === 3) calculatedDays = 75;
+      if (parsedChildOrder === 1) calculatedDays = 120;
+      else if (parsedChildOrder === 2) calculatedDays = 90;
+      else if (parsedChildOrder === 3) calculatedDays = 75;
     }
 
-    if (type === "إجازة ساعية" && hours) {
-      calculatedDays = hours / 8; // 8 hours = 1 day
+    if (type === "إجازة ساعية" && parsedHours) {
+      calculatedDays = parsedHours / 8; // 8 hours = 1 day
+    }
+
+    // Calculate endDate
+    const start = new Date(startDate);
+    let end = new Date(startDate);
+
+    if (type === "إجازة ساعية") {
+      // For hourly vacation, end date is same as start date
+      end = new Date(start);
+    } else {
+      const daysToAdd = Math.max(1, Math.ceil(calculatedDays || 0));
+      end.setDate(start.getDate() + daysToAdd - 1);
     }
 
     const vacation = await Vacation.create({
       employeeId: req.params.id,
       type,
       days: calculatedDays,
-      hours,
-      childOrder,
+      hours: parsedHours,
+      childOrder: parsedChildOrder,
       startDate,
+      endDate: end,
     });
-    
+
     // Notify admin if action is performed by non-admin user
     if (req.user && req.user.role !== "admin") {
       // Get employee info for better notification context
@@ -365,9 +249,12 @@ export const addVacation = async (req, res) => {
         section: "vacations",
         action: "create",
         title: "تم إنشاء إجازة جديدة",
-        message: `تم إنشاء إجازة جديدة للموظف: ${employee?.fullName || "غير محدد"}`,
+        message: `تم إنشاء إجازة جديدة للموظف: ${
+          employee?.fullName || "غير محدد"
+        }`,
         employeeName: employee?.fullName,
         department: employee?.level4 || employee?.currentJobTitle || null,
+        io: req.io,
       });
     }
 
@@ -393,7 +280,7 @@ export const updateVacation = async (req, res) => {
     vacation.startDate = startDate ?? vacation.startDate;
 
     await vacation.save();
-    
+
     // Notify admin if action is performed by non-admin user
     if (req.user && req.user.role !== "admin") {
       // Get employee info for better notification context
@@ -403,14 +290,49 @@ export const updateVacation = async (req, res) => {
         section: "vacations",
         action: "update",
         title: "تم تحديث بيانات إجازة",
-        message: `تم تحديث بيانات الإجازة للموظف: ${employee?.fullName || "غير محدد"}`,
+        message: `تم تحديث بيانات الإجازة للموظف: ${
+          employee?.fullName || "غير محدد"
+        }`,
         employeeName: employee?.fullName,
         department: employee?.level4 || employee?.currentJobTitle || null,
+        io: req.io,
       });
     }
-    
+
     res.json(vacation);
   } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// Log print action
+export const logPrintAction = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const vacation = await Vacation.findById(id);
+
+    if (!vacation) {
+      return res.status(404).json({ message: "Vacation not found" });
+    }
+
+    // Notify admin if action is performed by non-admin user
+    if (req.user && req.user.role !== "admin") {
+      const employee = await Employee.findById(vacation.employeeId);
+      await notifyAdmin({
+        actionBy: req.user._id,
+        section: "vacations",
+        action: "print",
+        title: "تم طباعة إجازة",
+        message: `تم طباعة إجازة للموظف: ${employee?.fullName || "غير محدد"}`,
+        employeeName: employee?.fullName,
+        department: employee?.level4 || employee?.currentJobTitle || null,
+        io: req.io,
+      });
+    }
+
+    res.json({ message: "Print action logged" });
+  } catch (err) {
+    console.error("Error logging print action:", err);
     res.status(500).json({ message: err.message });
   }
 };
@@ -850,7 +772,7 @@ export const deleteVacation = async (req, res) => {
     const vacation = await Vacation.findById(req.params.id);
     if (!vacation)
       return res.status(404).json({ message: "Vacation not found" });
-      
+
     // Notify admin if action is performed by non-admin user
     if (req.user && req.user.role !== "admin") {
       // Get employee info for better notification context
@@ -863,9 +785,10 @@ export const deleteVacation = async (req, res) => {
         message: `تم حذف الإجازة للموظف: ${employee?.fullName || "غير محدد"}`,
         employeeName: employee?.fullName,
         department: employee?.level4 || employee?.currentJobTitle || null,
+        io: req.io,
       });
     }
-    
+
     await Vacation.findByIdAndDelete(req.params.id);
     res.json({ message: "Vacation deleted successfully" });
   } catch (err) {

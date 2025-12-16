@@ -19,6 +19,7 @@ import appSettingsRoutes from "./routes/appSettings.js";
 import dropdownOptionsRoutes from "./routes/dropdownOptions.js";
 import permissionsRoutes from "./routes/permissions.js";
 import fileShareRoutes from "./routes/fileShare.js";
+import documentRoutes from "./routes/documents.js";
 import circularRoutes from "./routes/circulars.js";
 import messageRoutes from "./routes/messages.js";
 import legalRoutes from "./routes/legal.js";
@@ -27,6 +28,8 @@ import searchRoutes from "./routes/search.js";
 import rewardRoutes from "./routes/rewards.js";
 import penaltyRoutes from "./routes/penalties.js";
 import courseRoutes from "./routes/courses.js";
+import complaintRoutes from "./routes/complaints.js";
+import dbRecoveryRoutes from "./routes/dbRecovery.js";
 import { fileURLToPath } from "url";
 import http from "http";
 import { Server } from "socket.io";
@@ -37,8 +40,22 @@ const __dirname = path.dirname(__filename);
 dotenv.config();
 
 const app = express();
+// Disable automatic ETag headers so auth/me doesn't return 304 and break clients
+app.set("etag", false);
 
 let onlineUsers = new Map();
+
+const server = http.createServer(app);
+export const io = new Server(server, {
+  cors: {
+    origin: function (origin, callback) {
+      // Allow all origins for Socket.IO (development)
+      callback(null, true);
+    },
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
+});
 
 app.use(
   helmet({
@@ -81,16 +98,20 @@ app.use(
   })
 );
 
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true }));
+app.use(morgan("dev"));
+
 app.use((req, res, next) => {
+  res.set("Cache-Control", "no-store, no-cache, must-revalidate, private");
+  res.removeHeader("ETag");
+  req.io = io;
   req.onlineUsers = onlineUsers;
   next();
 });
 
 // الاجازات
 app.use("/api", vacationRoutes);
-app.use(express.json({ limit: "10mb" }));
-app.use(express.urlencoded({ extended: true }));
-app.use(morgan("dev"));
 
 // routes
 app.use("/api/auth", authRoutes);
@@ -108,11 +129,14 @@ app.use("/api/penalties", penaltyRoutes);
 app.use("/api/courses", courseRoutes);
 app.use("/api/permissions", permissionsRoutes);
 app.use("/api/file-share", fileShareRoutes);
+app.use("/api/documents", documentRoutes);
 app.use("/api/circulars", circularRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/legal", legalRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/operations", operationRoutes);
+app.use("/api/db-recovery", dbRecoveryRoutes);
+app.use("/api/complaints", complaintRoutes);
 app.get("/api/test", (req, res) => {
   res.send("connected successfully");
 });
@@ -139,25 +163,18 @@ app.use((err, req, res, next) => {
 });
 
 // ------------------------------>
-const server = http.createServer(app);
-export const io = new Server(server, {
-  cors: {
-    origin: function (origin, callback) {
-      // Allow all origins for Socket.IO (development)
-      callback(null, true);
-    },
-    methods: ["GET", "POST"],
-    credentials: true,
-  },
-});
 let adminSocket = null;
 
 export { onlineUsers };
 
 io.on("connection", (socket) => {
   console.log("🔌 مستخدم متصل:", socket.id);
-  socket.on("registerAdmin", () => {
+  socket.on("registerAdmin", (data) => {
     adminSocket = socket;
+    if (data?.id) {
+      onlineUsers.set(data.id, socket.id);
+      io.emit("online_users", Array.from(onlineUsers.keys()));
+    }
     console.log(
       "✅ Admin connected: and with change admin socket varible",
       socket.id
@@ -165,6 +182,10 @@ io.on("connection", (socket) => {
   });
   socket.on("registerUser", (data) => {
     console.log("🙋 User registered:", data.id);
+    if (data?.id) {
+      onlineUsers.set(data.id, socket.id);
+      io.emit("online_users", Array.from(onlineUsers.keys()));
+    }
   });
   socket.on("notifyAdmin", (data) => {
     console.log("====================================");
@@ -180,6 +201,23 @@ io.on("connection", (socket) => {
   });
   socket.on("private_message", async ({ to, message, from, fromUsername }) => {
     try {
+      // Validate sender/recipient IDs to avoid cast errors
+      if (
+        !from ||
+        !to ||
+        !mongoose.Types.ObjectId.isValid(from) ||
+        !mongoose.Types.ObjectId.isValid(to)
+      ) {
+        const warnTarget = from ? onlineUsers.get(from) : socket.id;
+        if (warnTarget) {
+          io.to(warnTarget).emit("message_error", {
+            message: "Invalid sender or recipient.",
+          });
+        }
+        console.warn("Skipping message save due to invalid IDs", { from, to });
+        return;
+      }
+
       // Save message to database
       const newMessage = new Message({
         from,
@@ -224,6 +262,17 @@ io.on("connection", (socket) => {
 
   socket.on("admin_message", async ({ message, from, fromUsername }) => {
     try {
+      if (!from || !mongoose.Types.ObjectId.isValid(from)) {
+        const warnTarget = from ? onlineUsers.get(from) : socket.id;
+        if (warnTarget) {
+          io.to(warnTarget).emit("message_error", {
+            message: "Invalid sender.",
+          });
+        }
+        console.warn("Skipping admin message due to invalid sender", { from });
+        return;
+      }
+
       // Find admin user ID (assuming admin role)
       const User = (await import("./models/User.js")).default;
       const adminUser = await User.findOne({ role: "admin" });

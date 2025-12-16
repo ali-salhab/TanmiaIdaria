@@ -15,7 +15,7 @@ export const getRewards = async (req, res) => {
 export const createReward = async (req, res) => {
   try {
     const { employeeId } = req.params;
-    const { type, description, date } = req.body;
+    const { type, description, date, decisionNumber } = req.body;
     const file = req.file ? req.file.path : null;
 
     const newReward = new Reward({
@@ -23,6 +23,7 @@ export const createReward = async (req, res) => {
       type,
       description,
       date,
+      decisionNumber,
       file,
       createdBy: req.user.userId,
     });

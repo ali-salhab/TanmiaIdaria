@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "react-hot-toast";
 import { FaEdit, FaEye, FaEyeSlash } from "react-icons/fa";
 import API from "../api/api";
@@ -7,7 +6,6 @@ import DropdownWithSettings from "../components/DropdownWithSettings";
 
 export default function Users() {
   const [users, setUsers] = useState([]);
-  const [notifications, setNotifications] = useState([]);
   const [sortOrder, setSortOrder] = useState("desc");
   const [newUser, setNewUser] = useState({
     username: "",
@@ -28,10 +26,57 @@ export default function Users() {
   const [employees, setEmployees] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [showEmployeeDropdown, setShowEmployeeDropdown] = useState(false);
+  const [isSearchingEmployees, setIsSearchingEmployees] = useState(false);
   const [permissionGroups, setPermissionGroups] = useState([]);
   const [selectedGroups, setSelectedGroups] = useState([]);
 
-  const token = localStorage.getItem("token");
+  const employeeSearchWrapRef = useRef(null);
+  const employeeSearchTimerRef = useRef(null);
+
+  const groupIdToName = useMemo(() => {
+    const map = new Map();
+    for (const g of permissionGroups) {
+      if (g?._id) map.set(g._id, g.name || "");
+    }
+    return map;
+  }, [permissionGroups]);
+
+  const getGroupAbbrev = (name) => {
+    if (!name) return "";
+    const parts = String(name).trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 0) return "";
+    const letters = parts
+      .map((p) => p[0])
+      .join("")
+      .toUpperCase();
+    const short = letters.slice(0, 3);
+    return short || String(name).slice(0, 3);
+  };
+
+  const formatGroupSummary = (groups) => {
+    if (!groups || groups.length === 0)
+      return { text: "لا توجد مجموعات", title: "" };
+
+    // Accept populated group objects or group ids
+    const names = groups
+      .map((g) => {
+        if (!g) return "";
+        if (typeof g === "string") return groupIdToName.get(g) || "";
+        return g.name || groupIdToName.get(g._id) || "";
+      })
+      .filter(Boolean);
+
+    if (names.length === 0) return { text: "لا توجد مجموعات", title: "" };
+
+    const abbrevs = names.map(getGroupAbbrev).filter(Boolean);
+    const uniqueAbbrevs = Array.from(new Set(abbrevs));
+    const shown = uniqueAbbrevs.slice(0, 3);
+    const rest = uniqueAbbrevs.length - shown.length;
+    return {
+      text: rest > 0 ? `${shown.join(" · ")} +${rest}` : shown.join(" · "),
+      title: names.join("، "),
+    };
+  };
 
   useEffect(() => {
     fetchUsers();
@@ -68,20 +113,70 @@ export default function Users() {
 
   // Search for employees
   const searchEmployees = async (query) => {
-    if (query.length < 2) {
+    const trimmed = String(query || "").trim();
+    if (trimmed.length < 2) {
       setEmployees([]);
+      setShowEmployeeDropdown(false);
+      setIsSearchingEmployees(false);
       return;
     }
 
     try {
-      const res = await API.get(`/users/search/employees?q=${query}`);
-      setEmployees(res.data);
+      setIsSearchingEmployees(true);
+      const res = await API.get(
+        `/users/search/employees?q=${encodeURIComponent(trimmed)}`
+      );
+      const list = Array.isArray(res.data) ? res.data : [];
+      setEmployees(list);
       setShowEmployeeDropdown(true);
     } catch (error) {
       console.error("Error searching employees:", error);
       setEmployees([]);
+
+      const status = error?.response?.status;
+      if (status === 403) {
+        toast.error("❌ لا تملك صلاحية عرض المستخدمين (users.view)");
+        setShowEmployeeDropdown(false);
+      } else {
+        setShowEmployeeDropdown(true);
+      }
+    } finally {
+      setIsSearchingEmployees(false);
     }
   };
+
+  const scheduleEmployeeSearch = (query) => {
+    if (employeeSearchTimerRef.current) {
+      clearTimeout(employeeSearchTimerRef.current);
+    }
+    employeeSearchTimerRef.current = setTimeout(() => {
+      searchEmployees(query);
+    }, 250);
+  };
+
+  useEffect(() => {
+    const onKeyDown = (e) => {
+      if (e.key === "Escape") {
+        setShowEmployeeDropdown(false);
+      }
+    };
+    const onMouseDown = (e) => {
+      const wrap = employeeSearchWrapRef.current;
+      if (wrap && !wrap.contains(e.target)) {
+        setShowEmployeeDropdown(false);
+      }
+    };
+
+    document.addEventListener("keydown", onKeyDown);
+    document.addEventListener("mousedown", onMouseDown);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.removeEventListener("mousedown", onMouseDown);
+      if (employeeSearchTimerRef.current) {
+        clearTimeout(employeeSearchTimerRef.current);
+      }
+    };
+  }, []);
 
   // Handle employee selection
   const handleEmployeeSelect = (employee) => {
@@ -128,8 +223,8 @@ export default function Users() {
       setSearchQuery("");
       setSelectedGroups([]);
       fetchUsers();
-    } catch (error) {
-      const msg = error.response?.data?.message || "❌ فشل في إنشاء المستخدم!";
+    } catch (err) {
+      const msg = err.response?.data?.message || "❌ فشل في إنشاء المستخدم!";
       toast.error(msg);
     }
   };
@@ -221,85 +316,125 @@ export default function Users() {
       </div>
 
       {/* إنشاء مستخدم جديد */}
-      <div className="bg-white p-6 rounded-2xl shadow mb-10 max-w-2xl">
+      <div className="bg-white p-6 rounded-2xl shadow mb-10 max-w-3xl">
         <h3 className="text-lg font-medium mb-4 text-gray-700">
           ➕ إنشاء مستخدم جديد
         </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+
+        <div className="space-y-4">
           {/* Employee Search Field */}
-          <div className="sm:col-span-3 relative">
+          <div className="relative" ref={employeeSearchWrapRef}>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              البحث عن الموظف
+              🔍 البحث عن الموظف
             </label>
             <input
               type="text"
-              placeholder="ابحث عن الموظف بالاسم أو الرقم الوطني"
+              placeholder="ابحث عن الموظف بالاسم أو الرقم الوطني..."
               value={searchQuery}
               onChange={(e) => {
-                setSearchQuery(e.target.value);
-                searchEmployees(e.target.value);
+                const value = e.target.value;
+                setSearchQuery(value);
+                scheduleEmployeeSearch(value);
               }}
-              className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 outline-none w-full"
+              onFocus={() => {
+                if (String(searchQuery || "").trim().length >= 2) {
+                  setShowEmployeeDropdown(true);
+                }
+              }}
+              className="border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-400 outline-none w-full"
             />
 
             {/* Employee Dropdown */}
-            {showEmployeeDropdown && employees.length > 0 && (
-              <div className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                {employees.map((employee) => (
-                  <div
-                    key={employee._id}
-                    className="px-4 py-2 hover:bg-blue-50 cursor-pointer"
-                    onClick={() => handleEmployeeSelect(employee)}
-                  >
-                    <div className="font-medium">
-                      {employee.fullName ||
-                        `${employee.firstName} ${employee.lastName}`}
+            {showEmployeeDropdown &&
+              String(searchQuery || "").trim().length >= 2 && (
+                <div className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                  {isSearchingEmployees && (
+                    <div className="px-4 py-3 text-sm text-gray-500">
+                      جاري البحث...
                     </div>
-                    <div className="text-sm text-gray-500">
-                      {employee.nationalId &&
-                        `الرقم الوطني: ${employee.nationalId}`}
-                      {employee.phone && ` | الهاتف: ${employee.phone}`}
+                  )}
+
+                  {!isSearchingEmployees && employees.length === 0 && (
+                    <div className="px-4 py-3 text-sm text-gray-500">
+                      لا توجد نتائج.
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
+                  )}
+
+                  {!isSearchingEmployees &&
+                    employees.map((employee) => (
+                      <div
+                        key={employee._id}
+                        className="px-4 py-3 hover:bg-blue-50 cursor-pointer border-b last:border-b-0"
+                        onClick={() => handleEmployeeSelect(employee)}
+                      >
+                        <div className="font-medium text-gray-800">
+                          {employee.fullName ||
+                            `${employee.firstName} ${employee.lastName}`}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          {employee.nationalId &&
+                            `الرقم الوطني: ${employee.nationalId}`}
+                          {employee.phone && ` | الهاتف: ${employee.phone}`}
+                          {employee.currentJobTitle &&
+                            ` | ${employee.currentJobTitle}`}
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              )}
           </div>
 
-          {/* Password Field */}
-          <input
-            type="password"
-            placeholder="كلمة المرور"
-            value={newUser.password}
-            onChange={(e) =>
-              setNewUser({ ...newUser, password: e.target.value })
-            }
-            className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 outline-none"
-          />
+          {/* Selected Employee Info */}
+          {newUser.employeeId && (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="text-green-700 font-medium">
+                    ✅ الموظف المحدد:{" "}
+                  </span>
+                  <span className="text-green-800 font-bold">
+                    {newUser.username}
+                  </span>
+                </div>
+                <button
+                  onClick={() => {
+                    setNewUser({ ...newUser, employeeId: "", username: "" });
+                    setSearchQuery("");
+                  }}
+                  className="text-red-500 hover:text-red-700 text-sm"
+                >
+                  ✕ إلغاء التحديد
+                </button>
+              </div>
+            </div>
+          )}
 
-          {/* Role Dropdown */}
-          <DropdownWithSettings
-            id="users_new_user_role"
-            value={newUser.role}
-            onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
-            options={[
-              { value: "admin", label: "مدير عام" },
-              { value: "employee", label: "موظف" },
-            ]}
-            placeholder="اختر الدور"
-            className="border rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-blue-400 outline-none"
-          />
+          {/* Password Field */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              🔐 كلمة المرور
+            </label>
+            <input
+              type="password"
+              placeholder="أدخل كلمة مرور للمستخدم الجديد..."
+              value={newUser.password}
+              onChange={(e) =>
+                setNewUser({ ...newUser, password: e.target.value })
+              }
+              className="border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-400 outline-none w-full"
+            />
+          </div>
 
           {/* Permission Groups Selection */}
-          <div className="sm:col-span-3 mt-2">
+          <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              مجموعات الصلاحيات
+              🛡️ مجموعات الصلاحيات
             </label>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 max-h-40 overflow-y-auto border p-3 rounded-lg bg-gray-50">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 max-h-48 overflow-y-auto border p-3 rounded-lg bg-gray-50">
               {permissionGroups.map((group) => (
                 <label
                   key={group._id}
-                  className="flex items-center space-x-2 space-x-reverse cursor-pointer hover:bg-blue-50 p-1 rounded"
+                  className="flex items-center gap-2 cursor-pointer hover:bg-blue-50 p-2 rounded"
                 >
                   <input
                     type="checkbox"
@@ -319,13 +454,24 @@ export default function Users() {
                 </label>
               ))}
             </div>
+            {selectedGroups.length > 0 && (
+              <p className="text-sm text-blue-600 mt-2">
+                تم تحديد {selectedGroups.length} مجموعة
+              </p>
+            )}
           </div>
         </div>
+
         <button
           onClick={createUser}
-          className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition"
+          disabled={!newUser.employeeId || !newUser.password}
+          className={`mt-6 px-6 py-3 rounded-lg transition font-medium ${
+            newUser.employeeId && newUser.password
+              ? "bg-blue-600 hover:bg-blue-700 text-white"
+              : "bg-gray-300 text-gray-500 cursor-not-allowed"
+          }`}
         >
-          إنشاء
+          ✅ إنشاء المستخدم
         </button>
       </div>
 
@@ -374,7 +520,7 @@ export default function Users() {
           </thead>
           <tbody>
             {users.map((u) => {
-              console.log(u);
+              const groupSummary = formatGroupSummary(u.permissionGroups);
               return (
                 <tr
                   key={u._id}
@@ -502,20 +648,16 @@ export default function Users() {
                       </div>
                     ) : (
                       <div className="flex flex-wrap gap-1 items-center">
-                        {u.permissionGroups && u.permissionGroups.length > 0 ? (
-                          u.permissionGroups.map((g) => (
-                            <span
-                              key={g._id}
-                              className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full"
-                            >
-                              {g.name}
-                            </span>
-                          ))
-                        ) : (
-                          <span className="text-gray-400 text-xs">
-                            لا توجد مجموعات
-                          </span>
-                        )}
+                        <span
+                          className={`text-xs px-2 py-1 rounded-full border ${
+                            groupSummary.text === "لا توجد مجموعات"
+                              ? "bg-gray-50 text-gray-500 border-gray-200"
+                              : "bg-blue-50 text-blue-800 border-blue-200"
+                          }`}
+                          title={groupSummary.title}
+                        >
+                          {groupSummary.text}
+                        </span>
                         <button
                           onClick={() => startEditGroups(u)}
                           className="mr-2 text-blue-600 hover:text-blue-800 text-xs border border-blue-200 px-2 py-1 rounded hover:bg-blue-50"

@@ -10,6 +10,8 @@ import EmployeeVacations from "../pages/EmployeeVacations";
 import EmployeeRewards from "../pages/EmployeeRewards";
 import EmployeePenalties from "../pages/EmployeePenalties";
 import EmployeeCourses from "../pages/EmployeeCourses";
+import DropdownWithSettings from "../components/DropdownWithSettings";
+
 export default function EmployeeEdit() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -23,6 +25,19 @@ export default function EmployeeEdit() {
   const [photoPreview, setPhotoPreview] = useState("");
   const [uploading, setUploading] = useState(false);
   const [activeTab, setActiveTab] = useState("info"); // تبويب افتراضي: البيانات
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await API.get("/auth/me");
+        setUser(res.data.user);
+      } catch (error) {
+        console.error("Error fetching user:", error);
+      }
+    };
+    fetchUser();
+  }, []);
 
   // 🔹 تحميل بيانات الموظف
   const fetchEmployee = async () => {
@@ -104,30 +119,28 @@ export default function EmployeeEdit() {
     fullName: "الاسم الكامل",
     firstName: "الاسم الأول",
     fatherName: "اسم الأب",
-    motherName: "اسم الأم",
+    motherNameAndLastName: "اسم الأم",
     lastName: "الكنية",
     nationalId: "الرقم الوطني",
     gender: "الجنس",
     nationality: "الجنسية",
-    address: "العنوان",
+    residenceCity: "العنوان",
     city: "المدينة",
     governorate: "المحافظة",
     registrationNumber: "القيد",
     birthDate: "تاريخ الميلاد",
     birthPlace: "مكان الولادة",
-    qualification: "المؤهل العلمي",
+    educationLevel: "المؤهل العلمي",
     specialization: "الاختصاص",
-    job_title: "المسمى الوظيفي",
+    currentJobTitle: "المسمى الوظيفي",
     jobCategory: "الفئة الوظيفية",
-    salary: "الراتب",
-    hire_date: "تاريخ التعيين",
+    lastSalary: "الراتب",
+    hiringDate: "تاريخ التعيين",
     phone: "رقم الهاتف",
-    email: "البريد الإلكتروني",
     maritalStatus: "الحالة الاجتماعية",
     childrenCount: "عدد الأولاد",
     notes: "ملاحظات",
     workLocation: "مكان العمل",
-    department: "القسم",
   };
 
   const excluded = [
@@ -139,6 +152,45 @@ export default function EmployeeEdit() {
     "documents",
   ];
 
+  const dropdownFields = {
+    governorate: [
+      "دمشق",
+      "ريف دمشق",
+      "حلب",
+      "حمص",
+      "حماة",
+      "اللاذقية",
+      "طرطوس",
+      "إدلب",
+      "درعا",
+      "السويداء",
+      "القنيطرة",
+      "دير الزور",
+      "الحسكة",
+      "الرقة",
+    ],
+    city: [],
+    nationality: ["عربي سوري"],
+    maritalStatus: ["عازب", "متزوج", "مطلق", "أرمل"],
+    educationLevel: [
+      "ابتدائية",
+      "إعدادية",
+      "ثانوية",
+      "معهد",
+      "جامعة",
+      "ماجستير",
+      "دكتوراه",
+    ],
+    specialization: [],
+    currentJobTitle: [],
+    jobCategory: ["الأولى", "الثانية", "الثالثة", "الرابعة", "الخامسة"],
+    workLocation: [],
+    gender: ["ذكر", "أنثى"],
+    contractType: ["دائم", "مؤقت", "عقد موسمي"],
+    status: ["قائم على رأس عمله", "مجاز", "مكفوف اليد", "مستقيل", "متقاعد"],
+    bloodType: ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"],
+  };
+
   return (
     <div className="p-6 max-w-7xl mx-auto font-custom text-right" dir="rtl">
       {/* 🪪 رأس الصفحة */}
@@ -148,8 +200,9 @@ export default function EmployeeEdit() {
             <img
               src={
                 photoPreview ||
-                employee.photo ||
-                VITE_API_URL + "/uploads/default-avatar.png"
+                (employee.photo
+                  ? `${VITE_API_URL}${employee.photo}`
+                  : "https://cdn-icons-png.flaticon.com/512/3135/3135715.png")
               }
               alt="صورة الموظف"
               className="h-36 w-36 rounded-full border-4 border-blue-400 object-cover shadow-md"
@@ -179,15 +232,15 @@ export default function EmployeeEdit() {
             </div>
             <div>
               <p className="text-sm text-gray-500">الوظيفة</p>
-              <p className="font-semibold">{employee.job_title || "—"}</p>
+              <p className="font-semibold">{employee.currentJobTitle || "—"}</p>
             </div>
             <div>
               <p className="text-sm text-gray-500">المؤهل العلمي</p>
-              <p className="font-semibold">{employee.qualification || "—"}</p>
+              <p className="font-semibold">{employee.educationLevel || "—"}</p>
             </div>
             <div>
               <p className="text-sm text-gray-500">الراتب</p>
-              <p className="font-semibold">{employee.salary || "—"}</p>
+              <p className="font-semibold">{employee.lastSalary || "—"}</p>
             </div>
           </div>
         </div>
@@ -225,19 +278,49 @@ export default function EmployeeEdit() {
         <div className="bg-white rounded-b-lg shadow-md p-6 mt-2">
           {activeTab === "info" && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {Object.keys(fieldLabels).map((key) => (
-                <div key={key} className="flex flex-col">
-                  <label className="mb-1 text-sm font-semibold text-gray-600">
-                    {fieldLabels[key]}
-                  </label>
-                  <input
-                    name={key}
-                    value={employee[key] || ""}
-                    onChange={handleChange}
-                    className="border rounded p-2 focus:ring-2 focus:ring-blue-400"
-                  />
-                </div>
-              ))}
+              {Object.keys(fieldLabels).map((key) => {
+                const isDate = key === "birthDate" || key === "hiringDate";
+                const isDropdown = Object.keys(dropdownFields).includes(key);
+
+                return (
+                  <div key={key} className="flex flex-col">
+                    <label className="mb-1 text-sm font-semibold text-gray-600">
+                      {fieldLabels[key]}
+                    </label>
+                    {isDropdown ? (
+                      <DropdownWithSettings
+                        id={`employee_${key}`}
+                        value={employee[key] || ""}
+                        onChange={(e) =>
+                          handleChange({
+                            target: { name: key, value: e.target.value },
+                          })
+                        }
+                        options={dropdownFields[key].map((opt) => ({
+                          value: opt,
+                          label: opt,
+                        }))}
+                        isAdmin={user?.role === "admin"}
+                        placeholder={`اختر ${fieldLabels[key]}`}
+                      />
+                    ) : (
+                      <input
+                        name={key}
+                        type={isDate ? "date" : "text"}
+                        value={
+                          isDate && employee[key]
+                            ? new Date(employee[key])
+                                .toISOString()
+                                .split("T")[0]
+                            : employee[key] || ""
+                        }
+                        onChange={handleChange}
+                        className="border rounded p-2 focus:ring-2 focus:ring-blue-400"
+                      />
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
 

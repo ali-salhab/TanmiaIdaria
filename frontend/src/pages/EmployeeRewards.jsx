@@ -14,18 +14,19 @@ export default function EmployeeRewards() {
   const [formData, setFormData] = useState({
     type: "material",
     description: "",
+    decisionNumber: "",
     date: new Date().toISOString().split("T")[0],
   });
   const [file, setFile] = useState(null);
   const fileInputRef = useRef(null);
-  
+
   // Get user info from context if available, or fetch it
   // Assuming EmployeeEdit passes context or we can get it from local storage/api
   // For now, we'll assume we can get permissions from a helper or context
   // But EmployeeEdit doesn't pass context to children.
   // We can use a hook or just check localStorage for role/permissions if stored there
   // Or fetch /auth/me again.
-  
+
   // Simplified permission check (assuming admin or has permission)
   const canAdd = true; // Replace with actual permission check
   const canDelete = true; // Replace with actual permission check
@@ -50,6 +51,8 @@ export default function EmployeeRewards() {
     const data = new FormData();
     data.append("type", formData.type);
     data.append("description", formData.description);
+    if (formData.decisionNumber)
+      data.append("decisionNumber", formData.decisionNumber);
     data.append("date", formData.date);
     if (file) {
       data.append("file", file);
@@ -64,6 +67,7 @@ export default function EmployeeRewards() {
       setFormData({
         type: "material",
         description: "",
+        decisionNumber: "",
         date: new Date().toISOString().split("T")[0],
       });
       setFile(null);
@@ -102,9 +106,20 @@ export default function EmployeeRewards() {
             <h1>وثيقة مكافأة</h1>
           </div>
           <div class="content">
-            <div class="row"><strong>نوع المكافأة:</strong> ${getRewardLabel(reward.type)}</div>
-            <div class="row"><strong>التاريخ:</strong> ${new Date(reward.date).toLocaleDateString('ar-SY')}</div>
-            <div class="row"><strong>التفاصيل:</strong> ${reward.description || '-'}</div>
+            <div class="row"><strong>نوع المكافأة:</strong> ${getRewardLabel(
+              reward.type
+            )}</div>
+            ${
+              reward.decisionNumber
+                ? `<div class="row"><strong>رقم القرار:</strong> ${reward.decisionNumber}</div>`
+                : ""
+            }
+            <div class="row"><strong>التاريخ:</strong> ${new Date(
+              reward.date
+            ).toLocaleDateString("ar-SY")}</div>
+            <div class="row"><strong>التفاصيل:</strong> ${
+              reward.description || "-"
+            }</div>
           </div>
           <script>window.print();</script>
         </body>
@@ -148,8 +163,15 @@ export default function EmployeeRewards() {
               className="bg-white border rounded-lg p-4 flex justify-between items-center shadow-sm"
             >
               <div>
-                <p className="font-bold text-lg">{getRewardLabel(reward.type)}</p>
+                <p className="font-bold text-lg">
+                  {getRewardLabel(reward.type)}
+                </p>
                 <p className="text-gray-600">{reward.description}</p>
+                {reward.decisionNumber && (
+                  <p className="text-sm text-gray-600">
+                    رقم القرار: {reward.decisionNumber}
+                  </p>
+                )}
                 <p className="text-sm text-gray-500">
                   {new Date(reward.date).toLocaleDateString("ar-SY")}
                 </p>
@@ -199,6 +221,23 @@ export default function EmployeeRewards() {
             </div>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
+                <label className="block text-sm font-medium mb-1">
+                  رقم القرار / المستند
+                </label>
+                <input
+                  type="text"
+                  value={formData.decisionNumber}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      decisionNumber: e.target.value,
+                    })
+                  }
+                  className="w-full border rounded p-2"
+                  placeholder="أدخل رقم القرار"
+                />
+              </div>
+              <div>
                 <label className="block text-sm font-medium mb-1">النوع</label>
                 <select
                   value={formData.type}
@@ -213,7 +252,9 @@ export default function EmployeeRewards() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">التاريخ</label>
+                <label className="block text-sm font-medium mb-1">
+                  التاريخ
+                </label>
                 <input
                   type="date"
                   value={formData.date}
@@ -225,7 +266,9 @@ export default function EmployeeRewards() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">التفاصيل</label>
+                <label className="block text-sm font-medium mb-1">
+                  التفاصيل
+                </label>
                 <textarea
                   value={formData.description}
                   onChange={(e) =>

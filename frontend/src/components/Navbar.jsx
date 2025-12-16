@@ -27,6 +27,7 @@ export default function Navbar({
   sidebarOpen,
   onToggleSidebar,
   onOpenChat,
+  unreadChatCount = 0,
 }) {
   const navigate = useNavigate();
   const { playNotification } = useSettings();
@@ -39,11 +40,29 @@ export default function Navbar({
   const { socket } = useSocket();
   const isAdmin = userInfo?.role === "admin";
 
+  const handleNotificationClick = async () => {
+    try {
+      await API.put("/notifications/mark-read");
+      setNotifications([]);
+    } catch (error) {
+      console.error("Error marking notifications as read:", error);
+    }
+
+    if (isAdmin) {
+      navigate("/dashboard/admin-notifications");
+    } else {
+      navigate("/dashboard/notifications");
+    }
+  };
+
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
         const res = await API.get("/notifications");
-        setNotifications(res.data);
+        // Filter unread notifications only if needed, or just show all
+        // Assuming API returns all, we might want to filter unread for the badge
+        const unread = res.data.filter((n) => !n.read);
+        setNotifications(unread);
       } catch (error) {
         console.error("Failed to fetch notifications", error);
       }
@@ -165,13 +184,7 @@ export default function Navbar({
         <div className="flex items-center gap-4">
           <div className="relative bg-black gap-2 rounded-lg p-1 flex">
             <button
-              onClick={() => {
-                if (isAdmin) {
-                  navigate("/dashboard/admin-notifications");
-                } else {
-                  navigate("/notifications");
-                }
-              }}
+              onClick={handleNotificationClick}
               className="relative p-2 hover:bg-gray-100 rounded-lg transition group"
               title="الإشعارات"
             >
@@ -183,7 +196,7 @@ export default function Navbar({
               )}
             </button>
             <button
-              onClick={() => navigate("/circulars")}
+              onClick={() => navigate("/dashboard/circulars")}
               className="p-1.5 md:p-2 hover:bg-gray-100 rounded-lg transition"
               title="التعاميم"
             >
@@ -191,15 +204,18 @@ export default function Navbar({
             </button>
           </div>
 
-          {isAdmin && (
-            <button
-              onClick={() => onOpenChat && onOpenChat()}
-              className="p-2 hover:bg-gray-100 rounded-lg transition relative"
-              title="الدردشة مع المستخدمين"
-            >
-              <MessageCircle className="w-5 h-5 text-gray-600" />
-            </button>
-          )}
+          <button
+            onClick={() => onOpenChat && onOpenChat()}
+            className="p-2 hover:bg-gray-100 rounded-lg transition relative"
+            title="الدردشة"
+          >
+            <MessageCircle className="w-5 h-5 text-gray-600" />
+            {unreadChatCount > 0 && (
+              <span className="absolute top-0 right-0 w-5 h-5 bg-blue-600 text-white text-xs rounded-full flex items-center justify-center animate-pulse font-bold shadow-lg">
+                {unreadChatCount > 9 ? "9+" : unreadChatCount}
+              </span>
+            )}
+          </button>
 
           {userInfo && (
             <div className="flex items-center gap-3 pl-4 border-l border-gray-200">

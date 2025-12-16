@@ -70,7 +70,7 @@ export default function EmployeeList() {
         "الرقم الوطني": emp.nationalId,
         "رقم الهاتف": emp.phone,
         الجنس: emp.gender,
-        "القسم (Level 4)": emp.level4,
+        "المستوى الإداري الرابع": emp.level4,
         "الفئة الوظيفية": emp.jobCategory,
         "الحالة الوظيفية": emp.employmentType,
         "الوضع العائلي": emp.maritalStatus,
@@ -81,9 +81,9 @@ export default function EmployeeList() {
         الاختصاص: emp.specialization,
         "مكان العمل": emp.workLocation,
         الحالة: emp.status,
-        "Level 1": emp.level1,
-        "Level 2": emp.level2,
-        "Level 3": emp.level3,
+        "المستوى الإداري الأول": emp.level1,
+        "المستوى الإداري الثاني": emp.level2,
+        "المستوى الإداري الثالث": emp.level3,
         "Level 5": emp.level5,
         "Level 6": emp.level6,
       }));
@@ -635,7 +635,7 @@ export default function EmployeeList() {
                   label: "مديرية المجالس المحلية",
                 },
               ]}
-              placeholder="القسم (Level 4)"
+              placeholder="المستوى الإداري الرابع"
               className="border p-2 rounded"
               isAdmin={userInfo?.role === "admin"}
             />
@@ -825,7 +825,7 @@ export default function EmployeeList() {
                 setPage(1);
               }}
               options={[]}
-              placeholder="Level 1"
+              placeholder="المستوى الإداري الأول"
               className="border p-2 rounded"
               isAdmin={userInfo?.role === "admin"}
             />
@@ -837,7 +837,7 @@ export default function EmployeeList() {
                 setPage(1);
               }}
               options={[]}
-              placeholder="Level 2"
+              placeholder="المستوى الإداري الثاني"
               className="border p-2 rounded"
               isAdmin={userInfo?.role === "admin"}
             />
@@ -849,7 +849,7 @@ export default function EmployeeList() {
                 setPage(1);
               }}
               options={[]}
-              placeholder="Level 3"
+              placeholder="المستوى الإداري الثالث"
               className="border p-2 rounded"
               isAdmin={userInfo?.role === "admin"}
             />

@@ -6,8 +6,8 @@ import {
   addVacation,
   updateVacation,
   deleteVacation,
-  generateVacationDocument,
   generateSingleVacationTemplate,
+  logPrintAction,
 } from "../controllers/vacationController.js";
 
 const router = express.Router();
@@ -37,16 +37,12 @@ router.delete(
   deleteVacation
 );
 router.get(
-  "/employees/:id/vacations/export/word",
-  protect,
-  checkPermission("vacations.export"),
-  generateVacationDocument
-);
-router.get(
   "/vacations/:vacationId/template",
   protect,
   checkPermission("vacations.generate_template"),
   generateSingleVacationTemplate
 );
+
+router.post("/:id/print-log", protect, logPrintAction);
 
 export default router;

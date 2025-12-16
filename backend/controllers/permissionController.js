@@ -1,6 +1,7 @@
 import Permission from "../models/Permission.js";
 import PermissionGroup from "../models/PermissionGroup.js";
 import User from "../models/User.js";
+import { io } from "../server.js";
 
 export const getAllPermissions = async (req, res) => {
   try {
@@ -239,6 +240,31 @@ export const updateUserPermissions = async (req, res) => {
         path: "permissionGroups",
         populate: { path: "permissions" },
       });
+
+    // Emit permission update notification
+    const permissionUpdateEvent = {
+      userId,
+      username: updatedUser.username,
+      type: "direct_permissions_updated",
+      timestamp: new Date(),
+    };
+
+    io.emit("permission_update", permissionUpdateEvent);
+
+    const notificationEvent = {
+      type: "permission_change",
+      message: `تم تحديث صلاحياتك المباشرة`,
+      userId,
+      time: new Date(),
+    };
+
+    io.emit("notification", notificationEvent);
+
+    // Send personal notification to the user
+    const userSocketId = req.onlineUsers?.get(userId);
+    if (userSocketId) {
+      io.to(userSocketId).emit("personal_notification", notificationEvent);
+    }
 
     res.json({
       message: "User direct permissions updated",

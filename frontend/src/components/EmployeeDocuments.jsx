@@ -11,7 +11,12 @@ import {
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 
-const apiUrl = import.meta.env.VITE_API_URL;
+const buildFileUrl = (filePath) => {
+  const base = import.meta.env.VITE_API_URL
+    ? import.meta.env.VITE_API_URL.replace("/api", "")
+    : `http://${window.location.hostname}:5000`;
+  return `${base}${filePath}`;
+};
 
 export default function EmployeeDocuments({ employeeId }) {
   const [docs, setDocs] = useState([]);
@@ -98,29 +103,38 @@ export default function EmployeeDocuments({ employeeId }) {
   };
 
   const handleDownload = (doc) => {
-    const url = `${apiUrl}${doc.path}`;
+    const url = buildFileUrl(doc.path);
     const link = document.createElement("a");
     link.href = url;
-    link.download = doc.description || "document";
+    link.download = doc.fileName || doc.description || "document";
+    document.body.appendChild(link);
     link.click();
-    toast.success("جاري تحميل الملف");
+    document.body.removeChild(link);
+    toast.success("تم بدء التحميل");
   };
 
   const handleView = (doc) => {
-    const url = `${apiUrl}${doc.path}`;
-    window.open(url, "_blank");
+    const url = buildFileUrl(doc.path);
+    window.open(url, "_blank", "noopener,noreferrer");
   };
 
   const handlePrint = (doc) => {
-    const url = `${apiUrl}${doc.path}`;
-    const printWindow = window.open(url, "_blank");
-    if (printWindow) {
-      printWindow.onload = () => {
-        printWindow.print();
-      };
-    } else {
+    const url = buildFileUrl(doc.path);
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) {
       toast.error("يرجى السماح بالنوافذ المنبثقة للطباعة");
+      return;
     }
+
+    const isImage = /(png|jpg|jpeg|gif|bmp|webp)$/i.test(doc.path || "");
+    const content = isImage
+      ? `<img src="${url}" style="max-width:100%;" />`
+      : `<iframe src="${url}" style="width:100%;height:100vh;border:0;"></iframe>`;
+
+    printWindow.document.write(
+      `<!doctype html><html dir="rtl"><head><title>طباعة الوثيقة</title></head><body style="margin:0;padding:16px;">${content}<script>window.onload=()=>{setTimeout(()=>window.print(),200);};</script></body></html>`
+    );
+    printWindow.document.close();
   };
 
   const filteredDocs = docs.filter(
@@ -128,6 +142,13 @@ export default function EmployeeDocuments({ employeeId }) {
       doc.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       doc.path?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const formatSize = (size) => {
+    if (!size) return "--";
+    if (size >= 1024 * 1024) return `${(size / 1024 / 1024).toFixed(1)} MB`;
+    if (size >= 1024) return `${(size / 1024).toFixed(0)} KB`;
+    return `${size} B`;
+  };
 
   const getFileIcon = (path) => {
     const ext = path?.split(".").pop()?.toLowerCase();
@@ -187,9 +208,22 @@ export default function EmployeeDocuments({ employeeId }) {
                 <p className="font-medium text-gray-800 text-sm line-clamp-2 mb-1">
                   {doc.description || "بدون وصف"}
                 </p>
-                <p className="text-xs text-gray-500 mb-3 line-clamp-1">
-                  {doc.path?.split("/").pop()}
+                <p className="text-xs text-gray-500 mb-1 line-clamp-1">
+                  {doc.fileName || doc.path?.split("/").pop()}
                 </p>
+                <div className="text-[11px] text-gray-500 flex gap-2 mb-2 flex-wrap">
+                  <span className="bg-white border px-2 py-0.5 rounded-full">
+                    {formatSize(doc.size)}
+                  </span>
+                  <span className="bg-white border px-2 py-0.5 rounded-full">
+                    {doc.mimeType || "غير معروف"}
+                  </span>
+                  {doc.uploadedAt && (
+                    <span className="bg-white border px-2 py-0.5 rounded-full">
+                      {new Date(doc.uploadedAt).toLocaleDateString("ar-EG")}
+                    </span>
+                  )}
+                </div>
 
                 <div className="flex gap-2 mt-2">
                   <button
@@ -337,15 +371,32 @@ export default function EmployeeDocuments({ employeeId }) {
                 <div className="bg-gray-50 p-3 rounded">
                   <p className="text-xs text-gray-600 mb-1">اسم الملف</p>
                   <p className="font-medium break-all">
-                    {selectedDoc.path?.split("/").pop()}
+                    {selectedDoc.fileName || selectedDoc.path?.split("/").pop()}
                   </p>
                 </div>
 
                 <div className="bg-gray-50 p-3 rounded">
                   <p className="text-xs text-gray-600 mb-1">تاريخ الرفع</p>
                   <p className="font-medium">
-                    {new Date(selectedDoc.uploadedAt).toLocaleString("ar-EG")}
+                    {selectedDoc.uploadedAt
+                      ? new Date(selectedDoc.uploadedAt).toLocaleString("ar-EG")
+                      : "غير متوفر"}
                   </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="bg-gray-50 p-3 rounded">
+                    <p className="text-xs text-gray-600 mb-1">الحجم</p>
+                    <p className="font-medium">
+                      {formatSize(selectedDoc.size)}
+                    </p>
+                  </div>
+                  <div className="bg-gray-50 p-3 rounded">
+                    <p className="text-xs text-gray-600 mb-1">النوع</p>
+                    <p className="font-medium">
+                      {selectedDoc.mimeType || "غير معروف"}
+                    </p>
+                  </div>
                 </div>
 
                 <div className="bg-gray-50 p-3 rounded">
@@ -357,14 +408,21 @@ export default function EmployeeDocuments({ employeeId }) {
               </div>
 
               {selectedDoc.path && (
-                <div className="bg-blue-50 border border-blue-200 p-4 rounded">
+                <div className="bg-blue-50 border border-blue-200 p-4 rounded space-y-3">
+                  {/* Image preview */}
                   <img
-                    src={`${apiUrl}${selectedDoc.path}`}
+                    src={buildFileUrl(selectedDoc.path)}
                     alt={selectedDoc.description}
                     className="w-full rounded max-h-80 object-contain"
                     onError={(e) => {
                       e.target.style.display = "none";
                     }}
+                  />
+                  {/* PDF/Other fallback */}
+                  <iframe
+                    src={buildFileUrl(selectedDoc.path)}
+                    title="preview"
+                    className="w-full rounded border max-h-[60vh]"
                   />
                 </div>
               )}

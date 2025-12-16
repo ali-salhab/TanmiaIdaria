@@ -3,6 +3,7 @@ import Employee from "../models/Employee.js";
 import bcrypt from "bcryptjs";
 import { io } from "../server.js";
 import OperationLog from "../models/ActivityLog.js";
+import { notifyAdmin } from "../services/notificationService.js";
 
 // ✅ Get all users
 export const getUsers = async (req, res) => {
@@ -114,6 +115,14 @@ export const updateUser = async (req, res) => {
     const { username, role, permissionGroups } = req.body;
     const updateData = { username, role };
 
+    // Get old user data for comparison
+    const oldUser = await User.findById(req.params.id).populate(
+      "permissionGroups"
+    );
+    const oldGroupIds = (oldUser?.permissionGroups || []).map((g) =>
+      g._id.toString()
+    );
+
     if (permissionGroups) {
       updateData.permissionGroups = permissionGroups;
     }
@@ -124,6 +133,41 @@ export const updateUser = async (req, res) => {
       .select("-password")
       .populate("employeeId")
       .populate("permissionGroups");
+
+    // Check if permission groups changed
+    const newGroupIds = (user?.permissionGroups || []).map((g) =>
+      g._id.toString()
+    );
+    const groupsChanged =
+      permissionGroups &&
+      (oldGroupIds.length !== newGroupIds.length ||
+        !oldGroupIds.every((id) => newGroupIds.includes(id)));
+
+    if (groupsChanged) {
+      const permissionUpdateEvent = {
+        userId: req.params.id,
+        username: user.username,
+        type: "groups_updated",
+        timestamp: new Date(),
+      };
+
+      io.emit("permission_update", permissionUpdateEvent);
+
+      const notificationEvent = {
+        type: "permission_change",
+        message: `تم تحديث مجموعات صلاحيات المستخدم ${user.username}`,
+        userId: req.params.id,
+        time: new Date(),
+      };
+
+      io.emit("notification", notificationEvent);
+
+      // Send personal notification to the user
+      const userSocketId = req.onlineUsers?.get(req.params.id);
+      if (userSocketId) {
+        io.to(userSocketId).emit("personal_notification", notificationEvent);
+      }
+    }
 
     res.json(user);
   } catch (err) {
@@ -211,6 +255,18 @@ export const updateUserProfile = async (req, res) => {
     )
       .select("-password")
       .populate("employeeId");
+
+    // Notify admin for non-admin changes
+    if (req.user && req.user.role !== "admin") {
+      await notifyAdmin({
+        actionBy: req.user._id,
+        section: "users",
+        action: "update",
+        title: "تعديل الملف الشخصي",
+        message: `قام ${req.user.username || "مستخدم"} بتعديل ملفه الشخصي`,
+        io: req.io,
+      });
+    }
     res.json(user);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -230,6 +286,17 @@ export const uploadAvatar = async (req, res) => {
     )
       .select("-password")
       .populate("employeeId");
+
+    if (req.user && req.user.role !== "admin") {
+      await notifyAdmin({
+        actionBy: req.user._id,
+        section: "users",
+        action: "update",
+        title: "تحديث الصورة الشخصية",
+        message: `قام ${req.user.username || "مستخدم"} بتحديث صورته الشخصية`,
+        io: req.io,
+      });
+    }
     res.json({ message: "Avatar uploaded successfully", user });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -258,6 +325,19 @@ export const uploadDocument = async (req, res) => {
     const userWithEmployee = await User.findById(user._id)
       .select("-password")
       .populate("employeeId");
+
+    if (req.user && req.user.role !== "admin") {
+      await notifyAdmin({
+        actionBy: req.user._id,
+        section: "users",
+        action: "update",
+        title: "رفع مستند",
+        message: `قام ${
+          req.user.username || "مستخدم"
+        } برفع مستند إلى ملفه الشخصي`,
+        io: req.io,
+      });
+    }
     res.json({
       message: "Document uploaded successfully",
       user: userWithEmployee,
@@ -283,6 +363,19 @@ export const uploadSalaryImage = async (req, res) => {
     )
       .select("-password")
       .populate("employeeId");
+
+    if (req.user && req.user.role !== "admin") {
+      await notifyAdmin({
+        actionBy: req.user._id,
+        section: "users",
+        action: "update",
+        title: "رفع صورة الراتب",
+        message: `قام ${
+          req.user.username || "مستخدم"
+        } برفع صورة الراتب في ملفه الشخصي`,
+        io: req.io,
+      });
+    }
     res.json({ message: "Salary image uploaded successfully", user });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -305,6 +398,19 @@ export const uploadEmployeeListImage = async (req, res) => {
     )
       .select("-password")
       .populate("employeeId");
+
+    if (req.user && req.user.role !== "admin") {
+      await notifyAdmin({
+        actionBy: req.user._id,
+        section: "users",
+        action: "update",
+        title: "رفع صورة قائمة الموظفين",
+        message: `قام ${
+          req.user.username || "مستخدم"
+        } برفع صورة قائمة الموظفين في ملفه الشخصي`,
+        io: req.io,
+      });
+    }
     res.json({ message: "Employee list image uploaded successfully", user });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -347,14 +453,25 @@ export const searchEmployees = async (req, res) => {
       return res.status(400).json({ message: "Search query is required" });
     }
 
+    // Exclude employees that already have user accounts
+    const userEmployeeIds = await User.find({ employeeId: { $ne: null } })
+      .select("employeeId")
+      .lean();
+    const excludedEmployeeIds = userEmployeeIds
+      .map((u) => u.employeeId)
+      .filter(Boolean);
+
     // Search for employees by name or national ID
     const employees = await Employee.find({
+      _id: { $nin: excludedEmployeeIds },
       $or: [
         { fullName: new RegExp(q, "i") },
         { nationalId: new RegExp(q, "i") },
         { phone: new RegExp(q, "i") },
       ],
-    }).limit(20); // Limit to 20 results
+    })
+      .limit(20)
+      .lean();
 
     res.json(employees);
   } catch (err) {

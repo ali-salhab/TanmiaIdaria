@@ -13,6 +13,7 @@ export default function EmployeePenalties() {
   const [formData, setFormData] = useState({
     type: "",
     reason: "",
+    decisionNumber: "",
     date: new Date().toISOString().split("T")[0],
   });
   const [file, setFile] = useState(null);
@@ -38,6 +39,8 @@ export default function EmployeePenalties() {
     const data = new FormData();
     data.append("type", formData.type);
     data.append("reason", formData.reason);
+    if (formData.decisionNumber)
+      data.append("decisionNumber", formData.decisionNumber);
     data.append("date", formData.date);
     if (file) {
       data.append("file", file);
@@ -78,6 +81,7 @@ export default function EmployeePenalties() {
     setFormData({
       type: penalty.type,
       reason: penalty.reason,
+      decisionNumber: penalty.decisionNumber || "",
       date: new Date(penalty.date).toISOString().split("T")[0],
     });
     setShowModal(true);
@@ -89,6 +93,7 @@ export default function EmployeePenalties() {
     setFormData({
       type: "",
       reason: "",
+      decisionNumber: "",
       date: new Date().toISOString().split("T")[0],
     });
     setFile(null);
@@ -114,7 +119,14 @@ export default function EmployeePenalties() {
           <div class="content">
             <div class="row"><strong>نوع العقوبة:</strong> ${penalty.type}</div>
             <div class="row"><strong>السبب:</strong> ${penalty.reason}</div>
-            <div class="row"><strong>التاريخ:</strong> ${new Date(penalty.date).toLocaleDateString('ar-SY')}</div>
+            ${
+              penalty.decisionNumber
+                ? `<div class="row"><strong>رقم القرار:</strong> ${penalty.decisionNumber}</div>`
+                : ""
+            }
+            <div class="row"><strong>التاريخ:</strong> ${new Date(
+              penalty.date
+            ).toLocaleDateString("ar-SY")}</div>
           </div>
           <script>window.print();</script>
         </body>
@@ -149,6 +161,11 @@ export default function EmployeePenalties() {
               <div>
                 <p className="font-bold text-lg text-red-600">{penalty.type}</p>
                 <p className="text-gray-800">{penalty.reason}</p>
+                {penalty.decisionNumber && (
+                  <p className="text-sm text-gray-600">
+                    رقم القرار: {penalty.decisionNumber}
+                  </p>
+                )}
                 <p className="text-sm text-gray-500">
                   {new Date(penalty.date).toLocaleDateString("ar-SY")}
                 </p>
@@ -205,7 +222,9 @@ export default function EmployeePenalties() {
             </div>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-1">نوع العقوبة</label>
+                <label className="block text-sm font-medium mb-1">
+                  نوع العقوبة
+                </label>
                 <input
                   type="text"
                   value={formData.type}
@@ -230,7 +249,26 @@ export default function EmployeePenalties() {
                 ></textarea>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">التاريخ</label>
+                <label className="block text-sm font-medium mb-1">
+                  رقم القرار / المستند
+                </label>
+                <input
+                  type="text"
+                  value={formData.decisionNumber}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      decisionNumber: e.target.value,
+                    })
+                  }
+                  className="w-full border rounded p-2"
+                  placeholder="أدخل رقم القرار"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  التاريخ
+                </label>
                 <input
                   type="date"
                   value={formData.date}

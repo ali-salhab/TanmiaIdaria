@@ -1,5 +1,14 @@
 import { useState, useEffect } from "react";
-import { X, Search, User, FileText, AlertTriangle, Users } from "lucide-react";
+import {
+  X,
+  Search,
+  User,
+  FileText,
+  AlertTriangle,
+  Users,
+  Calendar,
+  File,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import API from "../api/api";
 
@@ -40,6 +49,7 @@ export default function GlobalSearchModal({ show, onClose }) {
     <div
       className="fixed inset-0 z-50 flex items-start justify-center pt-20 bg-black/50 backdrop-blur-sm"
       onClick={onClose}
+      dir="rtl"
     >
       <div
         className="w-full max-w-2xl bg-white rounded-xl shadow-2xl overflow-hidden"
@@ -49,7 +59,7 @@ export default function GlobalSearchModal({ show, onClose }) {
           <Search className="w-5 h-5 text-gray-400" />
           <input
             type="text"
-            placeholder="ابحث عن موظفين، تعاميم، مستخدمين..."
+            placeholder="ابحث عن موظفين، تعاميم، مستخدمين، إجازات، وثائق..."
             className="flex-1 outline-none text-lg"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -85,8 +95,10 @@ export default function GlobalSearchModal({ show, onClose }) {
                         }
                         className="p-2 hover:bg-gray-50 rounded-lg cursor-pointer flex justify-between items-center"
                       >
-                        <span className="font-medium">{emp.fullName}</span>
-                        <span className="text-sm text-gray-500">
+                        <span className="font-medium text-gray-900">
+                          {emp.fullName}
+                        </span>
+                        <span className="text-sm text-gray-600">
                           {emp.currentJobTitle}
                         </span>
                       </div>
@@ -108,7 +120,9 @@ export default function GlobalSearchModal({ show, onClose }) {
                         onClick={() => handleNavigate(`/dashboard/circulars`)}
                         className="p-2 hover:bg-gray-50 rounded-lg cursor-pointer"
                       >
-                        <span className="font-medium">{circ.title}</span>
+                        <span className="font-medium text-gray-900">
+                          {circ.title}
+                        </span>
                       </div>
                     ))}
                   </div>
@@ -128,7 +142,9 @@ export default function GlobalSearchModal({ show, onClose }) {
                         onClick={() => handleNavigate(`/dashboard/users`)}
                         className="p-2 hover:bg-gray-50 rounded-lg cursor-pointer"
                       >
-                        <span className="font-medium">{user.username}</span>
+                        <span className="font-medium text-gray-900">
+                          {user.username}
+                        </span>
                       </div>
                     ))}
                   </div>
@@ -152,11 +168,66 @@ export default function GlobalSearchModal({ show, onClose }) {
                         }
                         className="p-2 hover:bg-gray-50 rounded-lg cursor-pointer"
                       >
-                        <span className="font-medium">
+                        <span className="font-medium text-gray-900">
                           {inc.reason} - {inc.document_number}
                         </span>
-                        <span className="text-sm text-gray-500 block">
+                        <span className="text-sm text-gray-600 block">
                           {inc.employee?.fullName}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Vacations */}
+              {results.vacations?.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-500 mb-2 flex items-center gap-2">
+                    <Calendar className="w-4 h-4" /> الإجازات
+                  </h3>
+                  <div className="space-y-1">
+                    {results.vacations.map((vac) => (
+                      <div
+                        key={vac._id}
+                        onClick={() =>
+                          handleNavigate(
+                            `/dashboard/employees/${vac.employeeId?._id}/vacations`
+                          )
+                        }
+                        className="p-2 hover:bg-gray-50 rounded-lg cursor-pointer"
+                      >
+                        <span className="font-medium text-gray-900">
+                          {vac.type} -{" "}
+                          {new Date(vac.startDate).toLocaleDateString("ar-EG")}
+                        </span>
+                        <span className="text-sm text-gray-600 block">
+                          {vac.employeeId?.fullName}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Documents (FileShare) */}
+              {results.documents?.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-500 mb-2 flex items-center gap-2">
+                    <File className="w-4 h-4" /> الوثائق والمشاركات
+                  </h3>
+                  <div className="space-y-1">
+                    {results.documents.map((doc) => (
+                      <div
+                        key={doc._id}
+                        onClick={() => handleNavigate(`/dashboard/file-share`)}
+                        className="p-2 hover:bg-gray-50 rounded-lg cursor-pointer"
+                      >
+                        <span className="font-medium text-gray-900">
+                          {doc.fileName}
+                        </span>
+                        <span className="text-sm text-gray-600 block">
+                          {doc.message}
                         </span>
                       </div>
                     ))}

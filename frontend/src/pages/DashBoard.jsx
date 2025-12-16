@@ -11,6 +11,7 @@ export default function Dashboard() {
   const [showChat, setShowChat] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userInfo, setUserInfo] = useState(null);
+  const [unreadChatCount, setUnreadChatCount] = useState(0);
 
   const { socket } = useSocket();
 
@@ -27,6 +28,25 @@ export default function Dashboard() {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handlePrivateMessage = (data) => {
+      // If chat is closed, increment unread count
+      // Also check if the message is NOT from me
+      if (!showChat && data.from !== userInfo?._id) {
+        setUnreadChatCount((prev) => prev + 1);
+        toast.success(`رسالة جديدة من ${data.fromUsername}`);
+      }
+    };
+
+    socket.on("private_message", handlePrivateMessage);
+
+    return () => {
+      socket.off("private_message", handlePrivateMessage);
+    };
+  }, [socket, showChat, userInfo]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -108,7 +128,11 @@ export default function Dashboard() {
           userInfo={userInfo}
           sidebarOpen={sidebarOpen}
           onToggleSidebar={toggleSidebar}
-          onOpenChat={() => setShowChat(true)}
+          onOpenChat={() => {
+            setShowChat(true);
+            setUnreadChatCount(0);
+          }}
+          unreadChatCount={unreadChatCount}
         />
 
         <main className="flex-1 p-2 sm:p-4 md:p-6 overflow-y-auto mt-16">

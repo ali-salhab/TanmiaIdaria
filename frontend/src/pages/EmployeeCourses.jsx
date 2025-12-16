@@ -12,6 +12,7 @@ export default function EmployeeCourses() {
   const [formData, setFormData] = useState({
     name: "",
     duration: "",
+    decisionNumber: "",
     startDate: new Date().toISOString().split("T")[0],
   });
   const [file, setFile] = useState(null);
@@ -37,6 +38,8 @@ export default function EmployeeCourses() {
     const data = new FormData();
     data.append("name", formData.name);
     data.append("duration", formData.duration);
+    if (formData.decisionNumber)
+      data.append("decisionNumber", formData.decisionNumber);
     data.append("startDate", formData.startDate);
     if (file) {
       data.append("file", file);
@@ -51,6 +54,7 @@ export default function EmployeeCourses() {
       setFormData({
         name: "",
         duration: "",
+        decisionNumber: "",
         startDate: new Date().toISOString().split("T")[0],
       });
       setFile(null);
@@ -91,7 +95,14 @@ export default function EmployeeCourses() {
           <div class="content">
             <div class="row"><strong>اسم الدورة:</strong> ${course.name}</div>
             <div class="row"><strong>المدة:</strong> ${course.duration}</div>
-            <div class="row"><strong>تاريخ البداية:</strong> ${new Date(course.startDate).toLocaleDateString('ar-SY')}</div>
+            ${
+              course.decisionNumber
+                ? `<div class="row"><strong>رقم القرار:</strong> ${course.decisionNumber}</div>`
+                : ""
+            }
+            <div class="row"><strong>تاريخ البداية:</strong> ${new Date(
+              course.startDate
+            ).toLocaleDateString("ar-SY")}</div>
           </div>
           <script>window.print();</script>
         </body>
@@ -124,10 +135,18 @@ export default function EmployeeCourses() {
               className="bg-white border rounded-lg p-4 flex justify-between items-center shadow-sm"
             >
               <div>
-                <p className="font-bold text-lg text-purple-700">{course.name}</p>
+                <p className="font-bold text-lg text-purple-700">
+                  {course.name}
+                </p>
                 <p className="text-gray-600">المدة: {course.duration}</p>
+                {course.decisionNumber && (
+                  <p className="text-sm text-gray-600">
+                    رقم القرار: {course.decisionNumber}
+                  </p>
+                )}
                 <p className="text-sm text-gray-500">
-                  تاريخ البداية: {new Date(course.startDate).toLocaleDateString("ar-SY")}
+                  تاريخ البداية:{" "}
+                  {new Date(course.startDate).toLocaleDateString("ar-SY")}
                 </p>
                 {course.file && (
                   <a
@@ -173,7 +192,9 @@ export default function EmployeeCourses() {
             </div>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-1">اسم الدورة</label>
+                <label className="block text-sm font-medium mb-1">
+                  اسم الدورة
+                </label>
                 <input
                   type="text"
                   value={formData.name}
@@ -198,7 +219,26 @@ export default function EmployeeCourses() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">تاريخ البداية</label>
+                <label className="block text-sm font-medium mb-1">
+                  رقم القرار / المستند
+                </label>
+                <input
+                  type="text"
+                  value={formData.decisionNumber}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      decisionNumber: e.target.value,
+                    })
+                  }
+                  className="w-full border rounded p-2"
+                  placeholder="أدخل رقم القرار"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  تاريخ البداية
+                </label>
                 <input
                   type="date"
                   value={formData.startDate}

@@ -19,6 +19,9 @@ const courseSchema = new mongoose.Schema(
       type: Date,
       required: true,
     },
+    decisionNumber: {
+      type: String,
+    },
     file: {
       type: String, // Path to uploaded file
     },

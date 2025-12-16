@@ -5,6 +5,8 @@ import ErrorModal from "../components/login/ErrorModal";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import logo from "../assets/logo.png";
 
+const syriaLogo = "/syria-logo.png";
+
 export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -25,7 +27,11 @@ export default function Login() {
       console.log(res.data);
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("role", res.data.user.role);
-      localStorage.setItem("userId", res.data.user._id);
+      // Support both `id` and `_id` coming from backend
+      localStorage.setItem(
+        "userId",
+        res.data.user.id || res.data.user._id || ""
+      );
       localStorage.setItem("username", res.data.user.username);
 
       // Store permissions
@@ -57,8 +63,16 @@ export default function Login() {
       }
     } catch (err) {
       console.error("Login error:", err);
-      const errMsg = err.response?.data?.message || "Login failed";
-      setError(errMsg);
+      const status = err.response?.status || 500;
+      const statusText = err.response?.statusText || "Server Error";
+      const message =
+        err.response?.data?.message || "An unexpected error occurred";
+
+      setError({
+        code: status,
+        title: statusText,
+        message: message,
+      });
       setShowModal(true);
     } finally {
       setLoading(false);
@@ -74,14 +88,29 @@ export default function Login() {
       {/* floating glass blur backgroundoverlay */}
       <div
         dir="rtl"
-        className="fixed flex-col p-4 r items-start justify-start right-0 font-extrabold text-gray-700 z-0 top-0 w-max "
+        className="fixed flex-col p-4 items-start justify-start right-0 z-0 top-0 w-max"
       >
         <div className="lg:block sm:hidden sm: md:hidden">
           {" "}
-          <p>الجمهورية العربية السورية</p>
-          <p>الامانة العامة لمحافطة طرطوس</p>
-          <p>مديرية التنمية الادارية</p>
+          <p className="text-sm font-semibold tracking-wide text-gray-700 font-['Tajawal']">
+            الجمهورية العربية السورية
+          </p>
+          <p className="text-sm font-semibold tracking-wide text-gray-700 font-['Tajawal']">
+            الأمانة العامة لمحافظة طرطوس
+          </p>
+          <p className="text-sm font-semibold tracking-wide text-gray-700 font-['Tajawal']">
+            مديرية التنمية الإدارية
+          </p>
         </div>
+      </div>
+
+      {/* Syria logo top-left */}
+      <div className="fixed left-0 top-0 z-0 p-4 hidden lg:flex items-start">
+        <img
+          src={syriaLogo}
+          alt="Syria Logo"
+          className="h-16 w-auto object-contain opacity-90"
+        />
       </div>
       <div className="fixed flex-col p-4 items-start left-0 z-0 bottom-0 w-max text-gray-500">
         <p>&copy; copy right </p>
@@ -161,22 +190,6 @@ export default function Login() {
             "تسجيل الدخول"
           )}
         </button>
-
-        <div className="text-gray-600 mt-6 text-center">
-          <span
-            onClick={() => navigate("/register")}
-            className="text-gray-700 font-semibold cursor-pointer hover:text-gray-900 transition underline decoration-gray-400 underline-offset-4"
-          >
-            انشاء حساب
-          </span>
-        </div>
-
-        <div className="mt-4 p-3 bg-white/50 rounded-lg text-xs text-center text-gray-600 border border-gray-200 w-full shadow-sm">
-          <p className="font-bold mb-1 text-gray-800">
-            بيانات المدير الافتراضية:
-          </p>
-          <p dir="ltr">User: admin | Pass: admin123</p>
-        </div>
       </form>
 
       {/* animated glass modal */}

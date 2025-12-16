@@ -23,6 +23,7 @@ export default function EmployeeIncidents() {
     category: ["أولى", "تانية", "تالتة", "رابعة", "خامسة"],
     reason: ["زيادة أجر", "تجديد عقد", "تثبيت", "ترفيع"],
     document_type: ["مرسوم", "قرار"],
+    incidentType: ["داخلي", "خارجي"],
   });
 
   useEffect(() => {
@@ -356,6 +357,24 @@ export default function EmployeeIncidents() {
               {selectedIncident._id ? "تعديل الوقوع" : "إضافة وقوع جديد"}
             </h3>
             <form className="grid grid-cols-1 gap-3" onSubmit={handleSubmit}>
+              <div className="flex flex-col">
+                <DropdownWithSettings
+                  id="incidentType"
+                  label="نوع الوقوع"
+                  value={selectedIncident.incidentType || ""}
+                  onChange={(e) =>
+                    handleChange({
+                      target: { name: "incidentType", value: e.target.value },
+                    })
+                  }
+                  options={dropdownSettings.incidentType.map((opt) => ({
+                    value: opt,
+                    label: opt,
+                  }))}
+                  isAdmin={user?.role === "admin"}
+                  placeholder="اختر نوع الوقوع"
+                />
+              </div>
               {[
                 { label: "مركز العمل", name: "work_center", type: "text" },
                 { label: "المسمى الوظيفي", name: "job_title", type: "text" },
@@ -394,19 +413,22 @@ export default function EmployeeIncidents() {
                   <label className="mb-1 font-medium">{field.label}</label>
 
                   {field.type === "select" ? (
-                    <select
-                      name={field.name}
+                    <DropdownWithSettings
+                      id={field.name}
+                      label={field.label}
                       value={selectedIncident[field.name] || ""}
-                      onChange={handleChange}
-                      className="border border-gray-300 p-2 rounded text-gray-700 focus:outline-none focus:border-gray-500"
-                    >
-                      <option value="">اختر {field.label}</option>
-                      {field.options.map((option) => (
-                        <option key={option} value={option}>
-                          {option}
-                        </option>
-                      ))}
-                    </select>
+                      onChange={(e) =>
+                        handleChange({
+                          target: { name: field.name, value: e.target.value },
+                        })
+                      }
+                      options={field.options.map((opt) => ({
+                        value: opt,
+                        label: opt,
+                      }))}
+                      isAdmin={user?.role === "admin"}
+                      placeholder={`اختر ${field.label}`}
+                    />
                   ) : (
                     <input
                       name={field.name}
@@ -420,14 +442,7 @@ export default function EmployeeIncidents() {
               ))}
 
               <div className="flex items-center gap-2 mt-2">
-                <input
-                  type="checkbox"
-                  name="isInternal"
-                  checked={selectedIncident.isInternal || false}
-                  onChange={handleChange}
-                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                />
-                <label className="text-gray-700 font-medium">وقوع داخلي</label>
+                {/* Removed checkbox for isInternal as it is replaced by incidentType dropdown */}
               </div>
 
               <div className="flex justify-between mt-4">

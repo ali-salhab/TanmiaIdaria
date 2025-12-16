@@ -3,6 +3,7 @@ import Report from "../models/Report.js";
 import XLSX from "xlsx";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
+import { notifyAdmin } from "../services/notificationService.js";
 
 /**
  * @desc Get filtered employee data with statistics
@@ -38,7 +39,8 @@ export const getReportData = async (req, res) => {
 
     allowedFilters.forEach((key) => {
       if (req.query[key]) {
-        filters[key] = req.query[key];
+        // Use case-insensitive partial match for string filters
+        filters[key] = new RegExp(req.query[key], "i");
       }
     });
 
@@ -49,6 +51,7 @@ export const getReportData = async (req, res) => {
         { fullName: new RegExp(searchQuery, "i") },
         { nationalId: new RegExp(searchQuery, "i") },
         { phone: new RegExp(searchQuery, "i") },
+        { selfNumber: new RegExp(searchQuery, "i") },
       ];
     }
 
@@ -84,10 +87,34 @@ export const getReportData = async (req, res) => {
       }
     }
 
-    // Fetch filtered employees
-    const employees = await Employee.find(filters).lean();
+    const page = Math.max(parseInt(req.query.page || "1", 10), 1);
+    const limit = Math.min(
+      Math.max(parseInt(req.query.limit || "50", 10), 1),
+      500
+    );
+    const skip = (page - 1) * limit;
 
-    // Calculate statistics
+    const sortByAllowed = new Set([
+      "fullName",
+      "createdAt",
+      "updatedAt",
+      "hiringDate",
+      "level4",
+      "employmentType",
+    ]);
+    const sortBy = sortByAllowed.has(req.query.sortBy)
+      ? req.query.sortBy
+      : "fullName";
+    const sortDir =
+      String(req.query.sortDir || "asc").toLowerCase() === "desc" ? -1 : 1;
+    const sort = { [sortBy]: sortDir };
+
+    const [total, employees] = await Promise.all([
+      Employee.countDocuments(filters),
+      Employee.find(filters).sort(sort).skip(skip).limit(limit).lean(),
+    ]);
+
+    // Calculate statistics (based on current page results)
     const statistics = {
       total: employees.length,
       byGender: {},
@@ -211,6 +238,14 @@ export const getReportData = async (req, res) => {
       data: employees,
       statistics: formattedStatistics,
       filters: req.query,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.max(Math.ceil(total / limit), 1),
+        sortBy,
+        sortDir: sortDir === 1 ? "asc" : "desc",
+      },
     });
   } catch (error) {
     console.error("Error fetching report data:", error);
@@ -246,6 +281,17 @@ export const saveReportConfig = async (req, res) => {
     });
 
     await report.save();
+
+    // Notify admin if action is performed by non-admin user
+    if (req.user && req.user.role !== "admin") {
+      await notifyAdmin({
+        actionBy: req.user._id,
+        section: "documents", // Reports can be considered documents
+        action: "create",
+        title: "تم حفظ تقرير جديد",
+        message: `تم حفظ تقرير جديد: ${name}`,
+      });
+    }
 
     res.status(201).json({
       success: true,
@@ -312,6 +358,17 @@ export const deleteArchivedReport = async (req, res) => {
     }
 
     await Report.findByIdAndDelete(req.params.id);
+
+    // Notify admin if action is performed by non-admin user
+    if (req.user && req.user.role !== "admin") {
+      await notifyAdmin({
+        actionBy: req.user._id,
+        section: "documents",
+        action: "delete",
+        title: "تم حذف تقرير",
+        message: `تم حذف التقرير: ${report.name}`,
+      });
+    }
 
     res.json({
       success: true,
@@ -395,7 +452,7 @@ export const exportReportExcel = async (req, res) => {
 
     allowedFilters.forEach((key) => {
       if (req.query[key]) {
-        filters[key] = req.query[key];
+        filters[key] = new RegExp(req.query[key], "i");
       }
     });
 
@@ -405,6 +462,7 @@ export const exportReportExcel = async (req, res) => {
         { fullName: new RegExp(searchQuery, "i") },
         { nationalId: new RegExp(searchQuery, "i") },
         { phone: new RegExp(searchQuery, "i") },
+        { selfNumber: new RegExp(searchQuery, "i") },
       ];
     }
 

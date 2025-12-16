@@ -460,6 +460,36 @@ export const permissionDefinitions = {
     action: "تعديل",
   },
 
+  // Complaints permissions
+  "complaints.view": {
+    key: "complaints.view",
+    label: "عرض الشكاوى",
+    description: "القدرة على عرض قائمة الشكاوى وتفاصيلها",
+    category: "الشكاوى",
+    action: "عرض",
+  },
+  "complaints.create": {
+    key: "complaints.create",
+    label: "إنشاء شكوى",
+    description: "القدرة على إنشاء شكاوى جديدة",
+    category: "الشكاوى",
+    action: "إنشاء",
+  },
+  "complaints.edit": {
+    key: "complaints.edit",
+    label: "تعديل الشكاوى",
+    description: "القدرة على تعديل الشكاوى",
+    category: "الشكاوى",
+    action: "تعديل",
+  },
+  "complaints.delete": {
+    key: "complaints.delete",
+    label: "حذف الشكاوى",
+    description: "القدرة على حذف الشكاوى",
+    category: "الشكاوى",
+    action: "حذف",
+  },
+
   // Permissions management
   "permissions.view": {
     key: "permissions.view",
@@ -555,6 +585,13 @@ export const permissionDefinitions = {
     description: "القدرة على تحديث إعدادات الصفحة الرئيسية",
     category: "الإعدادات",
     action: "تحديث",
+  },
+  "settings.backup": {
+    key: "settings.backup",
+    label: "النسخ الاحتياطي والاستعادة",
+    description: "القدرة على إنشاء نسخة احتياطية واستعادة قاعدة البيانات",
+    category: "الإعدادات",
+    action: "إدارة",
   },
 
   // Notifications

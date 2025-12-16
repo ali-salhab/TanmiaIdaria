@@ -15,7 +15,7 @@ export const getPenalties = async (req, res) => {
 export const createPenalty = async (req, res) => {
   try {
     const { employeeId } = req.params;
-    const { type, reason, date } = req.body;
+    const { type, reason, date, decisionNumber } = req.body;
     const file = req.file ? req.file.path : null;
 
     const newPenalty = new Penalty({
@@ -23,6 +23,7 @@ export const createPenalty = async (req, res) => {
       type,
       reason,
       date,
+      decisionNumber,
       file,
       createdBy: req.user.userId,
     });
@@ -37,8 +38,8 @@ export const createPenalty = async (req, res) => {
 export const updatePenalty = async (req, res) => {
   try {
     const { id } = req.params;
-    const { type, reason, date } = req.body;
-    const updateData = { type, reason, date };
+    const { type, reason, date, decisionNumber } = req.body;
+    const updateData = { type, reason, date, decisionNumber };
 
     if (req.file) {
       updateData.file = req.file.path;

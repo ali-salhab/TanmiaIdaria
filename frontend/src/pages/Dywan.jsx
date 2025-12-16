@@ -15,8 +15,11 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import DropdownWithSettings from "../components/DropdownWithSettings";
+import { useAuth } from "../hooks/useAuth";
 
 export default function Dywan() {
+  const { role } = useAuth();
+  const isAdmin = role === "admin";
   const [activeTab, setActiveTab] = useState("outgoing");
   const [file, setFile] = useState(null);
   const [documents, setDocuments] = useState([]);
@@ -30,6 +33,13 @@ export default function Dywan() {
     new Date().getFullYear().toString()
   );
   const [incomingNumber, setIncomingNumber] = useState("");
+
+  // Incoming metadata (to match Dywan-style form)
+  const [incomingFromEntity, setIncomingFromEntity] = useState("");
+  const [incomingMailNumber, setIncomingMailNumber] = useState("");
+  const [incomingRegistryNumber, setIncomingRegistryNumber] = useState("");
+  const [incomingRegisteredAt, setIncomingRegisteredAt] = useState("");
+  const [incomingSubject, setIncomingSubject] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [filterDept, setFilterDept] = useState("");
   const [filterType, setFilterType] = useState("");
@@ -46,6 +56,13 @@ export default function Dywan() {
   const [selectedRecipient, setSelectedRecipient] = useState("");
   const [message, setMessage] = useState("");
   const [fileSharingLoading, setFileSharingLoading] = useState(false);
+
+  const buildFileUrl = (filePath) => {
+    const baseURL = import.meta.env.VITE_API_URL
+      ? import.meta.env.VITE_API_URL.replace("/api", "")
+      : `http://${window.location.hostname}:5000`;
+    return `${baseURL}${filePath}`;
+  };
 
   useEffect(() => {
     if (
@@ -201,6 +218,40 @@ export default function Dywan() {
     }
   };
 
+  const handleViewDocument = (doc) => {
+    if (!doc?.fileUrl) {
+      toast.error("لا يوجد ملف مرتبط بهذه الوثيقة");
+      return;
+    }
+
+    const fileHref = buildFileUrl(doc.fileUrl);
+    window.open(fileHref, "_blank", "noopener,noreferrer");
+  };
+
+  const handleDownloadDocument = async (doc) => {
+    if (!doc?.fileUrl) {
+      toast.error("لا يوجد ملف متاح للتحميل");
+      return;
+    }
+
+    try {
+      await API.put(`/documents/${doc._id}/download`);
+
+      const link = document.createElement("a");
+      link.href = buildFileUrl(doc.fileUrl);
+      link.download =
+        doc.fileName || `document-${doc.documentNumber || doc._id}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      toast.success("تم تحميل الوثيقة");
+    } catch (error) {
+      console.error("Error downloading document:", error);
+      toast.error("فشل تحميل الوثيقة");
+    }
+  };
+
   const handleFileSelectForShare = (e) => {
     setSelectedFileForShare(e.target.files[0]);
   };
@@ -240,13 +291,8 @@ export default function Dywan() {
   const handleDownloadFile = async (fileShare) => {
     try {
       await API.put(`/file-share/${fileShare._id}/download`);
-
-      const baseURL = import.meta.env.VITE_API_URL
-        ? import.meta.env.VITE_API_URL.replace("/api", "")
-        : `http://${window.location.hostname}:5000`;
-
       const link = document.createElement("a");
-      link.href = `${baseURL}${fileShare.fileUrl}`;
+      link.href = buildFileUrl(fileShare.fileUrl);
       link.download = fileShare.fileName;
       document.body.appendChild(link);
       link.click();
@@ -416,7 +462,357 @@ export default function Dywan() {
       </div>
 
       {/* Tab Content */}
-      {activeTab === "file-sharing" ? (
+      {activeTab === "incoming" ? (
+        // Incoming (Dywan) — classic two-pane layout
+        <div className="grid grid-cols-1 lg:grid-cols-[360px_1fr] gap-4">
+          {/* Left: list pane */}
+          <div className="bg-white border border-gray-200 rounded-lg shadow-sm flex flex-col min-h-[75vh]">
+            <div className="px-3 py-2 border-b bg-gray-50 flex items-center justify-between">
+              <div className="text-sm font-semibold text-gray-800">
+                قائمة الوارد
+              </div>
+              <div className="text-xs text-gray-500">
+                {filteredDocuments.length}
+              </div>
+            </div>
+
+            <div className="p-2 border-b">
+              <input
+                type="text"
+                placeholder="بحث..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+              />
+            </div>
+
+            <div className="flex-1 overflow-auto">
+              {filteredDocuments.length > 0 ? (
+                filteredDocuments.map((doc) => (
+                  <button
+                    key={doc._id}
+                    type="button"
+                    onClick={() => setSelectedDocument(doc)}
+                    className={`w-full text-right px-3 py-2 border-b hover:bg-gray-50 transition ${
+                      selectedDocument?._id === doc._id
+                        ? "bg-teal-50"
+                        : "bg-white"
+                    }`}
+                  >
+                    <div className="flex items-start gap-2">
+                      <div className="w-8 h-8 flex items-center justify-center border rounded bg-white text-gray-600">
+                        📄
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="text-sm font-semibold text-gray-900 truncate">
+                          {doc.incomingNumber
+                            ? `وارد ${doc.incomingNumber}`
+                            : `#${doc.documentNumber}`}
+                        </div>
+                        <div className="text-xs text-gray-500 truncate">
+                          {doc.department || ""}
+                        </div>
+                        <div className="text-xs text-gray-500 truncate">
+                          {doc.documentType || ""}
+                        </div>
+                      </div>
+                      <div className="text-xs text-gray-500 whitespace-nowrap">
+                        {doc.year || ""}
+                      </div>
+                    </div>
+                  </button>
+                ))
+              ) : (
+                <div className="p-6 text-center text-gray-500">
+                  لا توجد وثائق
+                </div>
+              )}
+            </div>
+
+            <div className="p-2 border-t bg-gray-50 flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setSelectedDocument(null)}
+                className="px-3 py-2 text-sm bg-white border rounded hover:bg-gray-50"
+              >
+                جديد
+              </button>
+            </div>
+          </div>
+
+          {/* Right: details/form pane */}
+          <div className="bg-white border border-gray-200 rounded-lg shadow-sm min-h-[75vh] flex flex-col">
+            <div className="px-3 py-2 border-b bg-gray-50 flex items-center justify-between">
+              <div className="text-sm font-semibold text-gray-800">
+                إدخال الوارد
+              </div>
+              <div className="text-xs text-gray-500">
+                {new Date().toLocaleDateString("ar-SA")}
+              </div>
+            </div>
+
+            <div className="p-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  نوع الوارد*
+                </label>
+                <DropdownWithSettings
+                  id="dywan_incoming_department"
+                  value={department}
+                  onChange={(e) => setDepartment(e.target.value)}
+                  options={[{ value: "", label: "اختر" }]}
+                  placeholder="اختر"
+                  isAdmin={isAdmin}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  نوع الوثيقة
+                </label>
+                <DropdownWithSettings
+                  id="dywan_incoming_type"
+                  value={documentType}
+                  onChange={(e) => setDocumentType(e.target.value)}
+                  options={[
+                    { value: "", label: "اختر" },
+                    { value: "تقرير", label: "تقرير" },
+                    { value: "قرار", label: "قرار" },
+                    { value: "تعميم", label: "تعميم" },
+                    { value: "محضر", label: "محضر" },
+                    { value: "مراسلة", label: "مراسلة" },
+                    { value: "أخرى", label: "أخرى" },
+                  ]}
+                  placeholder="اختر"
+                  isAdmin={isAdmin}
+                />
+              </div>
+
+              <div className="lg:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  اسم الجهة الوارد منها البريد الوارد
+                </label>
+                <input
+                  type="text"
+                  value={incomingFromEntity}
+                  onChange={(e) => setIncomingFromEntity(e.target.value)}
+                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  رقم البريد وفق الجهة الوارد منها
+                </label>
+                <input
+                  type="text"
+                  value={incomingMailNumber}
+                  onChange={(e) => setIncomingMailNumber(e.target.value)}
+                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  رقم الوارد وفق سجل المحافظة
+                </label>
+                <input
+                  type="text"
+                  value={incomingRegistryNumber}
+                  onChange={(e) => setIncomingRegistryNumber(e.target.value)}
+                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  تاريخ تسجيل البريد الوارد
+                </label>
+                <input
+                  type="date"
+                  value={incomingRegisteredAt}
+                  onChange={(e) => setIncomingRegisteredAt(e.target.value)}
+                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  السنة
+                </label>
+                <input
+                  type="text"
+                  value={documentYear}
+                  onChange={(e) => setDocumentYear(e.target.value)}
+                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                />
+              </div>
+
+              <div className="lg:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  موضوع البريد الوارد
+                </label>
+                <input
+                  type="text"
+                  value={incomingSubject}
+                  onChange={(e) => setIncomingSubject(e.target.value)}
+                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  رقم الوثيقة
+                </label>
+                <input
+                  type="text"
+                  value={documentNumber}
+                  onChange={(e) => setDocumentNumber(e.target.value)}
+                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  رقم الوارد
+                </label>
+                <input
+                  type="text"
+                  value={incomingNumber}
+                  onChange={(e) => setIncomingNumber(e.target.value)}
+                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  الحالة
+                </label>
+                <DropdownWithSettings
+                  id="dywan_incoming_status"
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value)}
+                  options={[
+                    { value: "", label: "اختر" },
+                    { value: "جديدة", label: "جديدة" },
+                    { value: "قيد المراجعة", label: "قيد المراجعة" },
+                    { value: "موافق عليها", label: "موافق عليها" },
+                    { value: "مرفوضة", label: "مرفوضة" },
+                    { value: "مؤرشفة", label: "مؤرشفة" },
+                  ]}
+                  placeholder="اختر"
+                  isAdmin={isAdmin}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  اختيار ملف
+                </label>
+                <input
+                  id="fileInput"
+                  type="file"
+                  accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                  onChange={handleFileChange}
+                  className="w-full text-sm"
+                />
+                {file ? (
+                  <div className="text-xs text-gray-600 mt-1">{file.name}</div>
+                ) : null}
+              </div>
+
+              <div className="lg:col-span-2">
+                {selectedDocument ? (
+                  <div className="p-3 bg-teal-50 border border-teal-200 rounded">
+                    <div className="text-sm font-semibold text-gray-800 mb-2">
+                      تفاصيل الوثيقة المحددة
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div className="text-gray-700">
+                        الرقم:{" "}
+                        <span className="font-semibold">
+                          {selectedDocument.documentNumber || "-"}
+                        </span>
+                      </div>
+                      <div className="text-gray-700">
+                        الوارد:{" "}
+                        <span className="font-semibold">
+                          {selectedDocument.incomingNumber || "-"}
+                        </span>
+                      </div>
+                      <div className="text-gray-700">
+                        القسم:{" "}
+                        <span className="font-semibold">
+                          {selectedDocument.department || "-"}
+                        </span>
+                      </div>
+                      <div className="text-gray-700">
+                        الحالة:{" "}
+                        <span className="font-semibold">
+                          {selectedDocument.status || "-"}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-3">
+                      <button
+                        type="button"
+                        onClick={() => handleViewDocument(selectedDocument)}
+                        className="w-full flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-700 text-white py-2 rounded transition text-sm"
+                      >
+                        <Eye className="w-4 h-4" />
+                        عرض
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDownloadDocument(selectedDocument)}
+                        className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded transition text-sm"
+                      >
+                        <Download className="w-4 h-4" />
+                        تحميل
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => removeDocument(selectedDocument._id)}
+                        className="w-full flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 text-white py-2 rounded transition text-sm"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        حذف
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-3 bg-gray-50 border border-gray-200 rounded text-sm text-gray-600">
+                    اختر وثيقة من القائمة اليسرى لعرض التفاصيل.
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Bottom action bar (Dywan-like) */}
+            <div className="mt-auto border-t bg-gray-50 p-3 flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setSelectedDocument(null)}
+                className="px-4 py-2 text-sm bg-white border rounded hover:bg-gray-100"
+              >
+                إغلاق
+              </button>
+              <button
+                type="button"
+                onClick={handleScan}
+                disabled={loading || !file}
+                className={`px-4 py-2 text-sm rounded text-white ${
+                  loading || !file
+                    ? "bg-gray-400"
+                    : "bg-teal-600 hover:bg-teal-700"
+                }`}
+              >
+                حفظ
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : activeTab === "file-sharing" ? (
         // File Sharing Tab Content
         <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
           <div className="flex justify-between items-center mb-6">
@@ -561,6 +957,7 @@ export default function Dywan() {
                 options={[{ value: "", label: "اختر" }]}
                 label="نوع الوارد*"
                 placeholder="اختر"
+                isAdmin={isAdmin}
               />{" "}
               <label className="block  text-sm font-medium text-gray-700 mb-2">
                 اسم الجهة الوارد منها البريد الوارد
@@ -686,6 +1083,7 @@ export default function Dywan() {
                   label="السنة"
                   placeholder="السنة"
                   className="text-sm"
+                  isAdmin={isAdmin}
                 />
 
                 <DropdownWithSettings
@@ -711,6 +1109,7 @@ export default function Dywan() {
                   ]}
                   placeholder="القسم"
                   className="text-sm"
+                  isAdmin={isAdmin}
                 />
               </div>
 
@@ -730,6 +1129,7 @@ export default function Dywan() {
                   ]}
                   placeholder="نوع الوثيقة"
                   className="text-sm"
+                  isAdmin={isAdmin}
                 />
 
                 <DropdownWithSettings
@@ -746,6 +1146,7 @@ export default function Dywan() {
                   ]}
                   placeholder="الحالة"
                   className="text-sm"
+                  isAdmin={isAdmin}
                 />
               </div>
             </div>
@@ -818,13 +1219,37 @@ export default function Dywan() {
                     {selectedDocument.year}
                   </p>
                 </div>
-                <button
-                  onClick={() => removeDocument(selectedDocument._id)}
-                  className="w-full mt-3 flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 text-white py-2 rounded transition text-sm"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  حذف الوثيقة
-                </button>
+                {selectedDocument.fileName && (
+                  <div>
+                    <p className="text-xs text-gray-600">اسم الملف</p>
+                    <p className="font-semibold text-gray-800">
+                      {selectedDocument.fileName}
+                    </p>
+                  </div>
+                )}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-2">
+                  <button
+                    onClick={() => handleViewDocument(selectedDocument)}
+                    className="w-full flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-700 text-white py-2 rounded transition text-sm"
+                  >
+                    <Eye className="w-4 h-4" />
+                    عرض الوثيقة
+                  </button>
+                  <button
+                    onClick={() => handleDownloadDocument(selectedDocument)}
+                    className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded transition text-sm"
+                  >
+                    <Download className="w-4 h-4" />
+                    تحميل الوثيقة
+                  </button>
+                  <button
+                    onClick={() => removeDocument(selectedDocument._id)}
+                    className="w-full flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 text-white py-2 rounded transition text-sm"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    حذف الوثيقة
+                  </button>
+                </div>
               </div>
             )}
           </div>

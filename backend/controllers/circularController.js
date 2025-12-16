@@ -1,5 +1,6 @@
 import Circular from "../models/Circular.js";
 import User from "../models/User.js";
+import { notifyAdmin, notifyUser } from "../services/notificationService.js";
 
 export const createCircular = async (req, res) => {
   try {
@@ -44,6 +45,33 @@ export const createCircular = async (req, res) => {
 
     await circular.save();
     await circular.populate("createdBy", "username profile.avatar");
+
+    // Notify ALL users about the new circular
+    const allUsers = await User.find({ _id: { $ne: userId } }).select("_id");
+
+    // Emit real-time event for live updates in UI
+    const payload = {
+      ...circular.toObject(),
+      viewerCount: circular.viewers.length,
+    };
+    if (req.io) {
+      req.io.emit("circular:new", payload);
+    }
+
+    // Send notifications in parallel
+    Promise.all(
+      allUsers.map((user) =>
+        notifyUser({
+          userId: user._id,
+          type: "info",
+          title: "تعميم جديد",
+          message: `تم إصدار تعميم جديد بعنوان: ${title}`,
+          io: req.io,
+        })
+      )
+    ).catch((err) =>
+      console.error("Error sending circular notifications:", err)
+    );
 
     res.status(201).json({
       message: "تم إنشاء التعميم بنجاح",
@@ -144,6 +172,17 @@ export const updateCircular = async (req, res) => {
     await circular.save();
     await circular.populate("createdBy", "username profile.avatar");
 
+    // Notify admin if action is performed by non-admin user
+    if (req.user && req.user.role !== "admin") {
+      await notifyAdmin({
+        actionBy: req.user._id,
+        section: "circulars",
+        action: "update",
+        title: "تم تحديث تعميم",
+        message: `تم تحديث التعميم: ${circular.title}`,
+      });
+    }
+
     res.json({
       message: "تم تحديث التعميم بنجاح",
       circular,
@@ -176,6 +215,17 @@ export const deleteCircular = async (req, res) => {
 
     circular.isDeleted = true;
     await circular.save();
+
+    // Notify admin if action is performed by non-admin user
+    if (req.user && req.user.role !== "admin") {
+      await notifyAdmin({
+        actionBy: req.user._id,
+        section: "circulars",
+        action: "delete",
+        title: "تم حذف تعميم",
+        message: `تم حذف التعميم: ${circular.title}`,
+      });
+    }
 
     res.json({ message: "تم حذف التعميم بنجاح" });
   } catch (error) {
@@ -239,9 +289,9 @@ export const getCircularViewers = async (req, res) => {
       return res.status(404).json({ message: "التعميم غير موجود" });
     }
 
-    // if (circular.createdBy.toString() !== userId && req.user.role !== "admin") {
-    //   return res.status(403).json({ message: "لا توجد صلاحية لعرض المشاهدين" });
-    // }
+    if (circular.createdBy.toString() !== userId && req.user.role !== "admin") {
+      return res.status(403).json({ message: "لا توجد صلاحية لعرض المشاهدين" });
+    }
 
     res.json({
       totalViewers: circular.viewers.length,

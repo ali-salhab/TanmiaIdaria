@@ -319,11 +319,9 @@ function EmployeeInfoSection({ employee, isEditing, onFieldChange }) {
   const sections = [
     {
       title: "البيانات الشخصية",
+      icon: User,
       fields: [
         { label: "الاسم الكامل", key: "fullName" },
-        { label: "الاسم الأول", key: "firstName" },
-        { label: "اسم الأب", key: "fatherName" },
-        { label: "الكنية", key: "lastName" },
         { label: "الرقم الوطني", key: "nationalId" },
         { label: "رقم الموظف", key: "selfNumber" },
         { label: "الجنسية", key: "nationality" },
@@ -342,6 +340,7 @@ function EmployeeInfoSection({ employee, isEditing, onFieldChange }) {
     },
     {
       title: "بيانات العمل",
+      icon: FileText,
       fields: [
         { label: "الوظيفة", value: employee.level1 },
         { label: "القسم", value: employee.level2 },
@@ -357,6 +356,7 @@ function EmployeeInfoSection({ employee, isEditing, onFieldChange }) {
     },
     {
       title: "بيانات الراتب",
+      icon: Gift,
       fields: [
         { label: "الراتب الأساسي", value: employee.baseSalary || "N/A" },
         { label: "البدلات", value: employee.allowances || "0" },
@@ -373,39 +373,63 @@ function EmployeeInfoSection({ employee, isEditing, onFieldChange }) {
   ];
 
   return (
-    <div className="space-y-6">
-      {sections.map((section, idx) => (
-        <div key={idx}>
-          <h3 className="text-lg font-semibold text-gray-800 mb-4 pb-3 border-b-2 border-emerald-500">
-            {section.title}
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {section.fields.map((field, fieldIdx) => (
-              <div
-                key={fieldIdx}
-                className={`rounded-lg p-4 ${
-                  isEditing ? "bg-blue-50 border border-blue-200" : "bg-gray-50"
-                }`}
-              >
-                <div className="text-sm text-gray-600 mb-1">{field.label}</div>
-                {isEditing ? (
-                  <input
-                    type={field.type || "text"}
-                    value={employee[field.key] || ""}
-                    onChange={(e) => onFieldChange(field.key, e.target.value)}
-                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-gray-800 font-semibold"
-                    placeholder={field.label}
-                  />
-                ) : (
-                  <div className="text-lg font-semibold text-gray-800">
-                    {employee[field.key] || "N/A"}
-                  </div>
-                )}
+    <div className="space-y-8">
+      {sections.map((section, idx) => {
+        const SectionIcon = section.icon;
+        return (
+          <div
+            key={idx}
+            className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300"
+          >
+            <div className="bg-gray-50/50 px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+              <div className="p-2 bg-emerald-100 text-emerald-600 rounded-lg">
+                <SectionIcon className="w-5 h-5" />
               </div>
-            ))}
+              <h3 className="text-lg font-bold text-gray-800">
+                {section.title}
+              </h3>
+            </div>
+
+            <div className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {section.fields.map((field, fieldIdx) => (
+                  <div
+                    key={fieldIdx}
+                    className={`group relative rounded-xl p-4 transition-all duration-300 ${
+                      isEditing
+                        ? "bg-blue-50/50 border border-blue-100 hover:border-blue-300"
+                        : "bg-gray-50/50 border border-transparent hover:bg-white hover:shadow-md hover:border-gray-100"
+                    }`}
+                  >
+                    <div className="text-xs font-medium text-gray-500 mb-2 flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                      {field.label}
+                    </div>
+
+                    {isEditing ? (
+                      <input
+                        type={field.type || "text"}
+                        value={employee[field.key] || ""}
+                        onChange={(e) =>
+                          onFieldChange(field.key, e.target.value)
+                        }
+                        className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-gray-800 font-medium text-sm"
+                        placeholder={field.label}
+                      />
+                    ) : (
+                      <div className="text-base font-bold text-gray-800 break-words">
+                        {field.value !== undefined
+                          ? field.value
+                          : employee[field.key] || "---"}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

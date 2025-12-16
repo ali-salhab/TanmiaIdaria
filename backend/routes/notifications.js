@@ -150,6 +150,19 @@ router.put("/admin/read-all", protect, isAdmin, async (req, res) => {
   }
 });
 
+// Mark all notifications as read for user
+router.put("/mark-read", protect, async (req, res) => {
+  try {
+    await Notification.updateMany(
+      { userId: req.user._id, read: false },
+      { $set: { read: true } }
+    );
+    res.json({ message: "All notifications marked as read" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 router.delete("/:id", protect, async (req, res) => {
   try {
     const notification = await Notification.findByIdAndDelete(req.params.id);

@@ -17,6 +17,32 @@ const permissions = [
     label: "تعديل الموظفين",
     category: "الموظفين",
     description: "القدرة على تعديل بيانات الموظفين",
+
+  // الشكاوى
+  {
+    key: "complaints.view",
+    label: "عرض الشكاوى",
+    category: "الشكاوى",
+    description: "عرض قائمة الشكاوى وتفاصيلها",
+  },
+  {
+    key: "complaints.create",
+    label: "إنشاء شكوى",
+    category: "الشكاوى",
+    description: "إنشاء شكاوى جديدة",
+  },
+  {
+    key: "complaints.edit",
+    label: "تعديل الشكاوى",
+    category: "الشكاوى",
+    description: "تعديل بيانات الشكاوى",
+  },
+  {
+    key: "complaints.delete",
+    label: "حذف الشكاوى",
+    category: "الشكاوى",
+    description: "حذف الشكاوى",
+  },
   },
   {
     key: "employees.delete",

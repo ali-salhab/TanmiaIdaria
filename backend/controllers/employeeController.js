@@ -74,6 +74,11 @@ export const uploadEmployeeDocs = async (req, res) => {
     const newDocs = req.files.map((file, i) => ({
       path: `/uploads/${file.filename}`,
       description: descriptions[i] || "",
+      fileName: file.originalname,
+      mimeType: file.mimetype,
+      size: file.size,
+      uploadedAt: new Date(),
+      uploadedBy: req.user?._id,
     }));
 
     employee.documents.push(...newDocs);
@@ -102,6 +107,45 @@ export const uploadEmployeeDocs = async (req, res) => {
   } catch (error) {
     console.error("Upload error:", error);
     res.status(500).json({ message: error.message });
+  }
+};
+
+export const deleteEmployeeDocument = async (req, res) => {
+  try {
+    const { id, docIndex } = req.params;
+    const employee = await Employee.findById(id);
+    if (!employee)
+      return res.status(404).json({ message: "Employee not found" });
+
+    const index = Number(docIndex);
+    if (
+      Number.isNaN(index) ||
+      index < 0 ||
+      index >= employee.documents.length
+    ) {
+      return res.status(400).json({ message: "Invalid document index" });
+    }
+
+    const [removed] = employee.documents.splice(index, 1);
+
+    // Attempt to remove file from disk if it exists
+    if (removed?.path) {
+      const filePath = path.join(
+        process.cwd(),
+        removed.path.startsWith("/") ? removed.path.slice(1) : removed.path
+      );
+      fs.unlink(filePath, () => {});
+    }
+
+    await employee.save();
+
+    res.json({
+      message: "Document deleted successfully",
+      documents: employee.documents,
+    });
+  } catch (error) {
+    console.error("Delete employee document error:", error);
+    res.status(500).json({ message: "Failed to delete document" });
   }
 };
 export const listEmployees = async (req, res) => {
@@ -346,6 +390,24 @@ export const importExcel = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Import failed", error: err.message });
+  }
+};
+
+// Download a ready-to-fill Excel template for employee imports
+export const downloadEmployeeTemplate = async (req, res) => {
+  try {
+    const templatePath = path.join(
+      process.cwd(),
+      "backend",
+      "templatework.xlsx"
+    );
+    if (!fs.existsSync(templatePath)) {
+      return res.status(404).json({ message: "Template file not found" });
+    }
+    res.download(templatePath, "employee-import-template.xlsx");
+  } catch (err) {
+    console.error("Template download error:", err);
+    res.status(500).json({ message: "Failed to download template" });
   }
 };
 

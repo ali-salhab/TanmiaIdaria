@@ -1,9 +1,10 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useSocket } from "../../context/SocketContext";
 import { useSettings } from "../../context/SettingsContext";
 import { X, Send } from "lucide-react";
 import API from "../../api/api";
 import UserAvatar from "../common/UserAvatar";
+import toast from "react-hot-toast";
 
 export default function ChatWindow({ userId, onClose, index = 0 }) {
   const { socket } = useSocket();
@@ -15,6 +16,41 @@ export default function ChatWindow({ userId, onClose, index = 0 }) {
   const [loadingHistory, setLoadingHistory] = useState(false);
   const messagesEndRef = useRef(null);
   const { playNotification } = useSettings();
+  const [currentUserId, setCurrentUserId] = useState(() =>
+    localStorage.getItem("userId")
+  );
+
+  const ensureCurrentUserId = useCallback(async () => {
+    let storedId = localStorage.getItem("userId");
+    if (storedId) {
+      setCurrentUserId(storedId);
+      return storedId;
+    }
+
+    try {
+      const { data } = await API.get("/auth/me", {
+        headers: { "Cache-Control": "no-cache" },
+      });
+      const fetchedId = data?.user?._id;
+      if (fetchedId) {
+        localStorage.setItem("userId", fetchedId);
+        if (data.user?.username) {
+          localStorage.setItem("username", data.user.username);
+        }
+        setCurrentUserId(fetchedId);
+        return fetchedId;
+      }
+    } catch (error) {
+      console.error("Error refreshing user identity:", error);
+      toast.error("تعذر التحقق من المستخدم، يرجى تسجيل الدخول مرة أخرى.");
+    }
+
+    return null;
+  }, []);
+
+  useEffect(() => {
+    ensureCurrentUserId();
+  }, [ensureCurrentUserId]);
 
   useEffect(() => {
     fetchUserInfo();
@@ -62,8 +98,6 @@ export default function ChatWindow({ userId, onClose, index = 0 }) {
     if (!socket) return;
 
     const handlePrivateMessage = ({ from, message, timestamp, to }) => {
-      const currentUserId = localStorage.getItem("userId");
-
       // Only process messages from the user we're chatting with
       if (from === userId && from !== currentUserId) {
         setMessages((prev) => {
@@ -98,12 +132,17 @@ export default function ChatWindow({ userId, onClose, index = 0 }) {
       socket.off("private_message", handlePrivateMessage);
       socket.off("message_sent_confirmation", handleMessageConfirmation);
     };
-  }, [socket, userId, playMessage, playNotification]);
+  }, [socket, userId, playMessage, playNotification, currentUserId]);
 
-  const sendMessage = () => {
-    const from = localStorage.getItem("userId");
+  const sendMessage = useCallback(async () => {
+    if (!socket || !input.trim()) return;
+
+    const from = await ensureCurrentUserId();
+    if (!from) {
+      return;
+    }
+
     const fromUsername = localStorage.getItem("username") || "Admin";
-    if (!input.trim()) return;
 
     socket.emit("private_message", {
       to: userId,
@@ -117,7 +156,7 @@ export default function ChatWindow({ userId, onClose, index = 0 }) {
     setMessages((prev) => [...prev, newMessage]);
     playMessage();
     setInput("");
-  };
+  }, [socket, input, ensureCurrentUserId, userId, playMessage]);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -129,7 +168,6 @@ export default function ChatWindow({ userId, onClose, index = 0 }) {
   };
 
   const offset = index * 380;
-  const currentUserId = localStorage.getItem("userId");
 
   return (
     <div
@@ -262,7 +300,12 @@ export default function ChatWindow({ userId, onClose, index = 0 }) {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="اكتب رسالتك هنا..."
-          onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && sendMessage()}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              sendMessage();
+            }
+          }}
           dir="rtl"
         />
         <button

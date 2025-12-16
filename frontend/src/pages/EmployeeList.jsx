@@ -425,6 +425,10 @@ export default function EmployeeList() {
     }
     return age;
   };
+
+  const dropdownClass =
+    "bg-slate-800/70 border border-slate-700 text-slate-100 rounded-xl shadow-sm focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400/50 transition-all duration-300";
+
   return (
     <div
       className="p-6 font-custom relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900"
@@ -600,7 +604,7 @@ export default function EmployeeList() {
                 { value: "متعاقد", label: "متعاقد" },
               ]}
               placeholder="الحالة الوظيفية"
-              className="border p-2 rounded"
+              className={dropdownClass}
               isAdmin={userInfo?.role === "admin"}
             />
             <DropdownWithSettings
@@ -618,7 +622,7 @@ export default function EmployeeList() {
                 { value: "الفئة الخامسة", label: "الفئة الخامسة" },
               ]}
               placeholder="الفئات الوظيفية"
-              className="border p-2 rounded"
+              className={dropdownClass}
               isAdmin={userInfo?.role === "admin"}
             />
             <DropdownWithSettings
@@ -649,7 +653,7 @@ export default function EmployeeList() {
                 },
               ]}
               placeholder="المستوى الإداري الرابع"
-              className="border p-2 rounded"
+              className={dropdownClass}
               isAdmin={userInfo?.role === "admin"}
             />
             <DropdownWithSettings
@@ -665,7 +669,7 @@ export default function EmployeeList() {
                 { value: "ذكر", label: "ذكر" },
               ]}
               placeholder="الجنس"
-              className="border p-2 rounded"
+              className={dropdownClass}
               isAdmin={userInfo?.role === "admin"}
             />
             <input
@@ -704,7 +708,7 @@ export default function EmployeeList() {
                 { value: "ارمل", label: "ارمل" },
               ]}
               placeholder="الوضع العائلي"
-              className="border p-2 rounded"
+              className={dropdownClass}
               isAdmin={userInfo?.role === "admin"}
             />
             <DropdownWithSettings
@@ -724,7 +728,7 @@ export default function EmployeeList() {
                 { value: "دكتوراه", label: "دكتوراه" },
               ]}
               placeholder="المستوى التعليمي"
-              className="border p-2 rounded"
+              className={dropdownClass}
               isAdmin={userInfo?.role === "admin"}
             />
             <DropdownWithSettings
@@ -751,7 +755,7 @@ export default function EmployeeList() {
                 { value: "الرقة", label: "الرقة" },
               ]}
               placeholder="المحافظة"
-              className="border p-2 rounded"
+              className={dropdownClass}
               isAdmin={userInfo?.role === "admin"}
             />
             <DropdownWithSettings
@@ -772,7 +776,7 @@ export default function EmployeeList() {
                 { value: "AB-", label: "AB-" },
               ]}
               placeholder="زمرة الدم"
-              className="border p-2 rounded"
+              className={dropdownClass}
               isAdmin={userInfo?.role === "admin"}
             />
             <DropdownWithSettings
@@ -784,7 +788,7 @@ export default function EmployeeList() {
               }}
               options={[]}
               placeholder="نوع العقد"
-              className="border p-2 rounded"
+              className={dropdownClass}
               isAdmin={userInfo?.role === "admin"}
             />
             <DropdownWithSettings
@@ -796,7 +800,7 @@ export default function EmployeeList() {
               }}
               options={[]}
               placeholder="الاختصاص"
-              className="border p-2 rounded"
+              className={dropdownClass}
               isAdmin={userInfo?.role === "admin"}
             />
             <DropdownWithSettings
@@ -808,7 +812,7 @@ export default function EmployeeList() {
               }}
               options={[]}
               placeholder="مكان العمل"
-              className="border p-2 rounded"
+              className={dropdownClass}
               isAdmin={userInfo?.role === "admin"}
             />
             <DropdownWithSettings
@@ -825,7 +829,7 @@ export default function EmployeeList() {
                 { value: "terminated", label: "منهي خدماته" },
               ]}
               placeholder="حالة الموظف"
-              className="border p-2 rounded"
+              className={dropdownClass}
               isAdmin={userInfo?.role === "admin"}
             />
 
@@ -839,7 +843,7 @@ export default function EmployeeList() {
               }}
               options={[]}
               placeholder="المستوى الإداري الأول"
-              className="border p-2 rounded"
+              className={dropdownClass}
               isAdmin={userInfo?.role === "admin"}
             />
             <DropdownWithSettings
@@ -851,7 +855,7 @@ export default function EmployeeList() {
               }}
               options={[]}
               placeholder="المستوى الإداري الثاني"
-              className="border p-2 rounded"
+              className={dropdownClass}
               isAdmin={userInfo?.role === "admin"}
             />
             <DropdownWithSettings
@@ -863,7 +867,7 @@ export default function EmployeeList() {
               }}
               options={[]}
               placeholder="المستوى الإداري الثالث"
-              className="border p-2 rounded"
+              className={dropdownClass}
               isAdmin={userInfo?.role === "admin"}
             />
             <DropdownWithSettings
@@ -875,7 +879,7 @@ export default function EmployeeList() {
               }}
               options={[]}
               placeholder="Level 5"
-              className="border p-2 rounded"
+              className={dropdownClass}
               isAdmin={userInfo?.role === "admin"}
             />
             <DropdownWithSettings
@@ -887,7 +891,7 @@ export default function EmployeeList() {
               }}
               options={[]}
               placeholder="Level 6"
-              className="border p-2 rounded"
+              className={dropdownClass}
               isAdmin={userInfo?.role === "admin"}
             />
           </div>

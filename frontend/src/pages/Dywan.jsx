@@ -95,54 +95,61 @@ export default function Dywan() {
       setDocuments(res.data.documents || []);
     } catch (err) {
       console.error("Error fetching documents:", err);
-      toast.error("خطأ في جلب الوثائق");
+      toast.error("فشل في جلب الوثائق");
     }
   };
 
   const fetchReceivedFiles = async () => {
     try {
-      const response = await API.get("/file-share/received");
-      setReceivedFiles(response.data);
+      const res = await API.get("/file-share/received");
+      setReceivedFiles(res.data);
     } catch (error) {
       console.error("Error fetching received files:", error);
-      toast.error("فشل جلب الملفات المستقبلة");
+      toast.error("فشل في جلب الملفات المستلمة");
     }
   };
 
   const fetchSentFiles = async () => {
     try {
-      const response = await API.get("/file-share/sent");
-      setSentFiles(response.data);
+      const res = await API.get("/file-share/sent");
+      setSentFiles(res.data);
     } catch (error) {
       console.error("Error fetching sent files:", error);
-      toast.error("فشل جلب الملفات المرسلة");
+      toast.error("فشل في جلب الملفات المرسلة");
     }
   };
 
   const fetchUsersWithDywanPermission = async () => {
     try {
-      const response = await API.get("/file-share/dywan-users");
-      setUsers(response.data);
+      const res = await API.get("/users/with-permission/dywan_access");
+      setUsers(res.data);
     } catch (error) {
-      console.error("Error fetching users with dywan permission:", error);
-      toast.error("فشل جلب المستخدمين");
+      console.error("Error fetching users:", error);
+      toast.error("فشل في جلب قائمة المستخدمين");
     }
   };
 
   const applyFilters = () => {
-    let filtered = documents;
+    let filtered = documents.filter((doc) => {
+      const typeMatch =
+        activeTab === "outgoing"
+          ? ["outgoing", "decision"].includes(doc.documentType)
+          : activeTab === "incoming"
+          ? doc.documentType === "incoming"
+          : activeTab === "decisions"
+          ? doc.documentType === "decision"
+          : true;
 
-    if (searchQuery) {
-      filtered = filtered.filter(
-        (doc) =>
-          doc.documentNumber?.toString().includes(searchQuery) ||
-          doc.incomingNumber?.toString().includes(searchQuery) ||
-          doc.department?.includes(searchQuery)
-      );
-    }
+      const searchMatch =
+        !searchQuery ||
+        doc.documentNumber?.includes(searchQuery) ||
+        doc.incomingNumber?.includes(searchQuery) ||
+        doc.department?.includes(searchQuery) ||
+        doc.status?.includes(searchQuery) ||
+        doc.subject?.toLowerCase().includes(searchQuery.toLowerCase());
 
-    if (filterDept)
-      filtered = filtered.filter((doc) => doc.department === filterDept);
+      return typeMatch && searchMatch;
+    });
     if (filterType)
       filtered = filtered.filter((doc) => doc.documentType === filterType);
     if (filterStatus)
@@ -413,49 +420,54 @@ export default function Dywan() {
     (_, i) => new Date().getFullYear() - i
   );
 
+  const pageBg =
+    "min-h-screen bg-gradient-to-br from-slate-900 via-slate-900/90 to-slate-950 text-slate-100";
+  const panelClass =
+    "bg-slate-900/70 border border-slate-800 rounded-2xl shadow-xl shadow-black/30 backdrop-blur";
+  const cardClass =
+    "bg-slate-900/60 border border-slate-800 rounded-xl shadow-lg";
+  const inputClass =
+    "w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500 transition";
+  const tabClass = (active) =>
+    `px-4 py-2 font-medium transition rounded-lg border ${
+      active
+        ? "bg-amber-500 text-slate-900 border-amber-400 shadow-lg shadow-amber-500/20"
+        : "text-slate-300 border-transparent hover:text-amber-300 hover:border-slate-700"
+    }`;
+  const pillClass = (color) =>
+    `text-xs px-2 py-0.5 rounded font-medium bg-${color}-900/40 text-${color}-200 border border-${color}-800/60`;
+
   return (
-    <div className="p-6 font-custom" dir="rtl">
-      <h2 className="text-3xl text-teal-700 font-extrabold mb-6">الديوان</h2>
+    <div className={`p-6 font-custom ${pageBg}`} dir="rtl">
+      <div className="mb-6 flex items-center justify-between">
+        <h2 className="text-3xl font-extrabold text-amber-300 drop-shadow-[0_4px_20px_rgba(245,158,11,0.35)]">
+          الديوان
+        </h2>
+      </div>
 
       {/* Tab Navigation */}
-      <div className="mb-6 flex gap-2 border-b">
+      <div className="mb-6 flex flex-wrap gap-3">
         <button
           onClick={() => setActiveTab("outgoing")}
-          className={`px-4 py-2 font-medium transition ${
-            activeTab === "outgoing"
-              ? "border-b-2 border-teal-600 text-teal-600"
-              : "text-gray-600 hover:text-gray-800"
-          }`}
+          className={tabClass(activeTab === "outgoing")}
         >
           الصادر
         </button>
         <button
           onClick={() => setActiveTab("incoming")}
-          className={`px-4 py-2 font-medium transition ${
-            activeTab === "incoming"
-              ? "border-b-2 border-teal-600 text-teal-600"
-              : "text-gray-600 hover:text-gray-800"
-          }`}
+          className={tabClass(activeTab === "incoming")}
         >
           الوارد
         </button>
         <button
           onClick={() => setActiveTab("decisions")}
-          className={`px-4 py-2 font-medium transition ${
-            activeTab === "decisions"
-              ? "border-b-2 border-teal-600 text-teal-600"
-              : "text-gray-600 hover:text-gray-800"
-          }`}
+          className={tabClass(activeTab === "decisions")}
         >
           القرارات
         </button>
         <button
           onClick={() => setActiveTab("file-sharing")}
-          className={`px-4 py-2 font-medium transition ${
-            activeTab === "file-sharing"
-              ? "border-b-2 border-teal-600 text-teal-600"
-              : "text-gray-600 hover:text-gray-800"
-          }`}
+          className={tabClass(activeTab === "file-sharing")}
         >
           مشاركة الملفات
         </button>
@@ -463,26 +475,29 @@ export default function Dywan() {
 
       {/* Tab Content */}
       {activeTab === "incoming" ? (
-        // Incoming (Dywan) — classic two-pane layout
+        // Incoming (Dywan) — two-pane layout in dark theme
         <div className="grid grid-cols-1 lg:grid-cols-[360px_1fr] gap-4">
           {/* Left: list pane */}
-          <div className="bg-white border border-gray-200 rounded-lg shadow-sm flex flex-col min-h-[75vh]">
-            <div className="px-3 py-2 border-b bg-gray-50 flex items-center justify-between">
-              <div className="text-sm font-semibold text-gray-800">
+          <div
+            className={`${cardClass} flex flex-col min-h-[75vh]`}
+            style={{ boxShadow: "0 20px 40px rgba(0,0,0,0.35)" }}
+          >
+            <div className="px-3 py-2 border-b border-slate-800 bg-slate-900/70 flex items-center justify-between">
+              <div className="text-sm font-semibold text-amber-300">
                 قائمة الوارد
               </div>
-              <div className="text-xs text-gray-500">
+              <div className="text-xs text-slate-400">
                 {filteredDocuments.length}
               </div>
             </div>
 
-            <div className="p-2 border-b">
+            <div className="p-3 border-b border-slate-800">
               <input
                 type="text"
                 placeholder="بحث..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className={`${inputClass} bg-slate-950/80`}
               />
             </div>
 
@@ -493,47 +508,47 @@ export default function Dywan() {
                     key={doc._id}
                     type="button"
                     onClick={() => setSelectedDocument(doc)}
-                    className={`w-full text-right px-3 py-2 border-b hover:bg-gray-50 transition ${
+                    className={`w-full text-right px-4 py-3 border-b border-slate-800 transition text-slate-200 ${
                       selectedDocument?._id === doc._id
-                        ? "bg-teal-50"
-                        : "bg-white"
+                        ? "bg-amber-500/10 border-amber-500/40"
+                        : "bg-slate-900/40 hover:bg-slate-800/70"
                     }`}
                   >
-                    <div className="flex items-start gap-2">
-                      <div className="w-8 h-8 flex items-center justify-center border rounded bg-white text-gray-600">
+                    <div className="flex items-start gap-3">
+                      <div className="w-9 h-9 flex items-center justify-center border border-slate-700 rounded bg-slate-900 text-amber-300">
                         📄
                       </div>
                       <div className="min-w-0 flex-1">
-                        <div className="text-sm font-semibold text-gray-900 truncate">
+                        <div className="text-sm font-semibold text-slate-100 truncate">
                           {doc.incomingNumber
                             ? `وارد ${doc.incomingNumber}`
                             : `#${doc.documentNumber}`}
                         </div>
-                        <div className="text-xs text-gray-500 truncate">
+                        <div className="text-xs text-slate-400 truncate">
                           {doc.department || ""}
                         </div>
-                        <div className="text-xs text-gray-500 truncate">
+                        <div className="text-xs text-slate-500 truncate">
                           {doc.documentType || ""}
                         </div>
                       </div>
-                      <div className="text-xs text-gray-500 whitespace-nowrap">
+                      <div className="text-xs text-slate-500 whitespace-nowrap">
                         {doc.year || ""}
                       </div>
                     </div>
                   </button>
                 ))
               ) : (
-                <div className="p-6 text-center text-gray-500">
+                <div className="p-6 text-center text-slate-400">
                   لا توجد وثائق
                 </div>
               )}
             </div>
 
-            <div className="p-2 border-t bg-gray-50 flex items-center justify-end gap-2">
+            <div className="p-3 border-t border-slate-800 bg-slate-900/70 flex items-center justify-end gap-2">
               <button
                 type="button"
                 onClick={() => setSelectedDocument(null)}
-                className="px-3 py-2 text-sm bg-white border rounded hover:bg-gray-50"
+                className="px-3 py-2 text-sm bg-slate-800 border border-slate-700 rounded hover:bg-slate-700 text-slate-200"
               >
                 جديد
               </button>
@@ -541,17 +556,17 @@ export default function Dywan() {
           </div>
 
           {/* Right: details/form pane */}
-          <div className="bg-white border border-gray-200 rounded-lg shadow-sm min-h-[75vh] flex flex-col">
-            <div className="px-3 py-2 border-b bg-gray-50 flex items-center justify-between">
-              <div className="text-sm font-semibold text-gray-800">
+          <div className={`${panelClass} min-h-[75vh] flex flex-col`}>
+            <div className="px-3 py-3 border-b border-slate-800 bg-slate-900/80 flex items-center justify-between">
+              <div className="text-sm font-semibold text-amber-200">
                 إدخال الوارد
               </div>
-              <div className="text-xs text-gray-500">
+              <div className="text-xs text-slate-400">
                 {new Date().toLocaleDateString("ar-SA")}
               </div>
             </div>
 
-            <div className="p-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="p-5 grid grid-cols-1 lg:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   نوع الوارد*
@@ -601,91 +616,91 @@ export default function Dywan() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-slate-300 mb-1">
                   رقم البريد وفق الجهة الوارد منها
                 </label>
                 <input
                   type="text"
                   value={incomingMailNumber}
                   onChange={(e) => setIncomingMailNumber(e.target.value)}
-                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className={inputClass}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-slate-300 mb-1">
                   رقم الوارد وفق سجل المحافظة
                 </label>
                 <input
                   type="text"
                   value={incomingRegistryNumber}
                   onChange={(e) => setIncomingRegistryNumber(e.target.value)}
-                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className={inputClass}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-slate-300 mb-1">
                   تاريخ تسجيل البريد الوارد
                 </label>
                 <input
                   type="date"
                   value={incomingRegisteredAt}
                   onChange={(e) => setIncomingRegisteredAt(e.target.value)}
-                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className={inputClass}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-slate-300 mb-1">
                   السنة
                 </label>
                 <input
                   type="text"
                   value={documentYear}
                   onChange={(e) => setDocumentYear(e.target.value)}
-                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className={inputClass}
                 />
               </div>
 
               <div className="lg:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-slate-300 mb-1">
                   موضوع البريد الوارد
                 </label>
                 <input
                   type="text"
                   value={incomingSubject}
                   onChange={(e) => setIncomingSubject(e.target.value)}
-                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className={inputClass}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-slate-300 mb-1">
                   رقم الوثيقة
                 </label>
                 <input
                   type="text"
                   value={documentNumber}
                   onChange={(e) => setDocumentNumber(e.target.value)}
-                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className={inputClass}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-slate-300 mb-1">
                   رقم الوارد
                 </label>
                 <input
                   type="text"
                   value={incomingNumber}
                   onChange={(e) => setIncomingNumber(e.target.value)}
-                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className={inputClass}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-slate-300 mb-1">
                   الحالة
                 </label>
                 <DropdownWithSettings
@@ -701,6 +716,7 @@ export default function Dywan() {
                     { value: "مؤرشفة", label: "مؤرشفة" },
                   ]}
                   placeholder="اختر"
+                  className={inputClass}
                   isAdmin={isAdmin}
                 />
               </div>
@@ -814,63 +830,51 @@ export default function Dywan() {
         </div>
       ) : activeTab === "file-sharing" ? (
         // File Sharing Tab Content
-        <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+        <div className={`${panelClass} p-6 border border-slate-800`}>
           <div className="flex justify-between items-center mb-6">
-            <h3 className="text-xl font-semibold text-gray-800">
+            <h3 className="text-xl font-semibold text-amber-300">
               مشاركة الملفات
             </h3>
             <button
               onClick={() => setUploadModalOpen(true)}
-              className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition flex items-center gap-2"
+              className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg transition flex items-center gap-2 shadow-lg shadow-emerald-600/30"
             >
               <Send size={18} />
               إرسال ملف جديد
             </button>
           </div>
 
-          <div className="mb-6 flex gap-2 border-b">
-            <button
-              onClick={() => {}}
-              className={`px-4 py-2 font-medium transition ${
-                true
-                  ? "border-b-2 border-green-600 text-green-600"
-                  : "text-gray-600 hover:text-gray-800"
-              }`}
-            >
+          <div className="mb-6 flex gap-2 border-b border-slate-800 pb-2 text-sm">
+            <span className="px-3 py-2 rounded-lg bg-amber-500/15 text-amber-200 border border-amber-500/40">
               الملفات المستقبلة ({receivedFiles.length})
-            </button>
-            <button
-              onClick={() => {}}
-              className={`px-4 py-2 font-medium transition ${
-                false
-                  ? "border-b-2 border-blue-600 text-blue-600"
-                  : "text-gray-600 hover:text-gray-800"
-              }`}
-            >
+            </span>
+            <span className="px-3 py-2 rounded-lg bg-slate-800 text-slate-200 border border-slate-700">
               الملفات المرسلة ({sentFiles.length})
-            </button>
+            </span>
           </div>
 
-          <div className="bg-white rounded-lg p-6">
+          <div className={`${cardClass} p-4 border border-slate-800/80`}>
             {renderFilesList(receivedFiles, false)}
           </div>
 
           {uploadModalOpen && (
-            <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-              <div className="bg-white rounded-lg p-6 max-w-md w-full transform transition-all duration-300 animate-fadeInUp overflow-y-auto max-h-[90vh]">
-                <h3 className="text-xl font-bold mb-4 text-center text-gray-800">
+            <div className="fixed inset-0 flex items-center justify-center bg-black/70 z-50">
+              <div
+                className={`${panelClass} p-6 max-w-md w-full transform transition-all duration-300 animate-fadeInUp overflow-y-auto max-h-[90vh]`}
+              >
+                <h3 className="text-xl font-bold mb-4 text-center text-amber-300">
                   إرسال ملف جديد
                 </h3>
 
                 <form onSubmit={handleSendFile} className="space-y-4">
                   <div>
-                    <label className="block mb-2 font-medium">
+                    <label className="block mb-2 font-medium text-slate-200">
                       اختر المستقبل
                     </label>
                     <select
                       value={selectedRecipient}
                       onChange={(e) => setSelectedRecipient(e.target.value)}
-                      className="w-full border border-gray-300 p-2 rounded focus:outline-none focus:border-green-500"
+                      className={`${inputClass} bg-slate-950/80`}
                     >
                       <option value="">-- اختر موظف --</option>
                       {users.map((user) => (
@@ -884,14 +888,16 @@ export default function Dywan() {
                   </div>
 
                   <div>
-                    <label className="block mb-2 font-medium">اختر الملف</label>
+                    <label className="block mb-2 font-medium text-slate-200">
+                      اختر الملف
+                    </label>
                     <input
                       type="file"
                       onChange={handleFileSelectForShare}
-                      className="w-full border border-gray-300 p-2 rounded focus:outline-none focus:border-green-500"
+                      className={`${inputClass} bg-slate-950/80`}
                     />
                     {selectedFileForShare && (
-                      <p className="text-sm text-gray-600 mt-1">
+                      <p className="text-sm text-slate-300 mt-1">
                         {selectedFileForShare.name} (
                         {(selectedFileForShare.size / 1024 / 1024).toFixed(2)}{" "}
                         MB)
@@ -900,14 +906,14 @@ export default function Dywan() {
                   </div>
 
                   <div>
-                    <label className="block mb-2 font-medium">
+                    <label className="block mb-2 font-medium text-slate-200">
                       رسالة (اختياري)
                     </label>
                     <textarea
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
                       placeholder="أضف رسالة مع الملف..."
-                      className="w-full border border-gray-300 p-2 rounded focus:outline-none focus:border-green-500"
+                      className={`${inputClass} bg-slate-950/80`}
                       rows="3"
                     />
                   </div>
@@ -916,21 +922,20 @@ export default function Dywan() {
                     <button
                       type="button"
                       onClick={() => setUploadModalOpen(false)}
-                      className="flex-1 bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500 transition"
+                      className="flex-1 bg-slate-800 text-slate-200 px-4 py-2 rounded border border-slate-700 hover:bg-slate-700 transition"
                     >
                       إلغاء
                     </button>
                     <button
                       type="submit"
                       disabled={fileSharingLoading}
-                      className="flex-1 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition disabled:opacity-50 flex items-center justify-center gap-2"
+                      className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded border border-emerald-500/60 transition disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/25"
                     >
                       {fileSharingLoading ? (
                         "جاري الإرسال..."
                       ) : (
                         <>
-                          <Send size={16} />
-                          إرسال
+                          <Send size={16} /> إرسال
                         </>
                       )}
                     </button>
@@ -941,11 +946,11 @@ export default function Dywan() {
           )}
         </div>
       ) : (
-        // Document Management Tabs Content (Outgoing, Incoming, Decisions)
+        // Document Management Tabs Content (Outgoing/Decisions fallback)
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200 max-h-screen overflow-y-auto">
-            <h3 className="text-xl font-semibold text-gray-800 mb-6 flex items-center gap-2">
-              <Upload className="w-5 h-5 text-teal-600" />
+          <div className={`${panelClass} p-6 max-h-screen overflow-y-auto`}>
+            <h3 className="text-xl font-semibold text-amber-300 mb-6 flex items-center gap-2">
+              <Upload className="w-5 h-5 text-amber-400" />
               إضافة وارد جديد
             </h3>
 
@@ -957,95 +962,98 @@ export default function Dywan() {
                 options={[{ value: "", label: "اختر" }]}
                 label="نوع الوارد*"
                 placeholder="اختر"
+                className={inputClass}
                 isAdmin={isAdmin}
-              />{" "}
-              <label className="block  text-sm font-medium text-gray-700 mb-2">
+              />
+
+              <label className="block text-sm font-medium text-slate-300 mb-2">
                 اسم الجهة الوارد منها البريد الوارد
               </label>
               <input
                 type="text"
                 value={documentNumber}
                 onChange={(e) => setDocumentNumber(e.target.value)}
-                className="w-full mt-5 border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className={`${inputClass} mt-1`}
                 placeholder="أدخل رقم الوارد"
               />
+
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  رقم البريد وفقالجهة الوارد منها{" "}
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  رقم البريد وفق الجهة الوارد منها
                 </label>
                 <div className="flex flex-row">
                   <input
                     type="number"
                     value={documentNumber}
                     onChange={(e) => setDocumentNumber(e.target.value)}
-                    className="w-full mt-5 border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    className={inputClass}
                     placeholder="أدخل رقم الوارد"
                   />
                 </div>
               </div>
+
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  رقم الوارد وفق سجل المحافظة{" "}
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  رقم الوارد وفق سجل المحافظة
                 </label>
                 <input
                   type="text"
                   value={incomingNumber}
                   onChange={(e) => setIncomingNumber(e.target.value)}
-                  className="w-full border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
-                  placeholder="أدخل رقم الوارد)"
+                  className={inputClass}
+                  placeholder="أدخل رقم الوارد"
                 />
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-slate-300 mb-2 mt-2">
                   تاريخ تسجيل البريد الوارد
                 </label>
                 <input
                   type="date"
                   value={incomingNumber}
                   onChange={(e) => setIncomingNumber(e.target.value)}
-                  className="w-full border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
-                  placeholder="أدخل رقم الوارد)"
+                  className={inputClass}
+                  placeholder="أدخل رقم الوارد"
                 />
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  موضوع البريد الوارد{" "}
+                <label className="block text-sm font-medium text-slate-300 mb-2 mt-2">
+                  موضوع البريد الوارد
                 </label>
                 <input
                   type="text"
                   value={incomingNumber}
                   onChange={(e) => setIncomingNumber(e.target.value)}
-                  className="w-full border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
-                  placeholder="أدخل رقم الوارد)"
+                  className={inputClass}
+                  placeholder="أدخل رقم الوارد"
                 />
-                <label className="block text-sm font-medium text-gray-700 mb-2"></label>
               </div>
-              <div className="grid grid-cols-2 gap-2"></div>
-              <div className="grid grid-cols-2 gap-2"></div>
             </div>
+
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-amber-200 mb-2">
                 اختر ملف أو امسح وثيقة *
               </label>
-              <div className="flex flex-col items-center border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-teal-400 transition bg-gray-50">
-                <Upload className="w-8 h-8 text-gray-400 mb-2" />
+              <div className="flex flex-col items-center border-2 border-dashed border-slate-700 rounded-lg p-6 hover:border-amber-400/60 transition bg-slate-900/60">
+                <Upload className="w-8 h-8 text-amber-400 mb-2" />
                 <input
                   id="fileInput"
                   type="file"
                   accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
                   onChange={handleFileChange}
-                  className="block w-full text-sm text-gray-600 file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 cursor-pointer"
+                  className="block w-full text-sm text-slate-200 file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-amber-500/15 file:text-amber-200 hover:file:bg-amber-500/25 cursor-pointer"
                 />
                 {file && (
-                  <p className="mt-2 text-sm text-teal-600 font-medium">
+                  <p className="mt-2 text-sm text-amber-200 font-medium">
                     ✓ {file.name}
                   </p>
                 )}
               </div>
             </div>
+
             <button
               onClick={handleScan}
               disabled={loading || !file}
               className={`w-full py-3 rounded-lg text-white font-semibold transition flex items-center justify-center gap-2 ${
                 loading || !file
-                  ? "bg-gray-300 cursor-not-allowed"
-                  : "bg-teal-600 hover:bg-teal-700"
+                  ? "bg-slate-700 cursor-not-allowed"
+                  : "bg-amber-500 hover:bg-amber-400"
               }`}
             >
               <Upload className="w-5 h-5" />
@@ -1053,21 +1061,21 @@ export default function Dywan() {
             </button>
           </div>
 
-          <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200 flex flex-col max-h-screen">
-            <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
-              <Filter className="w-5 h-5 text-teal-600" />
+          <div className={`${panelClass} p-6 flex flex-col max-h-screen`}>
+            <h3 className="text-xl font-semibold text-amber-300 mb-4 flex items-center gap-2">
+              <Filter className="w-5 h-5 text-amber-400" />
               الوثائق وتفاصيلها
             </h3>
 
             <div className="space-y-3 mb-4">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500 w-4 h-4" />
                 <input
                   type="text"
                   placeholder="ابحث برقم الوثيقة أو الوارد..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-3 py-2 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
+                  className={`${inputClass} pl-10 bg-slate-950/80`}
                 />
               </div>
 
@@ -1082,7 +1090,7 @@ export default function Dywan() {
                   }))}
                   label="السنة"
                   placeholder="السنة"
-                  className="text-sm"
+                  className={inputClass}
                   isAdmin={isAdmin}
                 />
 
@@ -1108,7 +1116,7 @@ export default function Dywan() {
                     },
                   ]}
                   placeholder="القسم"
-                  className="text-sm"
+                  className={inputClass}
                   isAdmin={isAdmin}
                 />
               </div>
@@ -1128,7 +1136,7 @@ export default function Dywan() {
                     { value: "أخرى", label: "أخرى" },
                   ]}
                   placeholder="نوع الوثيقة"
-                  className="text-sm"
+                  className={inputClass}
                   isAdmin={isAdmin}
                 />
 
@@ -1145,7 +1153,7 @@ export default function Dywan() {
                     { value: "مؤرشفة", label: "مؤرشفة" },
                   ]}
                   placeholder="الحالة"
-                  className="text-sm"
+                  className={inputClass}
                   isAdmin={isAdmin}
                 />
               </div>
@@ -1159,31 +1167,31 @@ export default function Dywan() {
                     onClick={() => setSelectedDocument(doc)}
                     className={`p-3 rounded-lg border cursor-pointer transition ${
                       selectedDocument?._id === doc._id
-                        ? "bg-teal-50 border-teal-500"
-                        : "bg-gray-50 border-gray-200 hover:border-gray-300"
+                        ? "bg-amber-500/10 border-amber-500/40"
+                        : "bg-slate-900/40 border-slate-800 hover:border-slate-700"
                     }`}
                   >
                     <div className="flex items-start gap-2">
-                      <File className="w-4 h-4 text-teal-600 mt-1 flex-shrink-0" />
+                      <File className="w-4 h-4 text-amber-400 mt-1 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-gray-800 text-sm truncate">
+                        <p className="font-medium text-slate-100 text-sm truncate">
                           #{doc.documentNumber}
                         </p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-slate-400">
                           {doc.department}
                         </p>
                         <div className="flex gap-1 mt-1 flex-wrap">
-                          <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
+                          <span className="text-xs bg-blue-900/40 text-blue-200 px-2 py-0.5 rounded border border-blue-800/60">
                             {doc.documentType}
                           </span>
                           <span
-                            className={`text-xs px-2 py-0.5 rounded font-medium ${
+                            className={
                               doc.status === "موافق عليها"
-                                ? "bg-green-100 text-green-700"
+                                ? pillClass("green")
                                 : doc.status === "مرفوضة"
-                                ? "bg-red-100 text-red-700"
-                                : "bg-yellow-100 text-yellow-700"
-                            }`}
+                                ? pillClass("red")
+                                : pillClass("amber")
+                            }
                           >
                             {doc.status}
                           </span>
@@ -1193,36 +1201,36 @@ export default function Dywan() {
                   </div>
                 ))
               ) : (
-                <p className="text-center text-gray-500 py-8">لا توجد وثائق</p>
+                <p className="text-center text-slate-400 py-8">لا توجد وثائق</p>
               )}
             </div>
 
             {selectedDocument && (
-              <div className="mt-4 p-4 bg-teal-50 rounded-lg border border-teal-200 space-y-2">
+              <div className="mt-4 p-4 bg-slate-900/60 rounded-lg border border-amber-500/30 space-y-2">
                 <div>
-                  <p className="text-xs text-gray-600">رقم الوثيقة</p>
-                  <p className="font-semibold text-gray-800">
+                  <p className="text-xs text-slate-400">رقم الوثيقة</p>
+                  <p className="font-semibold text-amber-200">
                     #{selectedDocument.documentNumber}
                   </p>
                 </div>
                 {selectedDocument.incomingNumber && (
                   <div>
-                    <p className="text-xs text-gray-600">رقم الوارد</p>
-                    <p className="font-semibold text-gray-800">
+                    <p className="text-xs text-slate-400">رقم الوارد</p>
+                    <p className="font-semibold text-amber-200">
                       {selectedDocument.incomingNumber}
                     </p>
                   </div>
                 )}
                 <div>
-                  <p className="text-xs text-gray-600">السنة</p>
-                  <p className="font-semibold text-gray-800">
+                  <p className="text-xs text-slate-400">السنة</p>
+                  <p className="font-semibold text-amber-200">
                     {selectedDocument.year}
                   </p>
                 </div>
                 {selectedDocument.fileName && (
                   <div>
-                    <p className="text-xs text-gray-600">اسم الملف</p>
-                    <p className="font-semibold text-gray-800">
+                    <p className="text-xs text-slate-400">اسم الملف</p>
+                    <p className="font-semibold text-amber-200">
                       {selectedDocument.fileName}
                     </p>
                   </div>
@@ -1230,21 +1238,21 @@ export default function Dywan() {
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-2">
                   <button
                     onClick={() => handleViewDocument(selectedDocument)}
-                    className="w-full flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-700 text-white py-2 rounded transition text-sm"
+                    className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white py-2 rounded transition text-sm"
                   >
                     <Eye className="w-4 h-4" />
                     عرض الوثيقة
                   </button>
                   <button
                     onClick={() => handleDownloadDocument(selectedDocument)}
-                    className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded transition text-sm"
+                    className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white py-2 rounded transition text-sm"
                   >
                     <Download className="w-4 h-4" />
                     تحميل الوثيقة
                   </button>
                   <button
                     onClick={() => removeDocument(selectedDocument._id)}
-                    className="w-full flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 text-white py-2 rounded transition text-sm"
+                    className="w-full flex items-center justify-center gap-2 bg-red-600 hover:bg-red-500 text-white py-2 rounded transition text-sm"
                   >
                     <Trash2 className="w-4 h-4" />
                     حذف الوثيقة

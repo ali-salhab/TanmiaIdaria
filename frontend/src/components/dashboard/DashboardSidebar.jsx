@@ -121,35 +121,40 @@ export default function DashboardSidebar({
           left-0 top-0
           h-screen
           w-64
-          bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 backdrop-blur-md
-          border-r border-white/10
+          bg-slate-900/95 backdrop-blur-md
+          border-r border-slate-800
           flex flex-col
-          shadow-[0_0_40px_rgba(0,0,0,0.5)]
+          shadow-[0_0_30px_rgba(0,0,0,0.55)]
           z-50
           transition-transform duration-300 ease-in-out
-          ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0 lg:block"}
+          ${
+            isOpen
+              ? "translate-x-0"
+              : "-translate-x-full lg:translate-x-0 lg:block"
+          }
         `}
         dir="rtl"
       >
         {/* Header */}
-        <div className="p-6 border-b border-gray-200 bg-gov-50 text-center flex flex-col items-center">
-          <div className="flex items-center gap-2">
+        <div className="p-6 border-b border-slate-800 bg-slate-900/90 text-center flex flex-col items-center relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-400 to-amber-600" />
+          <div className="flex items-center gap-2 mb-2">
             <img
               src={syriaLogo}
               alt="Syria Logo"
-              className="w-10 h-10 object-contain mr-1"
+              className="w-10 h-10 object-contain mr-1 drop-shadow-lg"
             />
           </div>
-          <h1 className="text-lg font-semibold text-[#d4af37] drop-shadow-md">
+          <h1 className="text-lg font-semibold text-amber-400 drop-shadow-md">
             نظام إدارة الموارد البشرية
           </h1>
-          <p className="text-xs text-[#d4af37]/70 mt-1">
+          <p className="text-xs text-slate-300 mt-1">
             الأمانة العامة لمحافظة طرطوس
           </p>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+        <nav className="flex-1 p-4 space-y-2 overflow-y-auto bg-gradient-to-b from-slate-900 via-slate-900/80 to-slate-900">
           {menuItems.map((item, idx) => (
             <Link
               key={idx}
@@ -160,9 +165,11 @@ export default function DashboardSidebar({
                 transition-all duration-200
                 transform hover:translate-x-1 hover:scale-[1.02]
                 font-medium text-sm
-                ${isActive(item.to)
-                  ? "bg-[#d4af37]/20 text-[#d4af37] shadow-md border-l-4 border-[#d4af37]"
-                  : "text-gray-300 hover:bg-white/10 hover:text-[#d4af37]"
+                border border-transparent
+                ${
+                  isActive(item.to)
+                    ? "bg-amber-500/15 text-amber-300 shadow-lg shadow-amber-500/10 border-amber-500/40"
+                    : "text-slate-200 hover:bg-slate-800 hover:text-amber-300 hover:border-slate-700"
                 }
               `}
             >
@@ -175,17 +182,17 @@ export default function DashboardSidebar({
         </nav>
 
         {/* Footer - Logout & Copyright */}
-        <div className="border-t border-white/10 p-4 space-y-2">
+        <div className="border-t border-slate-800 p-4 space-y-2 bg-slate-900/90">
           <button
             onClick={() => setShowCopyright(true)}
-            className="w-full flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-gray-300 hover:text-[#d4af37] py-2 rounded-lg transition-all font-medium text-xs"
+            className="w-full flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-amber-300 py-2 rounded-lg transition-all font-medium text-xs border border-slate-700"
           >
             <Code className="w-3 h-3" />
             <span>حقوق التطوير</span>
           </button>
           <button
             onClick={onLogout}
-            className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-red-700 to-red-600 hover:from-red-600 hover:to-red-500 text-white py-3 rounded-lg transition-all transform hover:scale-105 font-medium text-sm shadow-lg"
+            className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-red-700 to-red-600 hover:from-red-600 hover:to-red-500 text-white py-3 rounded-lg transition-all transform hover:scale-105 font-medium text-sm shadow-lg shadow-red-700/30"
           >
             <LogOut className="w-4 h-4" />
             <span>تسجيل الخروج</span>

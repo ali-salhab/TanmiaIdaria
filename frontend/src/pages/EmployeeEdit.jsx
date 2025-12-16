@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import API from "../api/api";
 import toast from "react-hot-toast";
+import { checkPermission } from "../utils/permissionHelper";
 const VITE_API_URL = import.meta.env.VITE_API_URL;
 // مكونات فرعية
 import EmployeeDocuments from "../components/EmployeeDocuments";
@@ -26,6 +27,36 @@ export default function EmployeeEdit() {
   const [uploading, setUploading] = useState(false);
   const [activeTab, setActiveTab] = useState("info"); // تبويب افتراضي: البيانات
   const [user, setUser] = useState(null);
+
+  const tabConfig = useMemo(
+    () => [
+      { key: "info", label: "البيانات الشخصية", permission: null },
+      { key: "documents", label: "الوثائق", permission: "employees.view" },
+      { key: "incidents", label: "الوقوعات", permission: "incidents.view" },
+      { key: "vacations", label: "الإجازات", permission: "vacations.view" },
+      { key: "rewards", label: "المكافآت", permission: "rewards.view" },
+      { key: "Penalties", label: "العقوبات", permission: "punishments.view" },
+      { key: "courses", label: "الدورات", permission: null },
+    ],
+    []
+  );
+
+  const accessibleTabs = useMemo(() => {
+    if (isNew) return [];
+    return tabConfig.filter(
+      (tab) =>
+        !tab.permission || (user && checkPermission(tab.permission, user))
+    );
+  }, [isNew, tabConfig, user]);
+
+  useEffect(() => {
+    if (isNew) return;
+    if (!accessibleTabs.length) return;
+    const hasActive = accessibleTabs.some((tab) => tab.key === activeTab);
+    if (!hasActive) {
+      setActiveTab(accessibleTabs[0].key);
+    }
+  }, [accessibleTabs, activeTab, isNew]);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -250,15 +281,7 @@ export default function EmployeeEdit() {
       <div className="mt-8">
         {!isNew && (
           <div className="flex flex-wrap gap-3 border-b border-gray-200 pb-2">
-            {[
-              { key: "info", label: "البيانات الشخصية" },
-              { key: "documents", label: "الوثائق" },
-              { key: "incidents", label: "الوقوعات" },
-              { key: "vacations", label: "الإجازات" },
-              { key: "rewards", label: "المكافآت" },
-              { key: "Penalties", label: "العقوبات" },
-              { key: "courses", label: "الدورات" },
-            ].map((tab) => (
+            {accessibleTabs.map((tab) => (
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
@@ -324,18 +347,40 @@ export default function EmployeeEdit() {
             </div>
           )}
 
-          {!isNew && activeTab === "documents" && (
-            <EmployeeDocuments
-              employeeId={id}
-              existingDocs={employee.documents || []}
-            />
-          )}
+          {!isNew &&
+            activeTab === "documents" &&
+            accessibleTabs.some((tab) => tab.key === "documents") && (
+              <EmployeeDocuments
+                employeeId={id}
+                existingDocs={employee.documents || []}
+              />
+            )}
 
-          {!isNew && activeTab === "incidents" && <EmployeeIncidents />}
-          {!isNew && activeTab === "vacations" && <EmployeeVacations />}
-          {!isNew && activeTab === "Penalties" && <EmployeePenalties />}
-          {!isNew && activeTab === "rewards" && <EmployeeRewards />}
-          {!isNew && activeTab === "courses" && <EmployeeCourses />}
+          {!isNew &&
+            activeTab === "incidents" &&
+            accessibleTabs.some((tab) => tab.key === "incidents") && (
+              <EmployeeIncidents />
+            )}
+          {!isNew &&
+            activeTab === "vacations" &&
+            accessibleTabs.some((tab) => tab.key === "vacations") && (
+              <EmployeeVacations />
+            )}
+          {!isNew &&
+            activeTab === "Penalties" &&
+            accessibleTabs.some((tab) => tab.key === "Penalties") && (
+              <EmployeePenalties />
+            )}
+          {!isNew &&
+            activeTab === "rewards" &&
+            accessibleTabs.some((tab) => tab.key === "rewards") && (
+              <EmployeeRewards />
+            )}
+          {!isNew &&
+            activeTab === "courses" &&
+            accessibleTabs.some((tab) => tab.key === "courses") && (
+              <EmployeeCourses />
+            )}
         </div>
       </div>
 

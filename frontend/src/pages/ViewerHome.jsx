@@ -16,6 +16,7 @@ import EmployeesSVG from "../assets/employees.svg";
 import VacationsSVG from "../assets/vacation.svg";
 import ReportsSVG from "../assets/report.svg";
 import Logo from "../assets/logo.png";
+import syriaLogo from "../assets/syria_logo.svg";
 import API from "../api/api";
 import AdminChat from "../components/chat/AdminChat";
 import { checkPermission } from "../utils/permissionHelper";
@@ -378,8 +379,8 @@ export default function ViewerHome() {
         <div className="flex items-center">
           <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-gradient-to-br from-governmentGrey-500 to-governmentGrey-600 flex items-center justify-center shadow-lg">
             <img
-              src={Logo}
-              alt="App Logo"
+              src={syriaLogo}
+              alt="Syria Logo"
               className="w-8 h-8 md:w-10 md:h-10 object-contain"
             />
           </div>

@@ -46,15 +46,13 @@ export default function UserProfile() {
     permissions: [], // [{label,key,category,source}]
   });
 
-  useEffect(() => {
-    if (authUser?._id) {
-      fetchUserProfile();
-    }
-  }, [authUser?._id, fetchUserProfile]);
-
   const fetchUserProfile = useCallback(async () => {
     try {
-      const res = await API.get(`/users/${authUser?._id}`);
+      const targetId = authUser?._id || localStorage.getItem("userId");
+      if (!targetId) {
+        throw new Error("No user id available to load profile");
+      }
+      const res = await API.get(`/users/${targetId}`);
       setUserData(res.data);
 
       // Set employee data if available
@@ -69,7 +67,7 @@ export default function UserProfile() {
       // Fetch permission details
       try {
         const permRes = await API.get(
-          `/permissions/user/${authUser?._id}/permissions`
+          `/permissions/user/${targetId}/permissions`
         );
         const permData = permRes.data.user || {};
 
@@ -107,11 +105,19 @@ export default function UserProfile() {
       }
 
       setLoading(false);
-    } catch {
+    } catch (err) {
+      // Better error logging to help debug 401/403 from server
+      console.error("Error fetching user profile:", err?.response || err);
       toast.error("فشل في تحميل الملف الشخصي");
       setLoading(false);
     }
   }, [authUser?._id]);
+
+  useEffect(() => {
+    if (authUser?._id) {
+      fetchUserProfile();
+    }
+  }, [authUser?._id, fetchUserProfile]);
 
   const handleProfileChange = (e) => {
     const { name, value } = e.target;
@@ -229,7 +235,7 @@ export default function UserProfile() {
   return (
     <div
       dir="rtl"
-      className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-4 md:p-6 relative overflow-hidden"
+      className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-4 md:p-6 relative overflow-hidden font-custom"
     >
       {/* Decorative background elements */}
       <div className="absolute top-0 left-0 w-64 h-64 opacity-20">
@@ -909,7 +915,7 @@ export default function UserProfile() {
       </div>
 
       {/* Custom styles for animations */}
-      <style jsx>{`
+      <style>{`
         @media (prefers-reduced-motion: reduce) {
           .animate-fadeIn,
           .animate-fadeInUp,

@@ -1,226 +1,305 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import API from "../api/api";
 import { useNavigate } from "react-router-dom";
 import ErrorModal from "../components/login/ErrorModal";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import logo from "../assets/logo.png";
-
-const syriaLogo = "/syria-logo.png";
+import syriaLogo from "../assets/syria_logo.svg";
 
 export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [usernameError, setUsernameError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  const rootRef = useRef(null);
+  const flagRef = useRef(null);
+  const cardRef = useRef(null);
+
+  const isFormValid = username.trim() !== "" && password !== "";
+
+  const validate = () => {
+    let ok = true;
+    if (!username.trim()) {
+      setUsernameError("حقل اسم المستخدم مطلوب");
+      ok = false;
+    } else setUsernameError("");
+    if (!password) {
+      setPasswordError("حقل كلمة المرور مطلوب");
+      ok = false;
+    } else setPasswordError("");
+    return ok;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validate()) return;
     setLoading(true);
     try {
-      // if (!username.trim()) showModal(true);
-      // if (!password.trim()) showModal(true);
       const res = await API.post("/auth/login", { username, password });
-      console.log("login user data");
-      console.log(res.data);
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("role", res.data.user.role);
-      // Support both `id` and `_id` coming from backend
       localStorage.setItem(
         "userId",
         res.data.user.id || res.data.user._id || ""
       );
       localStorage.setItem("username", res.data.user.username);
 
-      // Store permissions
       const permissions = [];
-      if (res.data.user.role === "admin") {
-        permissions.push("*");
-      } else {
-        if (res.data.user.directPermissions) {
-          res.data.user.directPermissions.forEach((p) =>
-            permissions.push(p.key)
-          );
-        }
-        if (res.data.user.permissionGroups) {
-          res.data.user.permissionGroups.forEach((g) => {
-            if (g.permissions) {
-              g.permissions.forEach((p) => permissions.push(p.key));
-            }
-          });
-        }
+      if (res.data.user.role === "admin") permissions.push("*");
+      else {
+        res.data.user.directPermissions?.forEach(
+          (p) => p?.key && permissions.push(p.key)
+        );
+        res.data.user.permissionGroups?.forEach((g) =>
+          g.permissions?.forEach((p) => p?.key && permissions.push(p.key))
+        );
       }
       localStorage.setItem("permissions", JSON.stringify(permissions));
 
-      console.log("response from loging function", res.data);
-
-      if (res.data.user.role === "admin") {
-        navigate("/dashboard");
-      } else {
-        navigate("/user/dashboard");
-      }
+      if (res.data.user.role === "admin") navigate("/dashboard");
+      else navigate("/user/dashboard");
     } catch (err) {
       console.error("Login error:", err);
       const status = err.response?.status || 500;
       const statusText = err.response?.statusText || "Server Error";
       const message =
         err.response?.data?.message || "An unexpected error occurred";
-
-      setError({
-        code: status,
-        title: statusText,
-        message: message,
-      });
+      setError({ code: status, title: statusText, message });
       setShowModal(true);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleOutsideClick = (e) => {
-    if (e.target.id === "error-modal") setShowModal(false);
-  };
+  useEffect(() => {
+    const el = rootRef.current;
+    if (!el) return;
+
+    const handleMove = (e) => {
+      const rect = el.getBoundingClientRect();
+      const x = (e.clientX - rect.left) / rect.width - 0.5;
+      const y = (e.clientY - rect.top) / rect.height - 0.5;
+      el.style.setProperty("--mx", x);
+      el.style.setProperty("--my", y);
+      if (flagRef.current)
+        flagRef.current.style.transform = `perspective(1000px) rotateY(${
+          x * 5
+        }deg) rotateX(${y * -3}deg) scale(1.02)`;
+      if (cardRef.current)
+        cardRef.current.style.transform = `perspective(800px) rotateY(${
+          x * 3
+        }deg) rotateX(${y * -3}deg) translateZ(6px) scale(1.005)`;
+    };
+
+    const handleLeave = () => {
+      el.style.setProperty("--mx", 0);
+      el.style.setProperty("--my", 0);
+      if (flagRef.current)
+        flagRef.current.style.transform =
+          "perspective(1000px) rotateY(0deg) rotateX(0deg) scale(1.02)";
+      if (cardRef.current)
+        cardRef.current.style.transform =
+          "perspective(800px) rotateY(0deg) rotateX(0deg) translateZ(0px) scale(1)";
+    };
+
+    window.addEventListener("mousemove", handleMove);
+    window.addEventListener("mouseleave", handleLeave);
+    return () => {
+      window.removeEventListener("mousemove", handleMove);
+      window.removeEventListener("mouseleave", handleLeave);
+    };
+  }, []);
 
   return (
-    <div className="relative flex items-center justify-center min-h-screen overflow-hidden bg-gradient-to-br from-gray-200 via-gray-100 to-gray-300">
-      {/* floating glass blur backgroundoverlay */}
+    <div
+      ref={rootRef}
+      className="relative flex flex-col items-center justify-center min-h-screen overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900"
+    >
+      {/* Animated blurred flag background */}
+      <div
+        ref={flagRef}
+        aria-hidden
+        className="login-flag-bg login-flag-bg--parallax"
+      />
+      {/* Blur overlay */}
+      <div
+        className="absolute inset-0 backdrop-blur-md bg-black/40"
+        aria-hidden
+      />
+
+      {/* Top-right text */}
       <div
         dir="rtl"
-        className="fixed flex-col p-4 items-start justify-start right-0 z-0 top-0 w-max"
+        className="fixed top-6 right-6 z-20 text-right animate-headerFade"
       >
-        <div className="lg:block sm:hidden sm: md:hidden">
-          {" "}
-          <p className="text-sm font-semibold tracking-wide text-gray-700 font-['Tajawal']">
-            الجمهورية العربية السورية
-          </p>
-          <p className="text-sm font-semibold tracking-wide text-gray-700 font-['Tajawal']">
-            الأمانة العامة لمحافظة طرطوس
-          </p>
-          <p className="text-sm font-semibold tracking-wide text-gray-700 font-['Tajawal']">
-            مديرية التنمية الإدارية
-          </p>
-        </div>
+        <p className="text-lg md:text-xl lg:text-2xl font-bold tracking-wide text-[#d4af37] drop-shadow-lg font-['Tajawal'] mb-1">
+          الجمهورية العربية السورية
+        </p>
+        <p className="text-base md:text-lg lg:text-xl font-semibold tracking-wide text-[#d4af37]/80 drop-shadow-md font-['Tajawal']">
+          الأمانة العامة لمحافظة طرطوس
+        </p>
       </div>
 
-      {/* Syria logo top-left */}
-      <div className="fixed left-0 top-0 z-0 p-4 hidden lg:flex items-start">
-        <img
-          src={syriaLogo}
-          alt="Syria Logo"
-          className="h-16 w-auto object-contain opacity-90"
-        />
-      </div>
-      <div className="fixed flex-col p-4 items-start left-0 z-0 bottom-0 w-max text-gray-500">
-        <p>&copy; copy right </p>
-        {/* <p>alisalhab@gmail.com</p> */}
-      </div>
-      <div className="absolute inset-0 backdrop-blur-none bg-white/30"></div>
-
-      {/* login card */}
-      <form
-        dir="rtl"
-        onSubmit={handleSubmit}
-        className="relative z-10 backdrop-blur-2xl bg-white/40 border border-white/60 text-gray-800 rounded-2xl shadow-[0_8px_32px_0_rgba(31,38,135,0.15)] p-10 w-full max-w-sm animate-fadeSlide font-['Tajawal'] flex flex-col items-center"
-      >
-        <img
-          src={logo}
-          alt="Logo"
-          className="w-24 h-24 mb-4 object-contain drop-shadow-md grayscale opacity-80 hover:grayscale-0 transition-all duration-500"
-        />
-        <h2 className="text-3xl font-bold mb-8 text-center tracking-wide text-gray-800 drop-shadow-sm">
-          مديرية التنمية الإدارية
-        </h2>
-        <div className="w-full">
-          <label
-            className="mb-2 p-3 tracking-wide text-gray-700 font-semibold"
-            htmlFor=""
-          >
-            اسم المستخدم
-          </label>
-          <input
-            dir="rtl"
-            type="text"
-            placeholder="اسم المستخدم"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            className="w-full p-3 mb-5 mt-2 rounded-lg bg-white/60 border border-gray-200 placeholder-gray-500 text-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-400 shadow-inner"
-          />
-          <label className="mb-2 text-gray-700 font-semibold" htmlFor="">
-            كلمة المرور
-          </label>
-          <div className="relative w-full mb-6 mt-2">
-            <input
-              dir="rtl"
-              type={showPassword ? "text" : "password"}
-              placeholder="كلمة المرور"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-3 rounded-lg bg-white/60 border border-gray-200 placeholder-gray-500 text-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-400 shadow-inner"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-800"
-            >
-              {showPassword ? <FaEyeSlash size={20} /> : <FaEye size={20} />}
-            </button>
-          </div>
-        </div>
-
-        <button
-          onClick={handleSubmit}
-          type="submit"
-          disabled={loading}
-          className={`w-full py-3 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2 shadow-lg ${
-            loading
-              ? "bg-gray-400 cursor-not-allowed opacity-75 text-white"
-              : "bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-800 hover:to-gray-900 text-white cursor-pointer transform hover:-translate-y-0.5"
-          }`}
+      {/* Centered Login Card */}
+      <div className="relative z-10 w-full max-w-md px-6 md:px-8">
+        <form
+          ref={cardRef}
+          dir="rtl"
+          onSubmit={handleSubmit}
+          className="relative z-10 backdrop-blur-3xl bg-white/10 border border-white/20 text-white login-card shadow-[0_30px_80px_rgba(0,0,0,0.4)] p-10 w-full rounded-2xl animate-cardPop font-['Tajawal'] flex flex-col items-center gap-5"
         >
-          {loading ? (
-            <>
-              جاري تسجيل الدخول
-              <span className="animate-bounce delay-0">.</span>
-              <span className="animate-bounce delay-75">.</span>
-              <span className="animate-bounce delay-100">.</span>
-            </>
-          ) : (
-            "تسجيل الدخول"
-          )}
-        </button>
-      </form>
+          <div className="flex flex-col items-center gap-4">
+            <img
+              src={syriaLogo}
+              alt="Syria emblem"
+              className="w-32 h-32 md:w-36 md:h-36 object-contain drop-shadow-[0_0_20px_rgba(212,175,55,0.5)] opacity-100 animate-logo-glow"
+            />
+            <h2 className="text-xl md:text-2xl font-bold text-center tracking-tight text-[#d4af37] login-title">
+              نظام إدارة الموارد البشرية
+            </h2>
+            <p className="text-lg md:text-xl font-semibold text-center text-[#d4af37]/70">
+              تسجيل الدخول
+            </p>
+          </div>
 
-      {/* animated glass modal */}
+          <div className="w-full flex flex-col gap-4 text-right">
+            <label
+              className="text-[#d4af37] font-semibold tracking-wide"
+              htmlFor="username"
+            >
+              اسم المستخدم
+            </label>
+            <input
+              id="username"
+              aria-invalid={!!usernameError}
+              type="text"
+              placeholder="اسم المستخدم"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              onBlur={() => {
+                if (!username.trim())
+                  setUsernameError("حقل اسم المستخدم مطلوب");
+                else setUsernameError("");
+              }}
+              className="w-full p-3 rounded-xl bg-white/10 border border-white/20 placeholder-white/50 text-[#d4af37] text-base focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white/15 transition-all duration-300"
+            />
+            {usernameError && (
+              <p
+                id="username-error"
+                role="alert"
+                className="text-red-400 text-sm"
+              >
+                {usernameError}
+              </p>
+            )}
+
+            <label
+              className="text-[#d4af37] font-semibold tracking-wide"
+              htmlFor="password"
+            >
+              كلمة المرور
+            </label>
+            <div className="relative w-full">
+              <input
+                id="password"
+                aria-invalid={!!passwordError}
+                dir="rtl"
+                type={showPassword ? "text" : "password"}
+                placeholder="كلمة المرور"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                onBlur={() => {
+                  if (!password) setPasswordError("حقل كلمة المرور مطلوب");
+                  else setPasswordError("");
+                }}
+                className="w-full p-3 pr-10 rounded-xl bg-white/10 border border-white/20 placeholder-white/50 text-white text-base focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white/15 transition-all duration-300"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-white/60 hover:text-white transition-colors"
+              >
+                {showPassword ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
+              </button>
+            </div>
+            {passwordError && (
+              <p
+                id="password-error"
+                role="alert"
+                className="text-red-400 text-sm"
+              >
+                {passwordError}
+              </p>
+            )}
+          </div>
+
+          <button
+            type="submit"
+            disabled={!isFormValid || loading}
+            className={`w-full py-3.5 text-base rounded-xl font-bold transition-all duration-300 flex items-center justify-center gap-2 shadow-lg ${
+              !isFormValid || loading
+                ? "bg-gray-600 cursor-not-allowed opacity-60 text-white/70"
+                : "bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white cursor-pointer transform hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-500/30"
+            }`}
+          >
+            {loading ? (
+              <>
+                جاري تسجيل الدخول
+                <span className="animate-bounce delay-0">.</span>
+                <span className="animate-bounce delay-75">.</span>
+                <span className="animate-bounce delay-100">.</span>
+              </>
+            ) : (
+              "تسجيل الدخول"
+            )}
+          </button>
+        </form>
+      </div>
+
       {showModal && (
         <ErrorModal
-          handleOutsideClick={handleOutsideClick}
+          handleOutsideClick={(e) => {
+            if (e.target.id === "error-modal") setShowModal(false);
+          }}
           data={{ error }}
           setShowModal={setShowModal}
         />
       )}
 
-      {/* custom animations */}
-      <style>
-        {`
-          @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-          }
-          @keyframes scaleUp {
-            from { transform: scale(0.8); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-          }
-          @keyframes fadeSlide {
-            from { opacity: 0; transform: translateX(500px); }
+      <style>{`
+          @keyframes headerFade {
+            from { opacity: 0; transform: translateY(-30px); }
             to { opacity: 1; transform: translateY(0); }
           }
-          .animate-fadeIn { animation: fadeIn 0.3s ease-out forwards; }
-          .animate-scaleUp { animation: scaleUp 0.3s ease-out forwards; }
-          .animate-fadeSlide { animation: fadeSlide 0.6s ease-out forwards; }
-        `}
-      </style>
+          @keyframes cardPop {
+            from { opacity: 0; transform: scale(0.9) translateY(40px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+          }
+          @keyframes pulse-slow {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.85; transform: scale(1.03); }
+          }
+          @keyframes logo-glow {
+            0%, 100% { 
+              filter: drop-shadow(0 0 20px rgba(212, 175, 55, 0.5));
+              transform: scale(1);
+            }
+            50% { 
+              filter: drop-shadow(0 0 35px rgba(212, 175, 55, 0.8));
+              transform: scale(1.03);
+            }
+          }
+          .animate-headerFade { animation: headerFade 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+          .animate-cardPop { animation: cardPop 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both; }
+          .animate-pulse-slow { animation: pulse-slow 3s ease-in-out infinite; }
+          .animate-logo-glow { animation: logo-glow 3s ease-in-out infinite; }
+        `}</style>
     </div>
   );
 }

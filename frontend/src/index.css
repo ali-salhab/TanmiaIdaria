@@ -6,9 +6,209 @@ body {
   font-family: "Tajawal", "Amiri", serif;
 }
 
+:root {
+  --gov-primary: #065f46;
+  --gov-accent: #f59e0b;
+  --gov-bg: #f8fafc;
+  --gov-text: #0f172a;
+}
+
+/* Government branding utilities */
+.gov-brand-title {
+  color: var(--gov-primary);
+  letter-spacing: 0.3px;
+  font-family: "Tajawal", sans-serif;
+}
+
+.gov-button {
+  background-color: var(--gov-primary);
+  color: white;
+  border-radius: 0.5rem; /* slightly rounded, formal */
+}
+
+.gov-card {
+  border-color: rgba(6, 95, 70, 0.08);
+  box-shadow: 0 6px 20px rgba(2, 6, 23, 0.06);
+}
+
+/* Login page specific visuals */
+@keyframes bob {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.animate-bob {
+  animation: bob 3s ease-in-out infinite;
+}
+
+.login-logo-left {
+  width: 5.5rem; /* 88px */
+  height: auto;
+}
+
+.login-card {
+  animation: scaleIn 420ms cubic-bezier(0.2, 0.9, 0.2, 1) forwards;
+  border-radius: 1.25rem;
+}
+
+.login-title {
+  font-family: "Tajawal", sans-serif;
+  letter-spacing: 0.2px;
+}
+
+.login-subtitle {
+  color: #475569; /* a formal muted tone */
+}
+
+/* Animated background orbs for login */
+.login-orb {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(40px);
+  opacity: 0.45;
+  transform: translateZ(0);
+  z-index: 0;
+}
+.login-card {
+  z-index: 20; /* ensure the card sits above orbs */
+}
+.login-orb.orb-1 {
+  width: 360px;
+  height: 360px;
+  left: -120px;
+  top: -80px;
+  background: radial-gradient(
+    circle at 30% 30%,
+    rgba(6, 95, 70, 0.22),
+    transparent 40%
+  );
+  animation: float1 9s ease-in-out infinite;
+}
+.login-orb.orb-2 {
+  width: 220px;
+  height: 220px;
+  right: -60px;
+  top: 120px;
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(245, 158, 11, 0.16),
+    transparent 40%
+  );
+  animation: float2 11s ease-in-out infinite;
+}
+.login-orb.orb-3 {
+  width: 300px;
+  height: 300px;
+  left: 40%;
+  bottom: -100px;
+  background: radial-gradient(
+    circle at 60% 40%,
+    rgba(4, 76, 55, 0.12),
+    transparent 40%
+  );
+  animation: float3 12s ease-in-out infinite;
+}
+
+@keyframes float1 {
+  0% {
+    transform: translateY(0) translateX(0) scale(1);
+  }
+  50% {
+    transform: translateY(-24px) translateX(12px) scale(1.02);
+  }
+  100% {
+    transform: translateY(0) translateX(0) scale(1);
+  }
+}
+@keyframes float2 {
+  0% {
+    transform: translateY(0) translateX(0) scale(1);
+  }
+  50% {
+    transform: translateY(-36px) translateX(-10px) scale(1.03);
+  }
+  100% {
+    transform: translateY(0) translateX(0) scale(1);
+  }
+}
+
+/* Flag background for the login page */
+.login-flag-bg {
+  position: absolute;
+  inset: 0;
+  background-image: url("/syria_flag.svg");
+  background-size: cover;
+  background-position: center center;
+  filter: blur(20px) saturate(1.1) contrast(1) brightness(0.6);
+  transform-origin: center center;
+  will-change: transform, filter, opacity;
+  z-index: 0;
+  pointer-events: none;
+  animation: flag3d 14s ease-in-out infinite alternate;
+}
+
+@keyframes flag3d {
+  0% {
+    transform: perspective(1000px) translateZ(0) rotateY(-6deg) rotateX(0)
+      scale(1.02);
+  }
+  50% {
+    transform: perspective(1000px) translateZ(0) rotateY(6deg) rotateX(-2deg)
+      scale(1.04);
+  }
+  100% {
+    transform: perspective(1000px) translateZ(0) rotateY(-6deg) rotateX(0)
+      scale(1.02);
+  }
+}
+
+/* Parallax respond using CSS vars set by JS */
+.login-flag-bg--parallax {
+  transform: perspective(1000px) rotateY(calc(var(--mx, 0) * 6deg))
+    rotateX(calc(var(--my, 0) * -4deg)) scale(1.03);
+}
+
+/* Card 3D behavior */
+.login-card {
+  transform-style: preserve-3d;
+  transition: transform 280ms cubic-bezier(0.2, 0.9, 0.2, 1),
+    box-shadow 240ms ease;
+  z-index: 20;
+}
+
+.login-card:hover {
+  box-shadow: 0 26px 70px rgba(2, 6, 23, 0.2);
+}
+
+/* Reduce parallax on touch devices */
+@media (pointer: coarse) {
+  .login-flag-bg {
+    animation: none;
+    filter: blur(22px) saturate(1) brightness(0.5);
+  }
+}
+@keyframes float3 {
+  0% {
+    transform: translateY(0) translateX(0) scale(1);
+  }
+  50% {
+    transform: translateY(-18px) translateX(6px) scale(1.015);
+  }
+  100% {
+    transform: translateY(0) translateX(0) scale(1);
+  }
+}
+
 ::selection {
-  background-color: #b49148; /* Primary Gold */
-  color: #1f2937; /* Secondary Dark */
+  background-color: var(--gov-accent);
+  color: var(--gov-text);
 }
 
 /* Dark mode support */

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Public copy of Syria emblem for favicon and direct requests -->
+<svg
+   width="177.27084mm"
+   height="133.00146mm"
+   viewBox="0 0 177.27085 133.00146"
+   version="1.1"
+   id="svg1"
+   xml:space="preserve"
+   xmlns="http://www.w3.org/2000/svg">
+  <!-- trimmed copy of src/assets/syria_logo.svg for public use -->
+  <rect width="100%" height="100%" fill="transparent" />
+  <g transform="translate(0,0)">
+    <text x="10" y="20" font-size="10">سوريا</text>
+  </g>
+</svg>

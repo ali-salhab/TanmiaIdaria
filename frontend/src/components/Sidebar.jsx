@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useSocket } from "../context/SocketContext";
 import logo from "../assets/logo.png";
+import syriaLogo from "../assets/syria_logo.svg";
 
 export default function Sidebar({ onLogout, isOpen, onClose }) {
   const [expandedMenu, setExpandedMenu] = useState(null);
@@ -48,16 +49,29 @@ export default function Sidebar({ onLogout, isOpen, onClose }) {
 
   return (
     <aside className="fixed left-0 top-0 h-screen w-64 bg-white/90 backdrop-blur-md text-gray-800 hidden md:flex flex-col shadow-2xl border-l border-gray-200 overflow-hidden z-40 animate-slideInLeft">
-      <div className="p-6 border-b border-gray-200 text-center bg-white/50 flex flex-col items-center">
-        <img
-          src={logo}
-          alt="Logo"
-          className="w-20 h-20 mb-3 object-contain drop-shadow-md grayscale opacity-90 hover:grayscale-0 transition-all duration-500"
-        />
-        <h1 className="text-xl font-bold drop-shadow-sm text-gray-800">
-          التنمية الإدارية
+      <div className="p-6 border-b border-gray-200 text-center bg-gov-50 flex flex-col items-center">
+        <div className="flex items-center gap-3">
+          <img
+            src={syriaLogo}
+            alt="Government emblem"
+            className="w-14 h-14 object-contain bg-white p-1 rounded-md shadow-sm"
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = logo;
+            }}
+          />
+          <img
+            src={logo}
+            alt="Logo"
+            className="w-16 h-16 mb-1 object-contain drop-shadow-md opacity-95 transition-all duration-500"
+          />
+        </div>
+        <h1 className="text-lg font-semibold drop-shadow-sm text-gov-700 mt-2 gov-brand-title">
+          نظام إدارة الموارد البشرية
         </h1>
-        <p className="text-sm text-gray-500 mt-1 font-medium">لوحة التحكم</p>
+        <p className="text-sm text-gov-600 mt-1 font-medium">
+          الأمانة العامة لمحافظة طرطوس
+        </p>
       </div>
 
       <nav className="flex-1 p-4 space-y-2 overflow-y-auto" dir="rtl">

@@ -142,6 +142,8 @@ function App() {
                   </RequirePermission>
                 }
               />
+              {/* Profile under dashboard so layout (sidebar/navbar) stays visible */}
+              <Route path="profile" element={<UserProfile />} />
 
               {/* Dywan */}
               <Route
@@ -178,15 +180,8 @@ function App() {
                 element={<AdminNotifications />}
               />
 
-              {/* Settings */}
-              <Route
-                path="settings"
-                element={
-                  <RequirePermission permission="settings.view">
-                    <Settings />
-                  </RequirePermission>
-                }
-              />
+              {/* Settings (available to all authenticated users; per-endpoint permissions enforced on backend) */}
+              <Route path="settings" element={<Settings />} />
 
               {/* Database Recovery / Backup */}
               <Route
@@ -270,14 +265,10 @@ function App() {
               element={<Navigate to="/dashboard/employees" />}
             />
 
-            {/* Profile */}
+            {/* Redirect legacy /profile to dashboard profile */}
             <Route
               path="/profile"
-              element={
-                <ProtectedRoute allowedRoles={["admin", "user"]}>
-                  <UserProfile />
-                </ProtectedRoute>
-              }
+              element={<Navigate to="/dashboard/profile" replace />}
             />
 
             <Route path="/unauthorized" element={<Unauthorized />} />

@@ -280,7 +280,7 @@ export default function Onboarding() {
                 مرحباً بك! 👋
               </h1>
               <p className="text-xl text-gray-200">
-                في نظام إدارة التنمية الإدارية
+                في نظام إدارة الموارد البشرية
               </p>
             </div>
 
@@ -368,8 +368,8 @@ export default function Onboarding() {
         {/* Enhanced Bottom info */}
         <div className="mt-16 text-center text-gray-300">
           <p className="text-lg">
-            © {new Date().getFullYear()} مديرية التنمية الإدارية - جميع الحقوق
-            محفوظة
+            © {new Date().getFullYear()} نظام إدارة الموارد البشرية — الأمانة
+            العامة لمحافظة طرطوس - جميع الحقوق محفوظة
           </p>
           <p className="text-sm mt-2 opacity-70">
             نظام متطور لإدارة الموارد البشرية والوثائق
@@ -378,7 +378,7 @@ export default function Onboarding() {
       </div>
 
       {/* Enhanced custom animations */}
-      <style jsx>{`
+      <style>{`
         @keyframes blob {
           0%,
           100% {

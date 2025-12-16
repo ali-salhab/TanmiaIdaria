@@ -427,7 +427,7 @@ export default function EmployeeList() {
   };
   return (
     <div
-      className="p-6 font-custom relative min-h-screen overflow-hidden"
+      className="p-6 font-custom relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900"
       dir="rtl"
     >
       {/* Animated Background */}
@@ -435,22 +435,31 @@ export default function EmployeeList() {
         {[...Array(20)].map((_, i) => (
           <div
             key={i}
-            className={`absolute w-2 h-2 bg-white rounded-full opacity-20 animate-floatRandom`}
+            className={`absolute rounded-full`}
             style={{
+              width: Math.random() * 6 + 3 + "px",
+              height: Math.random() * 6 + 3 + "px",
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,
+              background: i % 3 === 0 ? "#d4af37" : "rgba(255,255,255,0.15)",
+              opacity: i % 3 === 0 ? 0.4 : 0.2,
               animationDelay: `${Math.random() * 5}s`,
               animationDuration: `${5 + Math.random() * 5}s`,
+              boxShadow: i % 3 === 0 ? "0 0 10px #d4af37" : "none",
+              animation: `floatRandom ${
+                5 + Math.random() * 5
+              }s ease-in-out infinite`,
             }}
           />
         ))}
         {[...Array(15)].map((_, i) => (
           <div
             key={`circle-${i}`}
-            className={`absolute w-1 h-1 bg-white rounded-full opacity-30 animate-float`}
+            className={`absolute w-1 h-1 rounded-full opacity-30 animate-float`}
             style={{
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,
+              background: i % 4 === 0 ? "#d4af37" : "rgba(255,255,255,0.2)",
               animationDelay: `${Math.random() * 3}s`,
               animationDuration: `${3 + Math.random() * 3}s`,
             }}
@@ -459,23 +468,27 @@ export default function EmployeeList() {
         {[...Array(10)].map((_, i) => (
           <div
             key={`square-${i}`}
-            className={`absolute w-1.5 h-1.5 bg-white rotate-45 opacity-25 animate-pulseGentle`}
+            className={`absolute w-1.5 h-1.5 rotate-45 opacity-25 animate-pulseGentle`}
             style={{
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,
+              background: i % 2 === 0 ? "#d4af37" : "rgba(255,255,255,0.15)",
               animationDelay: `${Math.random() * 2}s`,
             }}
           />
         ))}
       </div>
-      <div className="mb-6 flex flex-col md:flex-row  md:items-center md:justify-between gap-4">
-        <h2 className="text-3xl text-gray-800 font-extrabold">
+      <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <h2
+          className="text-3xl font-extrabold bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-200 bg-clip-text text-transparent drop-shadow-lg"
+          style={{ textShadow: "0 2px 20px rgba(212, 175, 55, 0.3)" }}
+        >
           قائمة الموظفين
         </h2>
         {checkPermission("employees.create", userInfo) && (
           <button
             onClick={() => navigate("/dashboard/employees/add")}
-            className="bg-gray-700 w-32 text-white px-4 py-2 ml-5 font-extrabold rounded hover:bg-gray-800 transition"
+            className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 w-36 text-white px-4 py-2.5 ml-5 font-extrabold rounded-xl shadow-lg hover:shadow-amber-500/25 transition-all duration-300 border border-amber-400/30"
           >
             + موظف جديد
           </button>
@@ -487,13 +500,13 @@ export default function EmployeeList() {
             <>
               <button
                 onClick={exportExcel}
-                className="bg-gray-700 ml-5 text-white px-4 py-2 rounded hover:bg-gray-800 transition"
+                className="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 ml-5 text-white px-5 py-2.5 rounded-xl shadow-lg hover:shadow-emerald-500/25 transition-all duration-300 border border-emerald-400/30"
               >
                 تصدير اكسل
               </button>
               <button
                 onClick={exportPDF}
-                className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800 transition"
+                className="bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white px-5 py-2.5 rounded-xl shadow-lg hover:shadow-rose-500/25 transition-all duration-300 border border-rose-400/30"
               >
                 تصدير PDF
               </button>
@@ -503,7 +516,7 @@ export default function EmployeeList() {
       </div>
 
       {/* Filters */}
-      <div className="bg-gray-50 p-4 rounded shadow mb-4">
+      <div className="bg-white/10 backdrop-blur-xl p-6 rounded-2xl shadow-2xl mb-4 border border-white/20">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
           <input
             type="text"
@@ -513,12 +526,12 @@ export default function EmployeeList() {
               setSearch(e.target.value);
               setPage(1);
             }}
-            className="border p-2 rounded w-full"
+            className="border border-white/20 p-3 rounded-xl w-full bg-slate-800/50 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400/50 transition-all duration-300"
           />
 
           <input
             type="text"
-            className="p-2 rounded border w-full"
+            className="p-3 rounded-xl border border-white/20 w-full bg-slate-800/50 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400/50 transition-all duration-300"
             placeholder="ابحث برقم الموبايل"
             value={phone}
             onChange={(e) => {
@@ -534,7 +547,7 @@ export default function EmployeeList() {
               setNationalId(e.target.value);
               setPage(1);
             }}
-            className="border p-2 rounded"
+            className="border border-white/20 p-3 rounded-xl bg-slate-800/50 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400/50 transition-all duration-300"
           />
           <input
             type="number"
@@ -544,14 +557,14 @@ export default function EmployeeList() {
               setSelfNumber(e.target.value);
               setPage(1);
             }}
-            className="border p-2 rounded"
+            className="border border-white/20 p-3 rounded-xl bg-slate-800/50 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400/50 transition-all duration-300"
           />
         </div>
 
         <div className="flex justify-center mb-4">
           <button
             onClick={() => setIsFiltersExpanded(!isFiltersExpanded)}
-            className="text-blue-600 hover:text-blue-800 font-medium flex items-center gap-2"
+            className="text-amber-400 hover:text-amber-300 font-medium flex items-center gap-2 transition-colors duration-300"
           >
             {isFiltersExpanded
               ? "إخفاء الفلاتر المتقدمة"
@@ -574,7 +587,7 @@ export default function EmployeeList() {
         </div>
 
         {isFiltersExpanded && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4 border-t pt-4 animate-fadeIn">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4 border-t border-white/20 pt-4 animate-fadeIn">
             <DropdownWithSettings
               id="employee_list_employment_type"
               value={employmentType}
@@ -663,7 +676,7 @@ export default function EmployeeList() {
                 setAgeMin(e.target.value);
                 setPage(1);
               }}
-              className="border p-2 rounded"
+              className="border border-white/20 p-3 rounded-xl bg-slate-800/50 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400/50 transition-all duration-300"
             />
             <input
               type="number"
@@ -673,7 +686,7 @@ export default function EmployeeList() {
                 setAgeMax(e.target.value);
                 setPage(1);
               }}
-              className="border p-2 rounded"
+              className="border border-white/20 p-3 rounded-xl bg-slate-800/50 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400/50 transition-all duration-300"
             />
 
             {/* New Filters Inputs */}
@@ -880,16 +893,16 @@ export default function EmployeeList() {
           </div>
         )}
 
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4 border-t pt-4">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4 border-t border-white/20 pt-4">
           <button
             onClick={resetFilters}
-            className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded transition"
+            className="bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-500 hover:to-slate-600 text-white px-6 py-2.5 rounded-xl transition-all duration-300 border border-white/20 shadow-lg"
           >
             تهيئة الحقول
           </button>
 
           <div className="flex items-center gap-2">
-            <label className="text-sm font-medium text-gray-700">
+            <label className="text-sm font-medium text-gray-300">
               عدد الصفوف:
             </label>
             <select
@@ -898,33 +911,57 @@ export default function EmployeeList() {
                 setLimit(Number(e.target.value));
                 setPage(1);
               }}
-              className="border p-2 rounded bg-white"
+              className="border border-white/20 p-3 rounded-xl bg-slate-800/50 text-white focus:outline-none focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400/50 transition-all duration-300 cursor-pointer"
             >
-              <option value={10}>10</option>
-              <option value={20}>20</option>
-              <option value={50}>50</option>
-              <option value={100}>100</option>
+              <option value={10} className="bg-slate-800 m-4">
+                10
+              </option>
+              <option value={20} className="bg-slate-800">
+                20
+              </option>
+              <option value={50} className="bg-slate-800">
+                50
+              </option>
+              <option value={100} className="bg-slate-800">
+                100
+              </option>
             </select>
           </div>
         </div>
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto ">
-        <table className="w-full border-collapse items-center border border-gray-300">
-          <thead className="items-center justify-center">
-            <tr className="bg-gray-200 text-sm center align-middle items-center justify-center">
-              <th className="border p-2">#</th>
-              <th className="border p-4">الاسم الثلاثي</th>
-              <th className="border p-2">لرقم الوطني</th>
-              <th className="border p-2">الجنس</th>
-              <th className="border p-2">القسم</th>
-              <th className="border p-2">رقم الموبايل</th>
-              <th className="border p-2">العمر</th>
-              <th className="border p-2">الفئة الوظيفية</th>
+      <div className="overflow-x-auto rounded-2xl shadow-2xl border border-white/20">
+        <table className="w-full border-collapse">
+          <thead>
+            <tr className="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800 text-sm">
+              <th className="border border-white/10 p-3 text-amber-300">#</th>
+              <th className="border border-white/10 p-4 text-amber-300">
+                الاسم الثلاثي
+              </th>
+              <th className="border border-white/10 p-3 text-amber-300">
+                لرقم الوطني
+              </th>
+              <th className="border border-white/10 p-3 text-amber-300">
+                الجنس
+              </th>
+              <th className="border border-white/10 p-3 text-amber-300">
+                القسم
+              </th>
+              <th className="border border-white/10 p-3 text-amber-300">
+                رقم الموبايل
+              </th>
+              <th className="border border-white/10 p-3 text-amber-300">
+                العمر
+              </th>
+              <th className="border border-white/10 p-3 text-amber-300">
+                الفئة الوظيفية
+              </th>
 
               {checkPermission("employees.edit", userInfo) && (
-                <th className="border p-2">الاجراءات</th>
+                <th className="border border-white/10 p-3 text-amber-300">
+                  الاجراءات
+                </th>
               )}
             </tr>
           </thead>
@@ -935,9 +972,12 @@ export default function EmployeeList() {
                   colSpan={
                     checkPermission("employees.edit", userInfo) ? "9" : "8"
                   }
-                  className="text-center p-4"
+                  className="text-center p-4 text-gray-300 bg-slate-800/50"
                 >
-                  Loading...
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="w-5 h-5 border-2 border-amber-400 border-t-transparent rounded-full animate-spin"></div>
+                    جاري التحميل...
+                  </div>
                 </td>
               </tr>
             ) : employees.length === 0 ? (
@@ -946,18 +986,21 @@ export default function EmployeeList() {
                   colSpan={
                     checkPermission("employees.edit", userInfo) ? "9" : "8"
                   }
-                  className="text-center p-4 text-gray-500"
+                  className="text-center p-4 text-gray-400 bg-slate-800/50"
                 >
-                  No employees found
+                  لا يوجد موظفين
                 </td>
               </tr>
             ) : (
               employees.map((emp, index) => (
-                <tr key={emp._id} className="hover:bg-gray-100 text-sm">
-                  <td className="border p-2 text-center ">
+                <tr
+                  key={emp._id}
+                  className="hover:bg-white/10 text-sm text-gray-200 transition-colors duration-200 bg-slate-800/30"
+                >
+                  <td className="border border-white/10 p-3 text-center">
                     {(page - 1) * 50 + index + 1}
                   </td>
-                  <td className="border p-4 m-2 text-center">
+                  <td className="border border-white/10 p-4 m-2 text-center">
                     <Link
                       to={`/dashboard/employees/${emp._id}`}
                       onClick={(e) => {
@@ -965,24 +1008,34 @@ export default function EmployeeList() {
                         console.log(e);
                         console.log("====================================");
                       }}
-                      className="text-gray-700 hover:bg-gray-300 hover:p-2 hover:rounded-md hover:m-2 hover:text-gray-900 transition"
+                      className="text-amber-300 hover:text-amber-200 hover:underline transition-colors duration-200"
                     >
                       {emp.fullName}
                     </Link>
                   </td>
-                  <td className="border p-2 text-center">{emp.nationalId}</td>
-                  <td className="border p-2 text-center">{emp.gender}</td>
-                  <td className="border p-2 text-center">{emp.level4}</td>
-                  <td className="border p-2 text-center ">{emp.phone}</td>
-                  <td className="border p-2 text-center">
+                  <td className="border border-white/10 p-3 text-center">
+                    {emp.nationalId}
+                  </td>
+                  <td className="border border-white/10 p-3 text-center">
+                    {emp.gender}
+                  </td>
+                  <td className="border border-white/10 p-3 text-center">
+                    {emp.level4}
+                  </td>
+                  <td className="border border-white/10 p-3 text-center">
+                    {emp.phone}
+                  </td>
+                  <td className="border border-white/10 p-3 text-center">
                     {emp.birthDate ? calculateAge(emp.birthDate) : "-"}
                   </td>
-                  <td>{emp.jobCategory}</td>
+                  <td className="border border-white/10 p-3 text-center">
+                    {emp.jobCategory}
+                  </td>
                   {checkPermission("employees.edit", userInfo) && (
-                    <td className="border p-2 text-center">
+                    <td className="border border-white/10 p-3 text-center">
                       <Link
                         to={`${emp._id}`}
-                        className="text-gray-700 hover:text-gray-900 hover:underline transition"
+                        className="text-amber-400 hover:text-amber-300 hover:underline transition-colors duration-200"
                       >
                         تعديل
                       </Link>

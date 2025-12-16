@@ -72,7 +72,7 @@ export const homeSectionsConfig = [
     label: "الإعدادات",
     icon: "⚙️",
     color: "from-slate-400 to-gray-500",
-    path: "/settings",
+    path: "/dashboard/settings",
     description: "إدارة إعدادات النظام والتخصيص",
   },
 ];

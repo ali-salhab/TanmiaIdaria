@@ -188,7 +188,7 @@ export default function Home() {
         <div className="flex-1 flex justify-center">
           <div
             className="flex items-center gap-3 md:gap-4 cursor-pointer hover:opacity-90 transition-all group"
-            onClick={() => navigate("/profile")}
+            onClick={() => navigate("/dashboard/profile")}
           >
             <div className="text-right hidden sm:block">
               <h1 className="text-base md:text-xl font-bold text-emerald-700 group-hover:text-emerald-600 transition-colors">

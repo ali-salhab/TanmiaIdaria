@@ -16,7 +16,7 @@ import API from "../api/api";
 import GlobalSearchModal from "./GlobalSearchModal";
 
 const navbarMessages = [
-  "🎯 مرحباً بك في نظام إدارة التنمية الإدارية",
+  "🎯 مرحباً بك في نظام إدارة الموارد البشرية",
   "📊 إدارة فعالة للموارد البشرية",
   "⚡ تحسين الإنتاجية والكفاءة",
   "🚀 تطبيق حديث وآمن",
@@ -227,9 +227,7 @@ export default function Navbar({
               </div>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() =>
-                    navigate(isAdmin ? "/dashboard/settings" : "/settings")
-                  }
+                  onClick={() => navigate("/dashboard/settings")}
                   className="p-2 hover:bg-gray-100 rounded-lg transition"
                   title="الإعدادات"
                 >
@@ -242,7 +240,7 @@ export default function Navbar({
                   }
                   alt={userInfo.username}
                   className="w-10 h-10 rounded-full border-2 border-teal-500 object-cover cursor-pointer hover:opacity-80 transition"
-                  onClick={() => navigate("/profile")}
+                  onClick={() => navigate("/dashboard/profile")}
                 />
               </div>
             </div>

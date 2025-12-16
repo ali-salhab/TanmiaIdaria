@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import API from "../../api/api";
 import toast from "react-hot-toast";
 import logo from "../../assets/logo.png";
+import syriaLogo from "../../assets/syria_logo.svg";
 import { useSocket } from "../../context/SocketContext";
 import {
   FiUsers,
@@ -21,6 +22,7 @@ import {
   FiMessageSquare,
   FiClock,
   FiChevronLeft,
+  FiUser,
 } from "react-icons/fi";
 
 const VITE_API_URL = import.meta.env.VITE_API_URL;
@@ -219,6 +221,13 @@ export default function UserDashboard() {
 
   const menuItems = [
     {
+      title: "الملف الشخصي",
+      icon: FiUser,
+      permission: null,
+      link: "/dashboard/profile",
+      color: "gray",
+    },
+    {
       title: "الموظفين",
       icon: FiUsers,
       permission: "employees.view",
@@ -270,16 +279,15 @@ export default function UserDashboard() {
     {
       title: "الإعدادات",
       icon: FiSettings,
-      permission: "settings.view",
-      link: "/settings",
+      permission: null,
+      link: "/dashboard/settings",
       color: "gray",
     },
   ];
 
   const visibleMenuItems = menuItems.filter((item) =>
-    hasPermission(item.permission)
+    item.permission ? hasPermission(item.permission) : true
   );
-
   const statCards = [
     {
       title: "الموظفين",
@@ -291,7 +299,7 @@ export default function UserDashboard() {
     {
       title: "المنشورات",
       value: stats?.circulars || 0,
-      icon: FiFileText,
+      link: "/dashboard/settings",
       color: "purple",
       permission: "circulars.view",
     },
@@ -322,15 +330,28 @@ export default function UserDashboard() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-3">
-              <img
-                src={logo}
-                alt="Logo"
-                className="w-10 h-10 object-contain grayscale opacity-80 hover:grayscale-0 transition-all duration-500"
-              />
+              <div className="flex items-center gap-2">
+                <img
+                  src={syriaLogo}
+                  alt="Government emblem"
+                  className="w-12 h-12 object-contain bg-white p-1 rounded-md shadow-sm"
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = logo;
+                  }}
+                />
+                <img
+                  src={logo}
+                  alt="Logo"
+                  className="w-10 h-10 object-contain opacity-90 transition-all duration-500"
+                />
+              </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-800">لوحة التحكم</h1>
+                <h1 className="text-lg font-semibold text-gov-700 gov-brand-title">
+                  نظام إدارة الموارد البشرية
+                </h1>
                 <p className="text-xs text-gray-500">
-                  مرحباً، {user?.username}
+                  الأمانة العامة لمحافظة طرطوس — مرحباً، {user?.username}
                 </p>
               </div>
             </div>
@@ -360,6 +381,24 @@ export default function UserDashboard() {
                 <span className="absolute top-0 right-0 w-3 h-3 bg-red-500 rounded-full"></span>
               )}
             </Link>
+
+            <Link
+              to="/dashboard/profile"
+              className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors shadow-sm text-sm"
+            >
+              <FiUser size={16} />
+              <span>الملف الشخصي</span>
+            </Link>
+
+            {user && (
+              <Link
+                to="/dashboard/settings"
+                className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors shadow-sm text-sm"
+              >
+                <FiSettings size={16} />
+                <span>الإعدادات</span>
+              </Link>
+            )}
 
             <button
               onClick={handleLogout}
@@ -402,8 +441,8 @@ export default function UserDashboard() {
           <div className="lg:col-span-2 space-y-8">
             {/* Quick Actions */}
             <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
-              <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <FiSettings className="text-gray-500" />
+              <h2 className="text-lg font-bold text-gov-700 mb-4 flex items-center gap-2">
+                <FiSettings className="text-gov-600" />
                 الوصول السريع
               </h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">

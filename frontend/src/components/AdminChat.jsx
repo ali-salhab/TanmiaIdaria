@@ -3,6 +3,7 @@ import { useSocket } from "../context/SocketContext";
 import { X } from "lucide-react";
 import API from "../api/api";
 import { getCurrentUserId, getCurrentUsername } from "../utils/authIdentity";
+import toast from "react-hot-toast";
 
 export default function AdminChat({ isAdmin, onClose }) {
   const { socket, onlineUsers } = useSocket();
@@ -46,17 +47,26 @@ export default function AdminChat({ isAdmin, onClose }) {
       ]);
     };
 
+    const handleMessageError = ({ message }) => {
+      toast.error(message);
+    };
+
     socket.on("private_message", handlePrivateMessage);
-    return () => socket.off("private_message", handlePrivateMessage);
+    socket.on("message_error", handleMessageError);
+
+    return () => {
+      socket.off("private_message", handlePrivateMessage);
+      socket.off("message_error", handleMessageError);
+    };
   }, [socket]);
 
   const sendMessage = () => {
     const from = getCurrentUserId();
-    const fromUsername = getCurrentUsername() || "Admin";
+    const fromUsername = getCurrentUsername() || (isAdmin ? "Admin" : "User");
 
     if (!from) {
       // Force a clear UX path rather than sending undefined
-      alert("تعذر تحديد المستخدم الحالي. يرجى تسجيل الدخول مرة أخرى.");
+      toast.error("تعذر تحديد المستخدم الحالي. يرجى تسجيل الدخول مرة أخرى.");
       return;
     }
 

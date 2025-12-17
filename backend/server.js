@@ -315,6 +315,14 @@ io.on("connection", (socket) => {
             messageId: newMessage._id.toString(), // Add unique message ID
           });
         }
+      } else {
+        console.warn("⚠️ No admin user found to receive message");
+        const senderSocket = onlineUsers.get(from);
+        if (senderSocket) {
+          io.to(senderSocket).emit("message_error", {
+            message: "لا يوجد مسؤول متاح حالياً لاستلام الرسالة",
+          });
+        }
       }
     } catch (error) {
       console.error("Error saving admin message:", error);

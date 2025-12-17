@@ -79,10 +79,25 @@ router.put(
   checkPermission("permissions.assign"),
   updateUserPermissions
 );
+
+// Middleware to allow self-access or permission
+const allowSelfOrPermission = (permission) => {
+  return (req, res, next) => {
+    if (
+      req.params.userId &&
+      req.user &&
+      req.user._id.toString() === req.params.userId
+    ) {
+      return next();
+    }
+    return checkPermission(permission)(req, res, next);
+  };
+};
+
 router.get(
   "/user/:userId/permissions",
   protect,
-  checkPermission("permissions.view"),
+  allowSelfOrPermission("permissions.view"),
   getUserPermissions
 );
 

@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import API from "../api/api";
+import { useAuth } from "../hooks/useAuth";
+import { checkPermission } from "../utils/permissionHelper";
 import {
   PlusCircle,
   Download,
@@ -19,6 +21,7 @@ const buildFileUrl = (filePath) => {
 };
 
 export default function EmployeeDocuments({ employeeId }) {
+  const { user } = useAuth();
   const [docs, setDocs] = useState([]);
   const [newFiles, setNewFiles] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -88,6 +91,11 @@ export default function EmployeeDocuments({ employeeId }) {
   };
 
   const handleDelete = async (index) => {
+    if (!checkPermission("employees.delete_document", user)) {
+      toast.error("ليس لديك صلاحية للقيام بهذا الإجراء");
+      return;
+    }
+
     if (!window.confirm("هل تريد حذف هذه الوثيقة؟")) return;
 
     try {

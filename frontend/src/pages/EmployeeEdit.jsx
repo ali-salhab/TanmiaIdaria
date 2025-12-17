@@ -112,6 +112,10 @@ export default function EmployeeEdit() {
   };
 
   const handleDelete = async () => {
+    if (!checkPermission("employees.delete", user)) {
+      toast.error("ليس لديك صلاحية للقيام بهذا الإجراء");
+      return;
+    }
     if (!window.confirm("هل أنت متأكد أنك تريد حذف هذا الموظف؟")) return;
     try {
       await API.delete(`/employees/${id}`);

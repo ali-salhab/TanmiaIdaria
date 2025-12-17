@@ -3,9 +3,12 @@ import { useParams } from "react-router-dom";
 import API from "../api/api";
 import { Trash2, Plus, Printer, FileText, X, Edit2 } from "lucide-react";
 import toast from "react-hot-toast";
+import { checkPermission } from "../utils/permissionHelper";
+import { useAuth } from "../hooks/useAuth";
 
 export default function EmployeePenalties() {
   const { id } = useParams();
+  const { user } = useAuth();
   const [penalties, setPenalties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -66,6 +69,10 @@ export default function EmployeePenalties() {
   };
 
   const handleDelete = async (penaltyId) => {
+    if (!checkPermission("punishments.delete", user)) {
+      toast.error("ليس لديك صلاحية للقيام بهذا الإجراء");
+      return;
+    }
     if (!window.confirm("هل أنت متأكد من حذف هذه العقوبة؟")) return;
     try {
       await API.delete(`/penalties/${penaltyId}`);

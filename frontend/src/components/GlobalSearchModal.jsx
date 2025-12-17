@@ -60,7 +60,7 @@ export default function GlobalSearchModal({ show, onClose }) {
           <input
             type="text"
             placeholder="ابحث عن موظفين، تعاميم، مستخدمين، إجازات، وثائق..."
-            className="flex-1 outline-none text-lg  text-red-600"
+            className="flex-1 outline-none text-lg  bg-transparent text-gray-200 placeholder-gray-500"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             autoFocus
@@ -93,9 +93,9 @@ export default function GlobalSearchModal({ show, onClose }) {
                         onClick={() =>
                           handleNavigate(`/dashboard/employees/${emp._id}`)
                         }
-                        className="p-2 hover:bg-gray-50 rounded-lg cursor-pointer flex justify-between items-center"
+                        className="p-2 hover:bg-gray-5 rounded-lg cursor-pointer flex justify-between items-center"
                       >
-                        <span className="font-medium text-gray-900">
+                        <span className="font-medium text-white-900">
                           {emp.fullName}
                         </span>
                         <span className="text-sm text-gray-600">

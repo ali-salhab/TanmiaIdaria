@@ -60,9 +60,18 @@ export default function UserProfile() {
         setEmployeeData(res.data.employeeId);
       }
 
-      if (res.data.profile) {
-        setProfile(res.data.profile);
-      }
+      const emp = res.data.employeeId || {};
+      const prof = res.data.profile || {};
+
+      setProfile({
+        firstName: prof.firstName || emp.firstName || "",
+        lastName: prof.lastName || emp.lastName || "",
+        email: prof.email || "",
+        phone: prof.phone || emp.phone || "",
+        department: prof.department || emp.currentJobTitle || "",
+        bio: prof.bio || "",
+        avatar: prof.avatar || "",
+      });
 
       // Fetch permission details
       try {

@@ -16,9 +16,10 @@ import {
 import toast from "react-hot-toast";
 import DropdownWithSettings from "../components/DropdownWithSettings";
 import { useAuth } from "../hooks/useAuth";
+import { checkPermission } from "../utils/permissionHelper";
 
 export default function Dywan() {
-  const { role } = useAuth();
+  const { role, user } = useAuth();
   const isAdmin = role === "admin";
   const [activeTab, setActiveTab] = useState("outgoing");
   const [file, setFile] = useState(null);
@@ -173,6 +174,11 @@ export default function Dywan() {
   };
 
   const handleScan = async () => {
+    if (!checkPermission("documents.upload", user)) {
+      toast.error("ليس لديك صلاحية لرفع الوثائق");
+      return;
+    }
+
     if (!file) {
       toast.error("يرجى اختيار وثيقة أولاً");
       return;
@@ -215,6 +221,11 @@ export default function Dywan() {
   };
 
   const removeDocument = async (docId) => {
+    if (!checkPermission("documents.delete", user)) {
+      toast.error("ليس لديك صلاحية لحذف الوثائق");
+      return;
+    }
+
     try {
       await API.delete(`/documents/${docId}`);
       setDocuments(documents.filter((doc) => doc._id !== docId));
@@ -265,6 +276,11 @@ export default function Dywan() {
 
   const handleSendFile = async (e) => {
     e.preventDefault();
+    if (!checkPermission("fileshare.send", user)) {
+      toast.error("ليس لديك صلاحية لإرسال الملفات");
+      return;
+    }
+
     if (!selectedFileForShare || !selectedRecipient) {
       toast.error("اختر ملف وموظف");
       return;
@@ -313,6 +329,11 @@ export default function Dywan() {
   };
 
   const handleDeleteFile = async (id) => {
+    if (!checkPermission("fileshare.delete", user)) {
+      toast.error("ليس لديك صلاحية لحذف الملفات");
+      return;
+    }
+
     if (!window.confirm("هل تريد حذف هذا الملف؟")) return;
 
     try {

@@ -11,6 +11,8 @@ import {
   X,
 } from "lucide-react";
 import { useSocket } from "../context/SocketContext";
+import { useAuth } from "../hooks/useAuth";
+import { checkPermission } from "../utils/permissionHelper";
 import logo from "../assets/logo.png";
 import syriaLogo from "../assets/syria_logo.svg";
 
@@ -20,6 +22,7 @@ export default function Sidebar({ onLogout, isOpen, onClose }) {
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
   const { socket } = useSocket();
+  const { user } = useAuth();
 
   useEffect(() => {
     if (!socket) return;
@@ -42,9 +45,9 @@ export default function Sidebar({ onLogout, isOpen, onClose }) {
     { label: "📋 الموظفين", to: "/dashboard/employees" },
     { label: "📤 قاعدة البيانات", to: "/dashboard/upload" },
     { label: "🎨 تخصيص الصفحة الرئيسية", to: "/dashboard/homepage-builder" },
-    { label: "📃 الديوان", to: "/dashboard/dywan" },
+    { label: "📃 الديوان", to: "/dashboard/dywan", permission: "dywan.view" },
     { label: "🖨️ الأرشيف", to: "/dashboard/archive" },
-    { label: "reports", to: "/dashboard/reports" },
+    { label: "reports", to: "/dashboard/reports", permission: "reports.view" },
   ];
 
   return (
@@ -60,15 +63,19 @@ export default function Sidebar({ onLogout, isOpen, onClose }) {
       </div>
 
       <nav className="flex-1 p-4 space-y-2 overflow-y-auto" dir="rtl">
-        {menuItems.map((item, idx) => (
-          <Link
-            key={idx}
-            to={item.to}
-            className="group block py-3 px-4 rounded-lg bg-white/50 hover:bg-gray-100 transition-all transform hover:translate-x-1 hover:scale-105 border border-transparent hover:border-gray-200 font-medium text-sm text-gray-700 hover:text-gray-900 shadow-sm hover:shadow-md"
-          >
-            {item.label}
-          </Link>
-        ))}
+        {menuItems.map((item, idx) => {
+          if (item.permission && !checkPermission(item.permission, user))
+            return null;
+          return (
+            <Link
+              key={idx}
+              to={item.to}
+              className="group block py-3 px-4 rounded-lg bg-white/50 hover:bg-gray-100 transition-all transform hover:translate-x-1 hover:scale-105 border border-transparent hover:border-gray-200 font-medium text-sm text-gray-700 hover:text-gray-900 shadow-sm hover:shadow-md"
+            >
+              {item.label}
+            </Link>
+          );
+        })}
       </nav>
 
       <div className="border-t border-gray-200 p-4 space-y-4">

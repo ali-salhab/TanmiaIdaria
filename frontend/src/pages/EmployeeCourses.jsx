@@ -3,9 +3,12 @@ import { useParams } from "react-router-dom";
 import API from "../api/api";
 import { Trash2, Plus, Printer, FileText, X } from "lucide-react";
 import toast from "react-hot-toast";
+import { checkPermission } from "../utils/permissionHelper";
+import { useAuth } from "../hooks/useAuth";
 
 export default function EmployeeCourses() {
   const { id } = useParams();
+  const { user } = useAuth();
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -65,6 +68,10 @@ export default function EmployeeCourses() {
   };
 
   const handleDelete = async (courseId) => {
+    if (!checkPermission("employees.edit", user)) {
+      toast.error("ليس لديك صلاحية للقيام بهذا الإجراء");
+      return;
+    }
     if (!window.confirm("هل أنت متأكد من حذف هذه الدورة؟")) return;
     try {
       await API.delete(`/courses/${courseId}`);

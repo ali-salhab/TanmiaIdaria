@@ -114,7 +114,16 @@ function App() {
             <Route
               path="/dashboard"
               element={
-                <ProtectedRoute allowedRoles={["admin", "user"]}>
+                <ProtectedRoute
+                  allowedRoles={[
+                    "admin",
+                    "user",
+                    "employee",
+                    "viewer",
+                    "hr",
+                    "finance",
+                  ]}
+                >
                   <Dashboard />
                 </ProtectedRoute>
               }
@@ -149,7 +158,7 @@ function App() {
               <Route
                 path="dywan"
                 element={
-                  <RequirePermission permission="dywan.receive_files">
+                  <RequirePermission permission="dywan.view">
                     <Dywan />
                   </RequirePermission>
                 }

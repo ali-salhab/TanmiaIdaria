@@ -27,7 +27,7 @@ export default function DashboardSidebar({
       label: " الديوان",
       to: "/dashboard/dywan",
       icon: "📄",
-      permission: "dywan.receive_files", // Check this permission key
+      permission: "dywan.view",
     },
     {
       label: " إدارة القوائم المنسدلة",

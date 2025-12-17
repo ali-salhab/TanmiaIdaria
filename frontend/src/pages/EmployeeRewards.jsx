@@ -4,10 +4,11 @@ import API from "../api/api";
 import { Trash2, Plus, Printer, FileText, X } from "lucide-react";
 import toast from "react-hot-toast";
 import { checkPermission } from "../utils/permissionHelper";
-import { useOutletContext } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
 
 export default function EmployeeRewards() {
   const { id } = useParams();
+  const { user } = useAuth();
   const [rewards, setRewards] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -78,6 +79,10 @@ export default function EmployeeRewards() {
   };
 
   const handleDelete = async (rewardId) => {
+    if (!checkPermission("rewards.delete", user)) {
+      toast.error("ليس لديك صلاحية للقيام بهذا الإجراء");
+      return;
+    }
     if (!window.confirm("هل أنت متأكد من حذف هذه المكافأة؟")) return;
     try {
       await API.delete(`/rewards/${rewardId}`);

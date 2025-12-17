@@ -14,6 +14,8 @@ import {
 } from "recharts";
 import toast from "react-hot-toast";
 import Pagination from "./Pagination";
+import { useAuth } from "../hooks/useAuth";
+import { checkPermission } from "../utils/permissionHelper";
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"];
 
@@ -41,6 +43,7 @@ function topN(data, n = 10, valueKey = "count") {
 }
 
 function Reports() {
+  const { user } = useAuth();
   const [data, setData] = useState([]);
   const [statistics, setStatistics] = useState({});
   const [loading, setLoading] = useState(false);
@@ -199,6 +202,11 @@ function Reports() {
   };
 
   const saveReport = async () => {
+    if (!checkPermission("reports.create", user)) {
+      toast.error("ليس لديك صلاحية لحفظ التقارير");
+      return;
+    }
+
     try {
       const response = await fetch(`${apiUrl}/reports/archive`, {
         method: "POST",
@@ -235,6 +243,11 @@ function Reports() {
   };
 
   const exportToExcel = async () => {
+    if (!checkPermission("reports.export", user)) {
+      toast.error("ليس لديك صلاحية لتصدير التقارير");
+      return;
+    }
+
     try {
       const queryParams = new URLSearchParams();
       Object.entries(filters).forEach(([key, value]) => {

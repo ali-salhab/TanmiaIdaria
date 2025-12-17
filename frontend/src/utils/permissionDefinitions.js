@@ -372,6 +372,13 @@ export const permissionDefinitions = {
     category: "مشاركة الملفات",
     action: "قراءة",
   },
+  "fileshare.delete": {
+    key: "fileshare.delete",
+    label: "حذف الملفات",
+    description: "القدرة على حذف الملفات المشاركة",
+    category: "مشاركة الملفات",
+    action: "حذف",
+  },
 
   // Salary additional permissions
   "salary.upload": {
@@ -657,6 +664,13 @@ export const permissionDefinitions = {
     category: "التقارير",
     action: "عرض",
   },
+  "reports.create": {
+    key: "reports.create",
+    label: "إنشاء تقارير",
+    description: "القدرة على حفظ وأرشفة التقارير",
+    category: "التقارير",
+    action: "إنشاء",
+  },
   "reports.export": {
     key: "reports.export",
     label: "تصدير التقارير",
@@ -689,6 +703,13 @@ export const permissionDefinitions = {
   },
 
   // Dywan permissions
+  "dywan.view": {
+    key: "dywan.view",
+    label: "عرض الديوان",
+    description: "القدرة على عرض قسم الديوان",
+    category: "الديوان",
+    action: "عرض",
+  },
   "dywan.receive_files": {
     key: "dywan.receive_files",
     label: "استلام ملفات الديوان",

@@ -30,7 +30,7 @@ export default function DashboardSidebar({
       permission: "dywan.receive_files", // Check this permission key
     },
     {
-      label: " DropDown Manager",
+      label: " إدارة القوائم المنسدلة",
       to: "/dashboard/dropdown-manager",
       icon: "🔻",
       permission: "dropdowns.view",
@@ -142,7 +142,7 @@ export default function DashboardSidebar({
             <img
               src={syriaLogo}
               alt="Syria Logo"
-              className="w-10 h-10 object-contain mr-1 drop-shadow-lg"
+              className="w-16 h-10 object-contain mr-1 drop-shadow-lg"
             />
           </div>
           <h1 className="text-lg font-semibold text-amber-400 drop-shadow-md">

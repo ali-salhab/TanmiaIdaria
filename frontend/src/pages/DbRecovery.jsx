@@ -100,10 +100,10 @@ export default function DbRecovery() {
     <div className="space-y-4" dir="rtl">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
-          <h2 className="text-2xl font-bold text-gray-800">
+          <h2 className="text-2xl font-bold text-slate-100">
             🛟 الاستعادة والنسخ الاحتياطي
           </h2>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-slate-400">
             إنشاء نسخة احتياطية من قاعدة البيانات واستعادتها (Admin فقط).
           </p>
         </div>
@@ -111,29 +111,29 @@ export default function DbRecovery() {
           <button
             onClick={fetchBackups}
             disabled={loading}
-            className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-800 disabled:opacity-50"
+            className="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-100 disabled:opacity-50 transition-colors"
           >
             تحديث
           </button>
           <button
             onClick={handleCreateBackup}
             disabled={creating}
-            className="px-4 py-2 rounded-lg bg-teal-600 hover:bg-teal-700 text-white disabled:opacity-50"
+            className="px-4 py-2 rounded-lg bg-teal-600 hover:bg-teal-700 text-white disabled:opacity-50 transition-colors"
           >
             {creating ? "جاري الإنشاء..." : "إنشاء نسخة احتياطية"}
           </button>
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border p-4">
+      <div className="bg-slate-800 rounded-xl border border-slate-700 p-4">
         <div className="flex items-center justify-between flex-wrap gap-3">
-          <h3 className="font-semibold text-gray-800">النسخ المتاحة</h3>
+          <h3 className="font-semibold text-slate-100">النسخ المتاحة</h3>
           <div className="flex items-center gap-2">
-            <label className="text-sm text-gray-700">النسخة المحددة:</label>
+            <label className="text-sm text-slate-300">النسخة المحددة:</label>
             <select
               value={selected}
               onChange={(e) => setSelected(e.target.value)}
-              className="border rounded-lg px-3 py-2 text-sm"
+              className="border border-slate-700 bg-slate-900 text-slate-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-amber-500"
             >
               <option value="">اختر نسخة...</option>
               {backups.map((b) => (
@@ -146,11 +146,12 @@ export default function DbRecovery() {
         </div>
 
         <div className="mt-4 flex items-center justify-between flex-wrap gap-3">
-          <label className="flex items-center gap-2 text-sm text-gray-700">
+          <label className="flex items-center gap-2 text-sm text-slate-300 cursor-pointer">
             <input
               type="checkbox"
               checked={drop}
               onChange={(e) => setDrop(e.target.checked)}
+              className="rounded border-slate-600 bg-slate-700 text-amber-500 focus:ring-amber-500"
             />
             حذف البيانات الحالية قبل الاستعادة (DROP)
           </label>
@@ -158,15 +159,15 @@ export default function DbRecovery() {
           <button
             onClick={handleRestore}
             disabled={!canRestore}
-            className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white disabled:opacity-50"
+            className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white disabled:opacity-50 transition-colors"
           >
             {restoring ? "جاري الاستعادة..." : "استعادة"}
           </button>
         </div>
 
         <div className="mt-4 overflow-x-auto">
-          <table className="min-w-full text-sm">
-            <thead className="bg-gray-100">
+          <table className="min-w-full text-sm text-slate-300">
+            <thead className="bg-slate-700/50 text-slate-200">
               <tr>
                 <th className="text-right p-2">الملف</th>
                 <th className="text-right p-2">الحجم</th>
@@ -177,20 +178,25 @@ export default function DbRecovery() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={4} className="p-4 text-center text-gray-500">
+                  <td colSpan={4} className="p-4 text-center text-slate-500">
                     جاري التحميل...
                   </td>
                 </tr>
               ) : backups.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="p-4 text-center text-gray-500">
+                  <td colSpan={4} className="p-4 text-center text-slate-500">
                     لا توجد نسخ احتياطية
                   </td>
                 </tr>
               ) : (
                 backups.map((b) => (
-                  <tr key={b.name} className="border-t">
-                    <td className="p-2 font-mono text-xs">{b.name}</td>
+                  <tr
+                    key={b.name}
+                    className="border-t border-slate-700 hover:bg-slate-700/30 transition-colors"
+                  >
+                    <td className="p-2 font-mono text-xs text-amber-400">
+                      {b.name}
+                    </td>
                     <td className="p-2">{formatBytes(b.size)}</td>
                     <td className="p-2">
                       {b.modifiedAt
@@ -204,13 +210,13 @@ export default function DbRecovery() {
                             setSelected(b.name);
                             handleDownload(b.name);
                           }}
-                          className="px-3 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white"
+                          className="px-3 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition-colors"
                         >
                           تنزيل
                         </button>
                         <button
                           onClick={() => setSelected(b.name)}
-                          className="px-3 py-1 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-800"
+                          className="px-3 py-1 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 transition-colors"
                         >
                           اختيار
                         </button>
@@ -223,7 +229,7 @@ export default function DbRecovery() {
           </table>
         </div>
 
-        <div className="mt-4 text-xs text-gray-500">
+        <div className="mt-4 text-xs text-slate-500">
           ملاحظة: يجب تثبيت MongoDB Database Tools (mongodump/mongorestore) على
           السيرفر.
         </div>

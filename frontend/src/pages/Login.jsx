@@ -141,8 +141,14 @@ export default function Login() {
         <p className="text-lg md:text-xl lg:text-2xl font-bold tracking-wide text-[#d4af37] drop-shadow-lg font-['Tajawal'] mb-1">
           الجمهورية العربية السورية
         </p>
-        <p className="text-base md:text-lg lg:text-xl font-semibold tracking-wide text-[#d4af37]/80 drop-shadow-md font-['Tajawal']">
+        <p className="text-base md:text-lg lg:text-xl font-semibold tracking-wide text-[#d4af37] drop-shadow-lg font-['Tajawal']">
           الأمانة العامة لمحافظة طرطوس
+        </p>
+        <p className="text-base md:text-lg lg:text-xl font-semibold tracking-wide text-[#d4af37] drop-shadow-lg font-['Tajawal']">
+          وزارة الادارة المحلية والبيئة
+        </p>
+        <p className="text-base md:text-lg lg:text-xl font-semibold tracking-wide text-[#d4af37] drop-shadow-lg font-['Tajawal']">
+          مديرية التنمية الادارية
         </p>
       </div>
 

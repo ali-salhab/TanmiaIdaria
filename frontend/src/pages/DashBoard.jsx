@@ -167,10 +167,10 @@ export default function Dashboard() {
           .animate-fadeSlide {
             animation: fadeSlide 0.6s ease-out forwards;
           }
-          .animate-scaleUp {
-            animation: scaleUp 0.4s ease-out forwards;
-          }
-        `}
+        .animate-scaleUp {
+              animation: scaleUp 0.4s ease-out forwards;
+            }
+          `}
       </style>
     </div>
   );

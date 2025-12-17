@@ -47,12 +47,12 @@ export default function GlobalSearchModal({ show, onClose }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center pt-20 bg-black/50 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-start justify-center pt-20 bg-black/50"
       onClick={onClose}
       dir="rtl"
     >
       <div
-        className="w-full max-w-2xl bg-white rounded-xl shadow-2xl overflow-hidden"
+        className="w-full max-w-2xl bg-[#0f172a] rounded-xl shadow-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="p-4 border-b flex items-center gap-3">
@@ -60,7 +60,7 @@ export default function GlobalSearchModal({ show, onClose }) {
           <input
             type="text"
             placeholder="ابحث عن موظفين، تعاميم، مستخدمين، إجازات، وثائق..."
-            className="flex-1 outline-none text-lg"
+            className="flex-1 outline-none text-lg  text-red-600"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             autoFocus

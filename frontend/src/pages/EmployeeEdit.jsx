@@ -143,7 +143,12 @@ export default function EmployeeEdit() {
     }
   };
 
-  if (loading) return <p className="p-6 text-center">جاري التحميل...</p>;
+  if (loading)
+    return (
+      <p className="p-6 text-center text-slate-300" dir="rtl">
+        جاري التحميل...
+      </p>
+    );
 
   const fieldLabels = {
     selfNumber: "الرقم الذاتي",
@@ -223,10 +228,13 @@ export default function EmployeeEdit() {
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto font-custom text-right" dir="rtl">
+    <div
+      className="p-6 max-w-7xl mx-auto font-custom text-right bg-slate-900 min-h-screen text-slate-100"
+      dir="rtl"
+    >
       {/* 🪪 رأس الصفحة */}
       {!isNew && (
-        <div className="bg-white shadow-md rounded-2xl border p-6 flex flex-col md:flex-row gap-6 items-start">
+        <div className="bg-slate-800/70 shadow-xl border border-slate-700 p-6 flex flex-col md:flex-row gap-6 items-start rounded-2xl backdrop-blur-sm">
           <div className="flex flex-col items-center md:w-1/3">
             <img
               src={
@@ -236,13 +244,15 @@ export default function EmployeeEdit() {
                   : "https://cdn-icons-png.flaticon.com/512/3135/3135715.png")
               }
               alt="صورة الموظف"
-              className="h-36 w-36 rounded-full border-4 border-blue-400 object-cover shadow-md"
+              className="h-36 w-36 rounded-full border-4 border-amber-500 object-cover shadow-lg"
             />
-            <h3 className="text-xl font-bold mt-3">{employee.fullName}</h3>
+            <h3 className="text-xl font-bold mt-3 text-amber-400">
+              {employee.fullName}
+            </h3>
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={uploading}
-              className="mt-2 bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700"
+              className="mt-2 bg-amber-600 text-slate-950 px-4 py-1 rounded-lg hover:bg-amber-500 transition disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {uploading ? "جاري التحميل..." : "تغيير الصورة"}
             </button>
@@ -258,20 +268,28 @@ export default function EmployeeEdit() {
           {/* معلومات سريعة */}
           <div className="flex-1 grid grid-cols-2 gap-4">
             <div>
-              <p className="text-sm text-gray-500">الرقم الذاتي</p>
-              <p className="font-semibold">{employee.selfNumber || "—"}</p>
+              <p className="text-sm text-slate-400">الرقم الذاتي</p>
+              <p className="font-semibold text-slate-100">
+                {employee.selfNumber || "—"}
+              </p>
             </div>
             <div>
-              <p className="text-sm text-gray-500">الوظيفة</p>
-              <p className="font-semibold">{employee.currentJobTitle || "—"}</p>
+              <p className="text-sm text-slate-400">الوظيفة</p>
+              <p className="font-semibold text-slate-100">
+                {employee.currentJobTitle || "—"}
+              </p>
             </div>
             <div>
-              <p className="text-sm text-gray-500">المؤهل العلمي</p>
-              <p className="font-semibold">{employee.educationLevel || "—"}</p>
+              <p className="text-sm text-slate-400">المؤهل العلمي</p>
+              <p className="font-semibold text-slate-100">
+                {employee.educationLevel || "—"}
+              </p>
             </div>
             <div>
-              <p className="text-sm text-gray-500">الراتب</p>
-              <p className="font-semibold">{employee.lastSalary || "—"}</p>
+              <p className="text-sm text-slate-400">الراتب</p>
+              <p className="font-semibold text-slate-100">
+                {employee.lastSalary || "—"}
+              </p>
             </div>
           </div>
         </div>
@@ -280,15 +298,15 @@ export default function EmployeeEdit() {
       {/* ✅ التبويبات */}
       <div className="mt-8">
         {!isNew && (
-          <div className="flex flex-wrap gap-3 border-b border-gray-200 pb-2">
+          <div className="flex flex-wrap gap-3 border-b border-slate-800 pb-2">
             {accessibleTabs.map((tab) => (
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
-                className={`px-4 py-2 rounded-t-lg text-sm font-semibold ${
+                className={`px-4 py-2 rounded-t-lg text-sm font-semibold transition-colors ${
                   activeTab === tab.key
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    ? "bg-amber-500 text-slate-900 shadow"
+                    : "bg-slate-800 text-slate-300 hover:bg-slate-700"
                 }`}
               >
                 {tab.label}
@@ -298,7 +316,7 @@ export default function EmployeeEdit() {
         )}
 
         {/* محتوى التبويبات */}
-        <div className="bg-white rounded-b-lg shadow-md p-6 mt-2">
+        <div className="bg-slate-800/70 rounded-b-lg shadow-lg p-6 mt-2 border border-slate-800">
           {activeTab === "info" && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {Object.keys(fieldLabels).map((key) => {
@@ -307,7 +325,7 @@ export default function EmployeeEdit() {
 
                 return (
                   <div key={key} className="flex flex-col">
-                    <label className="mb-1 text-sm font-semibold text-gray-600">
+                    <label className="mb-1 text-sm font-semibold text-slate-300">
                       {fieldLabels[key]}
                     </label>
                     {isDropdown ? (
@@ -325,6 +343,7 @@ export default function EmployeeEdit() {
                         }))}
                         isAdmin={user?.role === "admin"}
                         placeholder={`اختر ${fieldLabels[key]}`}
+                        className="!bg-slate-900 !text-slate-100 !border-slate-700"
                       />
                     ) : (
                       <input
@@ -338,7 +357,7 @@ export default function EmployeeEdit() {
                             : employee[key] || ""
                         }
                         onChange={handleChange}
-                        className="border rounded p-2 focus:ring-2 focus:ring-blue-400"
+                        className="border border-slate-700 rounded-md p-2 bg-slate-900 text-slate-100 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 placeholder-slate-500"
                       />
                     )}
                   </div>
@@ -388,14 +407,14 @@ export default function EmployeeEdit() {
       <div className="flex justify-between mt-8">
         <button
           onClick={handleSave}
-          className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
+          className="px-6 py-2 rounded-lg bg-amber-500 text-slate-900 font-semibold hover:bg-amber-400 transition focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2 focus:ring-offset-slate-900"
         >
           {isNew ? "إضافة الموظف" : "حفظ التعديلات"}
         </button>
         {!isNew && (
           <button
             onClick={handleDelete}
-            className="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700"
+            className="px-6 py-2 rounded-lg bg-rose-600 text-white font-semibold hover:bg-rose-500 transition focus:outline-none focus:ring-2 focus:ring-rose-400 focus:ring-offset-2 focus:ring-offset-slate-900"
           >
             حذف الموظف
           </button>

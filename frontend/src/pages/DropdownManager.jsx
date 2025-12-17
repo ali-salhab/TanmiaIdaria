@@ -73,17 +73,17 @@ export default function DropdownManager() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-gray-500">جاري التحميل...</div>
+      <div className="flex items-center justify-center min-h-screen bg-slate-900">
+        <div className="text-slate-400">جاري التحميل...</div>
       </div>
     );
   }
 
   return (
-    <div dir="rtl" className="min-h-screen bg-gray-100 p-6">
+    <div dir="rtl" className="min-h-screen bg-slate-900 p-6">
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800">
+          <h1 className="text-3xl font-bold text-slate-100">
             ⚙️ إدارة القوائم المنسدلة
           </h1>
           <button
@@ -99,19 +99,19 @@ export default function DropdownManager() {
           {dropdowns.map((dropdown) => (
             <div
               key={dropdown._id}
-              className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition"
+              className="bg-slate-800 rounded-2xl shadow-lg p-6 hover:shadow-xl transition border border-slate-700"
             >
               <div className="mb-4">
-                <h3 className="text-lg font-semibold text-gray-800">
+                <h3 className="text-lg font-semibold text-slate-100">
                   {dropdown.label}
                 </h3>
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-slate-400 mt-1">
                   المعرف: {dropdown.dropdownId}
                 </p>
               </div>
 
-              <div className="mb-4 max-h-40 overflow-y-auto">
-                <p className="text-sm font-medium text-gray-600 mb-2">
+              <div className="mb-4 max-h-40 overflow-y-auto custom-scrollbar">
+                <p className="text-sm font-medium text-slate-300 mb-2">
                   الخيارات:
                 </p>
                 <div className="space-y-1">
@@ -121,23 +121,23 @@ export default function DropdownManager() {
                         key={idx}
                         className={`text-sm px-2 py-1 rounded ${
                           opt.visible
-                            ? "bg-green-100 text-green-800"
-                            : "bg-gray-100 text-gray-500 line-through"
+                            ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                            : "bg-slate-700 text-slate-500 line-through"
                         }`}
                       >
                         {opt.label}
                       </div>
                     ))
                   ) : (
-                    <p className="text-gray-400 text-sm">لا توجد خيارات</p>
+                    <p className="text-slate-500 text-sm">لا توجد خيارات</p>
                   )}
                 </div>
               </div>
 
-              <div className="flex gap-2 pt-4 border-t">
+              <div className="flex gap-2 pt-4 border-t border-slate-700">
                 <button
                   onClick={() => handleResetDropdown(dropdown.dropdownId)}
-                  className="flex-1 flex items-center justify-center gap-1 bg-yellow-100 hover:bg-yellow-200 text-yellow-800 px-3 py-2 rounded-lg transition text-sm"
+                  className="flex-1 flex items-center justify-center gap-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 px-3 py-2 rounded-lg transition text-sm border border-amber-500/20"
                   title="إعادة تعيين"
                 >
                   <RefreshCw className="w-4 h-4" />
@@ -145,7 +145,7 @@ export default function DropdownManager() {
                 </button>
                 <button
                   onClick={() => handleDeleteDropdown(dropdown.dropdownId)}
-                  className="flex-1 flex items-center justify-center gap-1 bg-red-100 hover:bg-red-200 text-red-800 px-3 py-2 rounded-lg transition text-sm"
+                  className="flex-1 flex items-center justify-center gap-1 bg-red-500/10 hover:bg-red-500/20 text-red-500 px-3 py-2 rounded-lg transition text-sm border border-red-500/20"
                   title="حذف"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -158,21 +158,23 @@ export default function DropdownManager() {
 
         {dropdowns.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">لا توجد قوائم منسدلة حالياً</p>
+            <p className="text-slate-500 text-lg">
+              لا توجد قوائم منسدلة حالياً
+            </p>
           </div>
         )}
       </div>
 
       {showAddModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-800 rounded-lg shadow-xl p-6 w-full max-w-md border border-slate-700">
+            <h3 className="text-lg font-semibold text-slate-100 mb-4">
               إنشاء قائمة منسدلة جديدة
             </h3>
 
             <div className="space-y-4 mb-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-slate-300 mb-2">
                   معرف القائمة
                 </label>
                 <input
@@ -185,12 +187,12 @@ export default function DropdownManager() {
                     })
                   }
                   placeholder="مثال: department_list"
-                  className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none placeholder-slate-500"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-slate-300 mb-2">
                   اسم القائمة
                 </label>
                 <input
@@ -200,12 +202,12 @@ export default function DropdownManager() {
                     setNewDropdown({ ...newDropdown, label: e.target.value })
                   }
                   placeholder="مثال: الأقسام"
-                  className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none placeholder-slate-500"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-slate-300 mb-2">
                   إضافة خيار جديد
                 </label>
                 <div className="flex gap-2">
@@ -216,7 +218,7 @@ export default function DropdownManager() {
                       setNewOption({ ...newOption, label: e.target.value })
                     }
                     placeholder="الاسم"
-                    className="flex-1 border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                    className="flex-1 bg-slate-900 border border-slate-700 text-slate-100 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none placeholder-slate-500"
                   />
                   <input
                     type="text"
@@ -228,7 +230,7 @@ export default function DropdownManager() {
                       })
                     }
                     placeholder="القيمة"
-                    className="flex-1 border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                    className="flex-1 bg-slate-900 border border-slate-700 text-slate-100 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none placeholder-slate-500"
                   />
                   <button
                     onClick={() => {
@@ -237,7 +239,11 @@ export default function DropdownManager() {
                           ...newDropdown,
                           options: [
                             ...newDropdown.options,
-                            { ...newOption, visible: true, order: newDropdown.options.length },
+                            {
+                              ...newOption,
+                              visible: true,
+                              order: newDropdown.options.length,
+                            },
                           ],
                         });
                         setNewOption({ label: "", value: "" });
@@ -252,16 +258,16 @@ export default function DropdownManager() {
 
               {newDropdown.options.length > 0 && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
                     الخيارات المضافة:
                   </label>
-                  <div className="space-y-2 max-h-40 overflow-y-auto">
+                  <div className="space-y-2 max-h-40 overflow-y-auto custom-scrollbar">
                     {newDropdown.options.map((opt, idx) => (
                       <div
                         key={idx}
-                        className="flex items-center justify-between bg-gray-100 px-3 py-2 rounded"
+                        className="flex items-center justify-between bg-slate-700/50 border border-slate-700 px-3 py-2 rounded"
                       >
-                        <span>{opt.label}</span>
+                        <span className="text-slate-200">{opt.label}</span>
                         <button
                           onClick={() => {
                             setNewDropdown({
@@ -271,7 +277,7 @@ export default function DropdownManager() {
                               ),
                             });
                           }}
-                          className="text-red-600 hover:text-red-800"
+                          className="text-red-400 hover:text-red-300"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -295,7 +301,7 @@ export default function DropdownManager() {
                   setNewDropdown({ dropdownId: "", label: "", options: [] });
                   setNewOption({ label: "", value: "" });
                 }}
-                className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-lg transition font-medium"
+                className="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-200 px-4 py-2 rounded-lg transition font-medium"
               >
                 إلغاء
               </button>

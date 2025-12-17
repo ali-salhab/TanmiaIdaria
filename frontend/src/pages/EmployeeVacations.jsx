@@ -533,7 +533,7 @@ export default function EmployeeVacations() {
   return (
     <div className="p-6 font-custom text-right" dir="rtl">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">سجل الإجازات</h2>
+        <h2 className="text-2xl font-bold text-slate-100">سجل الإجازات</h2>
         <div className="flex gap-2">
           <button
             onClick={handlePrintCircular}
@@ -560,70 +560,91 @@ export default function EmployeeVacations() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div className="bg-white p-4 rounded-lg shadow border-r-4 border-purple-500">
-          <h3 className="text-gray-500 text-sm font-medium">معلومات الخدمة</h3>
-          <p className="text-sm text-gray-800 mt-2">
-            <strong>تاريخ التعيين:</strong>{" "}
-            {employee?.hiringDate
-              ? new Date(employee.hiringDate).toLocaleDateString("ar-SY")
-              : "تاريخ التعيين غير متوفر"}
-          </p>
-          <p className="text-sm text-gray-800">
-            <strong>سنوات الخدمة:</strong> {getServiceYears()} سنة
-          </p>
-          <p className="text-sm text-gray-800">
-            <strong>الاستحقاق السنوي:</strong> {getRemainingDays().entitlement}{" "}
-            يوم
-          </p>
+        <div className="bg-white rounded-lg shadow border-r-4 border-purple-500">
+          <div className="p-4">
+            <h3 className="text-gray-500 text-sm font-medium">
+              معلومات الخدمة
+            </h3>
+            <p className="text-sm text-gray-800 mt-2">
+              <strong>تاريخ التعيين:</strong>{" "}
+              {employee?.hiringDate
+                ? new Date(employee.hiringDate).toLocaleDateString("ar-SY")
+                : "تاريخ التعيين غير متوفر"}
+            </p>
+            <p className="text-sm text-gray-800">
+              <strong>سنوات الخدمة:</strong> {getServiceYears()} سنة
+            </p>
+            <p className="text-sm text-gray-800">
+              <strong>الاستحقاق السنوي:</strong>{" "}
+              {getRemainingDays().entitlement} يوم
+            </p>
+          </div>
         </div>
 
-        <div className="bg-white p-4 rounded-lg shadow border-r-4 border-blue-500">
-          <h3 className="text-gray-500 text-sm font-medium">
-            الرصيد الإداري المتبقي
-          </h3>
-          <p className="text-2xl font-bold text-gray-800">
-            {getRemainingDays().admin} يوم
-          </p>
-          <p className="text-xs text-gray-400 mt-1">
-            تم استخدام {getRemainingDays().adminTaken} يوم إداري +{" "}
-            {getRemainingDays().hourlyDays} يوم (من{" "}
-            {getRemainingDays().hourlyTaken} ساعة)
-          </p>
+        <div className="bg-white rounded-lg shadow border-r-4 border-blue-500">
+          <div className="p-4">
+            <h3 className="text-gray-500 text-sm font-medium">
+              الرصيد الإداري المتبقي
+            </h3>
+            <p className="text-2xl font-bold text-gray-800">
+              {getRemainingDays().admin} يوم
+            </p>
+            <p className="text-xs text-gray-400 mt-1">
+              تم استخدام {getRemainingDays().adminTaken} يوم إداري +{" "}
+              {getRemainingDays().hourlyDays} يوم (من{" "}
+              {getRemainingDays().hourlyTaken} ساعة)
+            </p>
+          </div>
         </div>
-        <div className="bg-white p-4 rounded-lg shadow border-r-4 border-green-500">
-          <h3 className="text-gray-500 text-sm font-medium">
-            الرصيد الصحي المتبقي
-          </h3>
-          <p className="text-2xl font-bold text-gray-800">
-            {getRemainingDays().health} يوم
-          </p>
-          <p className="text-xs text-gray-400 mt-1">من أصل 180 يوم</p>
+        <div className="bg-white rounded-lg shadow border-r-4 border-green-500">
+          <div className="p-4">
+            <h3 className="text-gray-500 text-sm font-medium">
+              الرصيد الصحي المتبقي
+            </h3>
+            <p className="text-2xl font-bold text-gray-800">
+              {getRemainingDays().health} يوم
+            </p>
+            <p className="text-xs text-gray-400 mt-1">من أصل 180 يوم</p>
+          </div>
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="bg-slate-800 rounded-lg shadow overflow-hidden border border-slate-700">
         {/* جدول الإجازات */}
-        <table className="min-w-full bg-white border rounded">
-          <thead className="bg-gray-100">
+        <table className="min-w-full bg-slate-800 border-collapse">
+          <thead className="bg-slate-700/50">
             <tr>
-              <th className="p-2 border">النوع</th>
-              <th className="p-2 border">عدد الأيام</th>
-              <th className="p-2 border">تاريخ البداية</th>
-              <th className="p-2 border">إجراءات</th>
+              <th className="p-2 border border-slate-700 text-slate-200">
+                النوع
+              </th>
+              <th className="p-2 border border-slate-700 text-slate-200">
+                عدد الأيام
+              </th>
+              <th className="p-2 border border-slate-700 text-slate-200">
+                تاريخ البداية
+              </th>
+              <th className="p-2 border border-slate-700 text-slate-200">
+                إجراءات
+              </th>
             </tr>
           </thead>
           <tbody>
             {vacations.map((v) => (
-              <tr key={v.id} className="border-t">
-                <td className="p-2 border">{v.type}</td>
-                <td className="p-2 border">
+              <tr
+                key={v.id}
+                className="border-t border-slate-700 hover:bg-slate-700/30 transition-colors"
+              >
+                <td className="p-2 border border-slate-700 text-slate-300">
+                  {v.type}
+                </td>
+                <td className="p-2 border border-slate-700 text-slate-300">
                   {v.type === "إجازة ساعية" ? `${v.hours} ساعة` : v.days}
                 </td>
-                <td className="p-2 border">
+                <td className="p-2 border border-slate-700 text-slate-300">
                   {new Date(v.startDate).toLocaleDateString("ar-SY")}
                 </td>
-                <td className="p-2 border">
-                  <div className="flex flex-row">
+                <td className="p-2 border border-slate-700">
+                  <div className="flex flex-row justify-center">
                     {" "}
                     {v.type === "إجازة إدارية" && (
                       <button
@@ -645,7 +666,7 @@ export default function EmployeeVacations() {
                     </button>
                     <button
                       onClick={() => handleEdit(v)}
-                      className="bg-gray-600 text-white px-3 py-1 rounded hover:bg-gray-700 ml-2 transition"
+                      className="bg-slate-600 text-white px-3 py-1 rounded hover:bg-slate-500 ml-2 transition"
                     >
                       تعديل
                     </button>
@@ -660,13 +681,13 @@ export default function EmployeeVacations() {
       {/* مودال */}
       {modalOpen && (
         <div
-          className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
+          className="fixed inset-0 flex items-center justify-center bg-black/70 backdrop-blur-sm z-50"
           onClick={(e) => {
             if (e.target === e.currentTarget) setModalOpen(false);
           }}
         >
-          <div className="bg-white rounded-lg p-6 w-full max-w-md animate-fadeInUp">
-            <h3 className="text-xl font-bold mb-4 text-center">
+          <div className="bg-slate-800 rounded-lg p-6 w-full max-w-md animate-fadeInUp border border-slate-700">
+            <h3 className="text-xl font-bold mb-4 text-center text-slate-100">
               {selectedVacation ? "تعديل الإجازة" : "إضافة إجازة جديدة"}
             </h3>
 
@@ -686,7 +707,7 @@ export default function EmployeeVacations() {
                 ]}
                 label="نوع الإجازة"
                 placeholder="اختر النوع"
-                className="border p-2 w-full rounded"
+                className="border border-slate-600 bg-slate-900 text-slate-100 p-2 w-full rounded !bg-slate-900 !text-slate-100"
               />
 
               {/* إجازة أمومة → رقم الطفل */}
@@ -707,23 +728,25 @@ export default function EmployeeVacations() {
                   ]}
                   label="ترتيب الطفل"
                   placeholder="اختر"
-                  className="border p-2 w-full rounded"
+                  className="border border-slate-600 bg-slate-900 text-slate-100 p-2 w-full rounded !bg-slate-900 !text-slate-100"
                 />
               )}
 
               {/* إجازة ساعية → عدد الساعات */}
               {formData.type === "إجازة ساعية" && (
                 <div>
-                  <label className="block mb-1 font-medium">عدد الساعات</label>
+                  <label className="block mb-1 font-medium text-slate-300">
+                    عدد الساعات
+                  </label>
                   <input
                     type="number"
                     name="hours"
                     value={formData.hours}
                     onChange={handleChange}
-                    className="border p-2 w-full rounded"
+                    className="border border-slate-600 bg-slate-900 text-slate-100 p-2 w-full rounded focus:outline-none focus:border-blue-500"
                     placeholder="أدخل عدد الساعات"
                   />
-                  <p className="text-sm text-gray-500 mt-1">
+                  <p className="text-sm text-slate-500 mt-1">
                     كل 8 ساعات = يوم واحد
                   </p>
                 </div>
@@ -731,13 +754,15 @@ export default function EmployeeVacations() {
 
               {/* عدد الأيام */}
               <div>
-                <label className="block mb-1 font-medium">عدد الأيام</label>
+                <label className="block mb-1 font-medium text-slate-300">
+                  عدد الأيام
+                </label>
                 <input
                   type="number"
                   name="days"
                   value={formData.days}
                   onChange={handleChange}
-                  className="border p-2 w-full rounded"
+                  className="border border-slate-600 bg-slate-900 text-slate-100 p-2 w-full rounded focus:outline-none focus:border-blue-500"
                   readOnly={
                     formData.type === "إجازة أمومة" ||
                     formData.type === "إجازة ساعية"
@@ -747,25 +772,29 @@ export default function EmployeeVacations() {
 
               {/* تاريخ البداية */}
               <div>
-                <label className="block mb-1 font-medium">تاريخ البداية</label>
+                <label className="block mb-1 font-medium text-slate-300">
+                  تاريخ البداية
+                </label>
                 <input
                   type="date"
                   name="startDate"
                   value={formData.startDate}
                   onChange={handleChange}
-                  className="border p-2 w-full rounded"
+                  className="border border-slate-600 bg-slate-900 text-slate-100 p-2 w-full rounded focus:outline-none focus:border-blue-500"
                 />
               </div>
 
               {/* تاريخ النهاية */}
               <div>
-                <label className="block mb-1 font-medium">تاريخ النهاية</label>
+                <label className="block mb-1 font-medium text-slate-300">
+                  تاريخ النهاية
+                </label>
                 <input
                   type="date"
                   name="endDate"
                   value={formData.endDate || ""}
                   onChange={handleChange}
-                  className="border p-2 w-full rounded"
+                  className="border border-slate-600 bg-slate-900 text-slate-100 p-2 w-full rounded focus:outline-none focus:border-blue-500"
                 />
               </div>
 
@@ -773,13 +802,13 @@ export default function EmployeeVacations() {
                 <button
                   type="button"
                   onClick={() => setModalOpen(false)}
-                  className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500 transition"
+                  className="bg-slate-600 text-white px-4 py-2 rounded hover:bg-slate-500 transition"
                 >
                   إلغاء
                 </button>
                 <button
                   type="submit"
-                  className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800 transition"
+                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
                 >
                   حفظ
                 </button>

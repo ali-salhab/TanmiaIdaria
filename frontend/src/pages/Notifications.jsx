@@ -43,57 +43,67 @@ export default function Notifications() {
       log.section.toLowerCase().includes(filter.section.toLowerCase())
   );
 
+  const pageBg =
+    "min-h-screen bg-gradient-to-br from-slate-900 via-slate-900/90 to-slate-950 text-slate-100";
+  const panelClass =
+    "bg-slate-900/70 border border-slate-800 rounded-2xl shadow-xl shadow-black/30 backdrop-blur";
+  const inputClass =
+    "w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500 transition";
+  const thClass =
+    "py-3 px-4 text-right font-semibold text-amber-300 bg-slate-900 border-b border-slate-800";
+  const tdClass = "py-3 px-4 text-slate-300 border-b border-slate-800/50";
+  const trClass = "hover:bg-slate-800/60 transition-colors duration-200";
+
   return (
-    <div className="space-y-4">
-      <h2 className="text-xl font-semibold mb-4">🔔 الإشعارات والأرشيف</h2>
+    <div className={`p-6 font-custom ${pageBg}`} dir="rtl">
+      <h2 className="text-3xl font-extrabold text-amber-300 drop-shadow-[0_4px_20px_rgba(245,158,11,0.35)] mb-6">
+        🔔 الإشعارات والأرشيف
+      </h2>
 
       {/* فلترة */}
-      <div className="flex gap-2 mb-4">
+      <div className="flex flex-col md:flex-row gap-4 mb-6">
         <input
           type="text"
           placeholder="فلترة حسب اسم الموظف"
           value={filter.username}
           onChange={(e) => setFilter({ ...filter, username: e.target.value })}
-          className="px-3 py-2 border rounded-lg w-1/2"
+          className={inputClass}
         />
         <input
           type="text"
           placeholder="فلترة حسب القسم"
           value={filter.section}
           onChange={(e) => setFilter({ ...filter, section: e.target.value })}
-          className="px-3 py-2 border rounded-lg w-1/2"
+          className={inputClass}
         />
       </div>
 
       {/* جدول الإشعارات */}
-      <div className="overflow-x-auto">
-        <table className="min-w-full bg-white rounded-lg shadow overflow-hidden">
-          <thead className="bg-gray-200">
+      <div className={`overflow-x-auto ${panelClass} p-4`}>
+        <table className="min-w-full border-collapse">
+          <thead>
             <tr>
-              <th className="py-2 px-4 text-left">الوقت</th>
-              <th className="py-2 px-4 text-left">الموظف</th>
-              <th className="py-2 px-4 text-left">القسم</th>
-              <th className="py-2 px-4 text-left">الإجراء</th>
+              <th className={thClass}>الوقت</th>
+              <th className={thClass}>الموظف</th>
+              <th className={thClass}>القسم</th>
+              <th className={thClass}>الإجراء</th>
             </tr>
           </thead>
           <tbody>
             {filteredLogs.length ? (
               filteredLogs.map((log, idx) => (
-                <tr key={idx} className="border-b hover:bg-gray-50">
-                  <td className="py-2 px-4">
-                    {new Date(log.createdAt).toLocaleString()}
+                <tr key={idx} className={trClass}>
+                  <td className={tdClass}>
+                    {new Date(log.createdAt).toLocaleString("ar-SA")}
                   </td>
-                  <td className="py-2 px-4">{log.username}</td>
-                  <td className="py-2 px-4">{log.section}</td>
-                  <td className="py-2 px-4">{log.details}</td>
+                  <td className={tdClass}>{log.username}</td>
+                  <td className={tdClass}>{log.section}</td>
+                  <td className={tdClass}>{log.details}</td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td
-                  colSpan="4"
-                  className="text-center py-4 text-gray-500 italic"
-                >
+                <td colSpan="4" className="text-center py-6 text-slate-500">
                   لا توجد إشعارات
                 </td>
               </tr>

@@ -48,23 +48,30 @@ export default function PermissionsPage() {
   };
 
   return (
-    <div className="p-6">
-      <h2 className="text-2xl font-semibold mb-4">📋 إدارة الصلاحيات</h2>
+    <div
+      className="p-6 min-h-screen bg-slate-900 text-slate-100 font-custom"
+      dir="rtl"
+    >
+      <h2 className="text-2xl font-semibold mb-4 text-slate-100">
+        📋 إدارة الصلاحيات
+      </h2>
 
-      <div className="bg-white p-4 rounded shadow mb-6">
-        <h3 className="font-medium mb-2">➕ إضافة صلاحية جديدة</h3>
+      <div className="bg-slate-800 p-4 rounded shadow mb-6 border border-slate-700">
+        <h3 className="font-medium mb-2 text-slate-200">
+          ➕ إضافة صلاحية جديدة
+        </h3>
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
           <input
             placeholder="key (مثال: employees.view)"
             value={newPerm.key}
             onChange={(e) => setNewPerm({ ...newPerm, key: e.target.value })}
-            className="border px-2 py-2 rounded"
+            className="border border-slate-600 bg-slate-700 text-slate-100 px-2 py-2 rounded placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <input
             placeholder="label (مثال: عرض الموظفين)"
             value={newPerm.label}
             onChange={(e) => setNewPerm({ ...newPerm, label: e.target.value })}
-            className="border px-2 py-2 rounded"
+            className="border border-slate-600 bg-slate-700 text-slate-100 px-2 py-2 rounded placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <input
             placeholder="description (اختياري)"
@@ -72,14 +79,14 @@ export default function PermissionsPage() {
             onChange={(e) =>
               setNewPerm({ ...newPerm, description: e.target.value })
             }
-            className="border px-2 py-2 rounded"
+            className="border border-slate-600 bg-slate-700 text-slate-100 px-2 py-2 rounded placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <select
             value={newPerm.category}
             onChange={(e) =>
               setNewPerm({ ...newPerm, category: e.target.value })
             }
-            className="border px-2 py-2 rounded"
+            className="border border-slate-600 bg-slate-700 text-slate-100 px-2 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="view">view</option>
             <option value="create">create</option>
@@ -92,35 +99,35 @@ export default function PermissionsPage() {
         <div className="mt-3">
           <button
             onClick={createPermission}
-            className="px-4 py-2 bg-green-600 text-white rounded"
+            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded transition-colors"
           >
             إضافة
           </button>
         </div>
       </div>
 
-      <div className="bg-white p-4 rounded shadow">
-        <h3 className="font-medium mb-2">📌 جميع الصلاحيات</h3>
+      <div className="bg-slate-800 p-4 rounded shadow border border-slate-700">
+        <h3 className="font-medium mb-2 text-slate-200">📌 جميع الصلاحيات</h3>
         {loading ? (
-          <div>جاري التحميل...</div>
+          <div className="text-slate-400">جاري التحميل...</div>
         ) : (
           <div className="grid gap-2">
             {permissions.map((p) => (
               <div
                 key={p._id}
-                className="flex items-center justify-between border rounded px-3 py-2"
+                className="flex items-center justify-between border border-slate-600 rounded px-3 py-2 bg-slate-700/30 hover:bg-slate-700/50 transition-colors"
               >
                 <div>
-                  <div className="font-medium">{p.label}</div>
-                  <div className="text-xs text-gray-500">
+                  <div className="font-medium text-slate-200">{p.label}</div>
+                  <div className="text-xs text-slate-400">
                     {p.key} • {p.category}
                   </div>
                 </div>
-                <div className="text-sm text-gray-500">{p.description}</div>
+                <div className="text-sm text-slate-400">{p.description}</div>
               </div>
             ))}
             {permissions.length === 0 && (
-              <div className="text-gray-500">لا توجد صلاحيات</div>
+              <div className="text-slate-500">لا توجد صلاحيات</div>
             )}
           </div>
         )}

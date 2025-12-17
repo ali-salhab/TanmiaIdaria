@@ -101,29 +101,29 @@ export default function Settings() {
   return (
     <div
       dir="rtl"
-      className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-4 md:p-8 animate-fadeIn"
+      className="min-h-screen bg-slate-900 p-4 md:p-8 animate-fadeIn"
     >
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-6 transform transition-all hover:shadow-xl">
-          <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-3">
-            <div className="p-2 bg-blue-100 rounded-xl">
-              <SettingsIcon className="w-8 h-8 text-blue-600 animate-spin-slow" />
+        <div className="bg-slate-800 rounded-2xl shadow-lg p-6 mb-6 transform transition-all hover:shadow-xl">
+          <h1 className="text-3xl font-bold text-slate-100 flex items-center gap-3">
+            <div className="p-2 bg-blue-900/50 rounded-xl">
+              <SettingsIcon className="w-8 h-8 text-blue-400 animate-spin-slow" />
             </div>
             الإعدادات
           </h1>
-          <p className="text-gray-600 mt-2 mr-14">
+          <p className="text-slate-400 mt-2 mr-14">
             إدارة إعدادات التطبيق والتفضيلات الشخصية
           </p>
         </div>
 
         {/* Theme Settings */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-6 transform transition-all hover:shadow-xl">
-          <div className="flex items-center gap-3 mb-6 border-b border-gray-100 pb-4">
-            <div className="p-2 bg-yellow-100 rounded-lg">
-              <Sun className="w-6 h-6 text-yellow-600" />
+        <div className="bg-slate-800 rounded-2xl shadow-lg p-6 mb-6 transform transition-all hover:shadow-xl">
+          <div className="flex items-center gap-3 mb-6 border-b border-slate-700 pb-4">
+            <div className="p-2 bg-yellow-900/30 rounded-lg">
+              <Sun className="w-6 h-6 text-yellow-500" />
             </div>
-            <h2 className="text-xl font-bold text-gray-800">المظهر</h2>
+            <h2 className="text-xl font-bold text-slate-100">المظهر</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -138,13 +138,13 @@ export default function Settings() {
                 value: "dark",
                 label: "داكن",
                 icon: Moon,
-                color: "text-indigo-500",
+                color: "text-indigo-400",
               },
               {
                 value: "auto",
                 label: "تلقائي",
                 icon: RefreshCw,
-                color: "text-gray-500",
+                color: "text-slate-400",
               },
             ].map((option) => {
               const Icon = option.icon;
@@ -155,16 +155,16 @@ export default function Settings() {
                   onClick={() => handleChange("theme", option.value)}
                   className={`group relative p-4 rounded-xl border-2 transition-all duration-300 overflow-hidden ${
                     isSelected
-                      ? "border-blue-500 bg-blue-50/50 shadow-md"
-                      : "border-gray-100 hover:border-blue-200 hover:shadow-md bg-white"
+                      ? "border-blue-500 bg-blue-900/20 shadow-md"
+                      : "border-slate-700 hover:border-blue-500/50 hover:shadow-md bg-slate-800"
                   }`}
                 >
                   <div className="relative z-10 flex flex-col items-center gap-3">
                     <div
                       className={`p-3 rounded-full transition-all duration-300 ${
                         isSelected
-                          ? "bg-white shadow-sm"
-                          : "bg-gray-50 group-hover:bg-blue-50"
+                          ? "bg-slate-700 shadow-sm"
+                          : "bg-slate-700 group-hover:bg-slate-600"
                       }`}
                     >
                       <Icon
@@ -174,8 +174,8 @@ export default function Settings() {
                     <span
                       className={`font-bold ${
                         isSelected
-                          ? "text-blue-700"
-                          : "text-gray-600 group-hover:text-gray-800"
+                          ? "text-blue-400"
+                          : "text-slate-400 group-hover:text-slate-200"
                       }`}
                     >
                       {option.label}
@@ -184,7 +184,7 @@ export default function Settings() {
 
                   {/* Hover Effect Background */}
                   <div
-                    className={`absolute inset-0 bg-gradient-to-br from-white/0 to-blue-50/0 group-hover:from-blue-50/30 group-hover:to-blue-100/30 transition-all duration-300`}
+                    className={`absolute inset-0 bg-gradient-to-br from-white/0 to-blue-50/0 group-hover:from-blue-500/10 group-hover:to-blue-600/10 transition-all duration-300`}
                   />
                 </button>
               );
@@ -193,12 +193,12 @@ export default function Settings() {
         </div>
 
         {/* Language Settings */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-6 transform transition-all hover:shadow-xl">
-          <div className="flex items-center gap-3 mb-6 border-b border-gray-100 pb-4">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Globe className="w-6 h-6 text-blue-600" />
+        <div className="bg-slate-800 rounded-2xl shadow-lg p-6 mb-6 transform transition-all hover:shadow-xl">
+          <div className="flex items-center gap-3 mb-6 border-b border-slate-700 pb-4">
+            <div className="p-2 bg-blue-900/30 rounded-lg">
+              <Globe className="w-6 h-6 text-blue-500" />
             </div>
-            <h2 className="text-xl font-bold text-gray-800">اللغة</h2>
+            <h2 className="text-xl font-bold text-slate-100">اللغة</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -213,8 +213,8 @@ export default function Settings() {
                   onClick={() => handleChange("language", option.value)}
                   className={`group relative p-4 rounded-xl border-2 transition-all duration-300 ${
                     isSelected
-                      ? "border-blue-500 bg-blue-50/50 shadow-md"
-                      : "border-gray-100 hover:border-blue-200 hover:shadow-md bg-white"
+                      ? "border-blue-500 bg-blue-900/20 shadow-md"
+                      : "border-slate-700 hover:border-blue-500/50 hover:shadow-md bg-slate-800"
                   }`}
                 >
                   <div className="flex items-center gap-4">
@@ -224,12 +224,12 @@ export default function Settings() {
                     <div className="text-right">
                       <p
                         className={`font-bold text-lg ${
-                          isSelected ? "text-blue-700" : "text-gray-800"
+                          isSelected ? "text-blue-400" : "text-slate-100"
                         }`}
                       >
                         {option.label}
                       </p>
-                      <p className="text-xs text-gray-500 font-medium">
+                      <p className="text-xs text-slate-500 font-medium">
                         {option.sub}
                       </p>
                     </div>
@@ -241,24 +241,24 @@ export default function Settings() {
         </div>
 
         {/* Sound Settings */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-6 transform transition-all hover:shadow-xl">
-          <div className="flex items-center gap-3 mb-6 border-b border-gray-100 pb-4">
-            <div className="p-2 bg-green-100 rounded-lg">
-              <Volume2 className="w-6 h-6 text-green-600" />
+        <div className="bg-slate-800 rounded-2xl shadow-lg p-6 mb-6 transform transition-all hover:shadow-xl">
+          <div className="flex items-center gap-3 mb-6 border-b border-slate-700 pb-4">
+            <div className="p-2 bg-green-900/30 rounded-lg">
+              <Volume2 className="w-6 h-6 text-green-500" />
             </div>
-            <h2 className="text-xl font-bold text-gray-800">الأصوات</h2>
+            <h2 className="text-xl font-bold text-slate-100">الأصوات</h2>
           </div>
 
           {/* Notification Sounds */}
-          <div className="mb-6 p-5 bg-gray-50/80 rounded-2xl border border-gray-100 hover:border-blue-200 transition-colors">
+          <div className="mb-6 p-5 bg-slate-700/50 rounded-2xl border border-slate-600 hover:border-blue-500/50 transition-colors">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-white rounded-lg shadow-sm">
-                  <Bell className="w-5 h-5 text-blue-600" />
+                <div className="p-2 bg-slate-800 rounded-lg shadow-sm">
+                  <Bell className="w-5 h-5 text-blue-400" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-gray-800">أصوات الإشعارات</h3>
-                  <p className="text-xs text-gray-500 mt-0.5">
+                  <h3 className="font-bold text-slate-100">أصوات الإشعارات</h3>
+                  <p className="text-xs text-slate-400 mt-0.5">
                     تخصيص نغمة التنبيهات العامة
                   </p>
                 </div>
@@ -274,7 +274,7 @@ export default function Settings() {
                 className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
                   localSettings.sounds?.notifications?.enabled
                     ? "bg-blue-600"
-                    : "bg-gray-200"
+                    : "bg-slate-600"
                 }`}
               >
                 <span
@@ -291,7 +291,7 @@ export default function Settings() {
               <div className="mr-11 space-y-4 animate-fadeIn">
                 <div className="flex items-center gap-4">
                   <div className="flex-1">
-                    <label className="block text-xs font-bold text-gray-600 mb-2">
+                    <label className="block text-xs font-bold text-slate-400 mb-2">
                       مستوى الصوت
                     </label>
                     <input
@@ -307,12 +307,12 @@ export default function Settings() {
                           parseFloat(e.target.value)
                         )
                       }
-                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                      className="w-full h-2 bg-slate-600 rounded-lg appearance-none cursor-pointer accent-blue-500"
                     />
                   </div>
                   <button
                     onClick={testNotificationSound}
-                    className="p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors shadow-sm"
+                    className="p-2 bg-blue-900/30 text-blue-400 rounded-lg hover:bg-blue-900/50 transition-colors shadow-sm"
                     title="تجربة الصوت"
                   >
                     <Volume2 className="w-5 h-5" />
@@ -323,15 +323,15 @@ export default function Settings() {
           </div>
 
           {/* Message Sounds */}
-          <div className="p-5 bg-gray-50/80 rounded-2xl border border-gray-100 hover:border-purple-200 transition-colors">
+          <div className="p-5 bg-slate-700/50 rounded-2xl border border-slate-600 hover:border-purple-500/50 transition-colors">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-white rounded-lg shadow-sm">
-                  <MessageCircle className="w-5 h-5 text-purple-600" />
+                <div className="p-2 bg-slate-800 rounded-lg shadow-sm">
+                  <MessageCircle className="w-5 h-5 text-purple-400" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-gray-800">أصوات الرسائل</h3>
-                  <p className="text-xs text-gray-500 mt-0.5">
+                  <h3 className="font-bold text-slate-100">أصوات الرسائل</h3>
+                  <p className="text-xs text-slate-400 mt-0.5">
                     تخصيص نغمة المحادثات
                   </p>
                 </div>
@@ -347,7 +347,7 @@ export default function Settings() {
                 className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 ${
                   localSettings.sounds?.messages?.enabled
                     ? "bg-purple-600"
-                    : "bg-gray-200"
+                    : "bg-slate-600"
                 }`}
               >
                 <span
@@ -364,7 +364,7 @@ export default function Settings() {
               <div className="mr-11 space-y-4 animate-fadeIn">
                 <div className="flex items-center gap-4">
                   <div className="flex-1">
-                    <label className="block text-xs font-bold text-gray-600 mb-2">
+                    <label className="block text-xs font-bold text-slate-400 mb-2">
                       مستوى الصوت
                     </label>
                     <input
@@ -380,12 +380,12 @@ export default function Settings() {
                           parseFloat(e.target.value)
                         )
                       }
-                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-purple-600"
+                      className="w-full h-2 bg-slate-600 rounded-lg appearance-none cursor-pointer accent-purple-500"
                     />
                   </div>
                   <button
                     onClick={testMessageSound}
-                    className="p-2 bg-purple-100 text-purple-600 rounded-lg hover:bg-purple-200 transition-colors shadow-sm"
+                    className="p-2 bg-purple-900/30 text-purple-400 rounded-lg hover:bg-purple-900/50 transition-colors shadow-sm"
                     title="تجربة الصوت"
                   >
                     <Volume2 className="w-5 h-5" />
@@ -397,7 +397,7 @@ export default function Settings() {
         </div>
 
         {/* Save Button */}
-        <div className="bg-white rounded-2xl shadow-lg p-6">
+        <div className="bg-slate-800 rounded-2xl shadow-lg p-6">
           <button
             onClick={handleSave}
             disabled={saving}

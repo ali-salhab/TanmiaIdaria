@@ -135,11 +135,9 @@ export default function Dashboard() {
           unreadChatCount={unreadChatCount}
         />
 
-        <main className="flex-1 p-2 sm:p-4 md:p-6 overflow-y-auto mt-16">
-          <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-lg md:rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.3)] p-3 md:p-6 animate-scaleUp">
-            <div className="bg-slate-800/80 backdrop-blur-md rounded-lg md:rounded-xl shadow-md p-3 md:p-4 text-gray-100 overflow-x-auto border border-white/10">
-              <Outlet context={{ userInfo }} />
-            </div>
+        <main className="flex-1  sm:p-4 md:p-6 overflow-y-auto mt-14">
+          <div className="bg-slate-800/80 backdrop-blur-md rounded-lg md:rounded-xl shadow-md p-1 md:p-4 text-gray-100 overflow-x-auto border">
+            <Outlet context={{ userInfo }} />
           </div>
         </main>
       </div>

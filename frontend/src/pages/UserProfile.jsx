@@ -223,10 +223,10 @@ export default function UserProfile() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+      <div className="flex items-center justify-center min-h-screen bg-slate-900">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">جاري تحميل الملف الشخصي...</p>
+          <p className="text-slate-400">جاري تحميل الملف الشخصي...</p>
         </div>
       </div>
     );
@@ -235,17 +235,17 @@ export default function UserProfile() {
   return (
     <div
       dir="rtl"
-      className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-4 md:p-6 relative overflow-hidden font-custom"
+      className="min-h-screen bg-slate-900 p-4 md:p-6 relative overflow-hidden font-custom"
     >
       {/* Decorative background elements */}
-      <div className="absolute top-0 left-0 w-64 h-64 opacity-20">
+      <div className="absolute top-0 left-0 w-64 h-64 opacity-10">
         <img
           src={floatingOrb1}
           alt=""
           className="w-full h-full object-contain animate-float"
         />
       </div>
-      <div className="absolute bottom-0 right-0 w-64 h-64 opacity-20">
+      <div className="absolute bottom-0 right-0 w-64 h-64 opacity-10">
         <img
           src={gradientSphere1}
           alt=""
@@ -256,14 +256,14 @@ export default function UserProfile() {
       <div className="max-w-6xl mx-auto relative z-10">
         {/* Header with decorative patterns */}
         <div className="relative mb-8">
-          <div className="absolute -top-6 -left-6 w-32 h-32 opacity-30">
+          <div className="absolute -top-6 -left-6 w-32 h-32 opacity-20">
             <img
               src={bluePattern}
               alt=""
               className="w-full h-full object-contain"
             />
           </div>
-          <div className="absolute -top-6 -right-6 w-32 h-32 opacity-30">
+          <div className="absolute -top-6 -right-6 w-32 h-32 opacity-20">
             <img
               src={emeraldPattern}
               alt=""
@@ -272,18 +272,18 @@ export default function UserProfile() {
           </div>
 
           <div className="text-center py-8 relative">
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-2 animate-fadeInDown">
+            <h1 className="text-3xl md:text-4xl font-bold text-slate-100 mb-2 animate-fadeInDown">
               👤 الملف الشخصي
             </h1>
-            <p className="text-gray-600 animate-fadeInUp">
+            <p className="text-slate-400 animate-fadeInUp">
               إدارة معلوماتك الشخصية والمستندات
             </p>
           </div>
         </div>
 
         {/* Profile Header Card */}
-        <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl p-6 mb-8 border border-white/50 relative overflow-hidden animate-fadeIn">
-          <div className="absolute top-0 right-0 w-32 h-32 opacity-10">
+        <div className="bg-slate-800/80 backdrop-blur-lg rounded-2xl shadow-xl p-6 mb-8 border border-slate-700/50 relative overflow-hidden animate-fadeIn">
+          <div className="absolute top-0 right-0 w-32 h-32 opacity-5">
             <img
               src={purplePattern}
               alt=""
@@ -293,8 +293,8 @@ export default function UserProfile() {
 
           <div className="flex flex-col md:flex-row gap-8 items-center">
             <div className="relative group">
-              <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-400 to-indigo-600 p-1 shadow-lg">
-                <div className="w-full h-full rounded-full bg-white flex items-center justify-center overflow-hidden">
+              <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 p-1 shadow-lg">
+                <div className="w-full h-full rounded-full bg-slate-800 flex items-center justify-center overflow-hidden">
                   {userData?.profile?.avatar ? (
                     <img
                       src={userData.profile.avatar}
@@ -302,7 +302,7 @@ export default function UserProfile() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-indigo-200">
+                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-700 to-slate-600">
                       <img
                         src={avatarBlue}
                         alt="الصورة الشخصية"
@@ -312,24 +312,24 @@ export default function UserProfile() {
                   )}
                 </div>
               </div>
-              <div className="absolute inset-0 rounded-full border-4 border-white/30 group-hover:border-white/60 transition-all duration-300"></div>
-              <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+              <div className="absolute inset-0 rounded-full border-4 border-white/10 group-hover:border-white/30 transition-all duration-300"></div>
+              <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
                 <span className="text-white text-xs">✏️</span>
               </div>
             </div>
 
             <div className="flex-1 text-center md:text-right">
-              <h2 className="text-2xl font-bold text-gray-800">
+              <h2 className="text-2xl font-bold text-slate-100">
                 {profile.firstName} {profile.lastName}
               </h2>
-              <p className="text-gray-600 mb-2">
+              <p className="text-slate-400 mb-2">
                 {profile.department || "غير محدد"}
               </p>
               <div className="flex flex-wrap justify-center md:justify-start gap-2 mt-4">
-                <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+                <span className="px-3 py-1 bg-blue-900/30 text-blue-300 border border-blue-500/30 rounded-full text-sm">
                   البريد: {profile.email || "غير محدد"}
                 </span>
-                <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
+                <span className="px-3 py-1 bg-green-900/30 text-green-300 border border-green-500/30 rounded-full text-sm">
                   الهاتف: {profile.phone || "غير محدد"}
                 </span>
               </div>
@@ -338,15 +338,15 @@ export default function UserProfile() {
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex flex-wrap gap-2 mb-6 bg-white/60 backdrop-blur-sm p-2 rounded-xl border border-white/50 shadow-sm">
+        <div className="flex flex-wrap gap-2 mb-6 bg-slate-800/60 backdrop-blur-sm p-2 rounded-xl border border-slate-700/50 shadow-sm">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 ${
                 activeTab === tab.id
-                  ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md"
-                  : "text-gray-600 hover:bg-white/50"
+                  ? "bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-md"
+                  : "text-slate-400 hover:bg-slate-700/50 hover:text-slate-200"
               }`}
             >
               {tab.icon}
@@ -356,22 +356,22 @@ export default function UserProfile() {
         </div>
 
         {/* Tab Content */}
-        <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl p-6 border border-white/50 animate-fadeIn">
+        <div className="bg-slate-800/80 backdrop-blur-lg rounded-2xl shadow-xl p-6 border border-slate-700/50 animate-fadeIn">
           {/* Profile Tab */}
           {activeTab === "profile" && (
             <div className="animate-fadeIn">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                  <img src={userIcon1} alt="" className="w-6 h-6" />
+                <div className="w-10 h-10 rounded-full bg-blue-900/30 flex items-center justify-center">
+                  <img src={userIcon1} alt="" className="w-6 h-6 opacity-80" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-800">
+                <h3 className="text-xl font-bold text-slate-100">
                   معلومات الملف الشخصي
                 </h3>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
                     الاسم الأول
                   </label>
                   <input
@@ -379,13 +379,13 @@ export default function UserProfile() {
                     name="firstName"
                     value={profile.firstName || ""}
                     onChange={handleProfileChange}
-                    className="w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm hover:shadow-md"
+                    className="w-full border border-slate-600 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm hover:shadow-md bg-slate-700 text-slate-100 placeholder-slate-500"
                     placeholder="الاسم الأول"
                     disabled={!isEditing}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
                     اسم العائلة
                   </label>
                   <input
@@ -393,13 +393,13 @@ export default function UserProfile() {
                     name="lastName"
                     value={profile.lastName || ""}
                     onChange={handleProfileChange}
-                    className="w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm hover:shadow-md"
+                    className="w-full border border-slate-600 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm hover:shadow-md bg-slate-700 text-slate-100 placeholder-slate-500"
                     placeholder="اسم العائلة"
                     disabled={!isEditing}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
                     البريد الإلكتروني
                   </label>
                   <input
@@ -407,13 +407,13 @@ export default function UserProfile() {
                     name="email"
                     value={profile.email || ""}
                     onChange={handleProfileChange}
-                    className="w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm hover:shadow-md"
+                    className="w-full border border-slate-600 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm hover:shadow-md bg-slate-700 text-slate-100 placeholder-slate-500"
                     placeholder="البريد الإلكتروني"
                     disabled={!isEditing}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
                     رقم الهاتف
                   </label>
                   <input
@@ -421,13 +421,13 @@ export default function UserProfile() {
                     name="phone"
                     value={profile.phone || ""}
                     onChange={handleProfileChange}
-                    className="w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm hover:shadow-md"
+                    className="w-full border border-slate-600 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm hover:shadow-md bg-slate-700 text-slate-100 placeholder-slate-500"
                     placeholder="رقم الهاتف"
                     disabled={!isEditing}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
                     القسم
                   </label>
                   <input
@@ -435,13 +435,13 @@ export default function UserProfile() {
                     name="department"
                     value={profile.department || ""}
                     onChange={handleProfileChange}
-                    className="w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm hover:shadow-md"
+                    className="w-full border border-slate-600 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm hover:shadow-md bg-slate-700 text-slate-100 placeholder-slate-500"
                     placeholder="القسم"
                     disabled={!isEditing}
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
                     النبذة الشخصية
                   </label>
                   <textarea
@@ -449,7 +449,7 @@ export default function UserProfile() {
                     value={profile.bio || ""}
                     onChange={handleProfileChange}
                     rows="4"
-                    className="w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm hover:shadow-md"
+                    className="w-full border border-slate-600 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm hover:shadow-md bg-slate-700 text-slate-100 placeholder-slate-500"
                     placeholder="النبذة الشخصية"
                     disabled={!isEditing}
                   />
@@ -460,7 +460,7 @@ export default function UserProfile() {
                 {!isEditing ? (
                   <button
                     onClick={() => setIsEditing(true)}
-                    className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-6 py-3 rounded-lg font-medium shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 flex items-center gap-2"
+                    className="bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white px-6 py-3 rounded-lg font-medium shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 flex items-center gap-2"
                   >
                     ✏️ تعديل الملف الشخصي
                   </button>
@@ -469,7 +469,7 @@ export default function UserProfile() {
                     <button
                       onClick={handleSaveProfile}
                       disabled={saving}
-                      className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-6 py-3 rounded-lg font-medium shadow-md hover:shadow-lg transition-all flex items-center gap-2 disabled:opacity-70"
+                      className="bg-gradient-to-r from-green-600 to-emerald-700 hover:from-green-700 hover:to-emerald-800 text-white px-6 py-3 rounded-lg font-medium shadow-md hover:shadow-lg transition-all flex items-center gap-2 disabled:opacity-70"
                     >
                       {saving ? (
                         <>
@@ -482,7 +482,7 @@ export default function UserProfile() {
                     </button>
                     <button
                       onClick={() => setIsEditing(false)}
-                      className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-lg font-medium shadow hover:shadow-md transition-all"
+                      className="bg-slate-700 hover:bg-slate-600 text-slate-200 px-6 py-3 rounded-lg font-medium shadow hover:shadow-md transition-all"
                     >
                       إلغاء
                     </button>
@@ -496,36 +496,36 @@ export default function UserProfile() {
           {activeTab === "employee" && (
             <div className="animate-fadeIn">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                  <Briefcase className="w-6 h-6 text-blue-600" />
+                <div className="w-10 h-10 rounded-full bg-blue-900/30 flex items-center justify-center">
+                  <Briefcase className="w-6 h-6 text-blue-400" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-800">
+                <h3 className="text-xl font-bold text-slate-100">
                   بيانات الموظف
                 </h3>
               </div>
 
               {employeeData ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100">
-                    <h4 className="text-lg font-semibold text-gray-800 mb-4">
+                  <div className="bg-gradient-to-br from-blue-900/20 to-indigo-900/20 rounded-2xl p-6 border border-blue-500/20">
+                    <h4 className="text-lg font-semibold text-slate-200 mb-4">
                       المعلومات الأساسية
                     </h4>
                     <div className="space-y-3">
-                      <div className="flex justify-between border-b pb-2">
-                        <span className="text-gray-600">الاسم الثلاثي:</span>
-                        <span className="font-medium">
+                      <div className="flex justify-between border-b border-slate-700 pb-2">
+                        <span className="text-slate-400">الاسم الثلاثي:</span>
+                        <span className="font-medium text-slate-200">
                           {employeeData.fullName || "غير محدد"}
                         </span>
                       </div>
-                      <div className="flex justify-between border-b pb-2">
-                        <span className="text-gray-600">الرقم الوطني:</span>
-                        <span className="font-medium">
+                      <div className="flex justify-between border-b border-slate-700 pb-2">
+                        <span className="text-slate-400">الرقم الوطني:</span>
+                        <span className="font-medium text-slate-200">
                           {employeeData.nationalId || "غير محدد"}
                         </span>
                       </div>
-                      <div className="flex justify-between border-b pb-2">
-                        <span className="text-gray-600">تاريخ الميلاد:</span>
-                        <span className="font-medium">
+                      <div className="flex justify-between border-b border-slate-700 pb-2">
+                        <span className="text-slate-400">تاريخ الميلاد:</span>
+                        <span className="font-medium text-slate-200">
                           {employeeData.birthDate
                             ? new Date(
                                 employeeData.birthDate
@@ -533,43 +533,43 @@ export default function UserProfile() {
                             : "غير محدد"}
                         </span>
                       </div>
-                      <div className="flex justify-between border-b pb-2">
-                        <span className="text-gray-600">الجنس:</span>
-                        <span className="font-medium">
+                      <div className="flex justify-between border-b border-slate-700 pb-2">
+                        <span className="text-slate-400">الجنس:</span>
+                        <span className="font-medium text-slate-200">
                           {employeeData.gender || "غير محدد"}
                         </span>
                       </div>
-                      <div className="flex justify-between border-b pb-2">
-                        <span className="text-gray-600">
+                      <div className="flex justify-between border-b border-slate-700 pb-2">
+                        <span className="text-slate-400">
                           الحالة الاجتماعية:
                         </span>
-                        <span className="font-medium">
+                        <span className="font-medium text-slate-200">
                           {employeeData.maritalStatus || "غير محدد"}
                         </span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-6 border border-green-100">
-                    <h4 className="text-lg font-semibold text-gray-800 mb-4">
+                  <div className="bg-gradient-to-br from-green-900/20 to-emerald-900/20 rounded-2xl p-6 border border-green-500/20">
+                    <h4 className="text-lg font-semibold text-slate-200 mb-4">
                       معلومات العمل
                     </h4>
                     <div className="space-y-3">
-                      <div className="flex justify-between border-b pb-2">
-                        <span className="text-gray-600">المسمى الوظيفي:</span>
-                        <span className="font-medium">
+                      <div className="flex justify-between border-b border-slate-700 pb-2">
+                        <span className="text-slate-400">المسمى الوظيفي:</span>
+                        <span className="font-medium text-slate-200">
                           {employeeData.currentJobTitle || "غير محدد"}
                         </span>
                       </div>
-                      <div className="flex justify-between border-b pb-2">
-                        <span className="text-gray-600">القسم:</span>
-                        <span className="font-medium">
+                      <div className="flex justify-between border-b border-slate-700 pb-2">
+                        <span className="text-slate-400">القسم:</span>
+                        <span className="font-medium text-slate-200">
                           {employeeData.level4 || "غير محدد"}
                         </span>
                       </div>
-                      <div className="flex justify-between border-b pb-2">
-                        <span className="text-gray-600">تاريخ التعيين:</span>
-                        <span className="font-medium">
+                      <div className="flex justify-between border-b border-slate-700 pb-2">
+                        <span className="text-slate-400">تاريخ التعيين:</span>
+                        <span className="font-medium text-slate-200">
                           {employeeData.hiringDate
                             ? new Date(
                                 employeeData.hiringDate
@@ -577,15 +577,15 @@ export default function UserProfile() {
                             : "غير محدد"}
                         </span>
                       </div>
-                      <div className="flex justify-between border-b pb-2">
-                        <span className="text-gray-600">نوع التوظيف:</span>
-                        <span className="font-medium">
+                      <div className="flex justify-between border-b border-slate-700 pb-2">
+                        <span className="text-slate-400">نوع التوظيف:</span>
+                        <span className="font-medium text-slate-200">
                           {employeeData.employmentType || "غير محدد"}
                         </span>
                       </div>
-                      <div className="flex justify-between border-b pb-2">
-                        <span className="text-gray-600">الراتب الأخير:</span>
-                        <span className="font-medium">
+                      <div className="flex justify-between border-b border-slate-700 pb-2">
+                        <span className="text-slate-400">الراتب الأخير:</span>
+                        <span className="font-medium text-slate-200">
                           {employeeData.lastSalary
                             ? `${employeeData.lastSalary} دينار`
                             : "غير محدد"}
@@ -594,26 +594,26 @@ export default function UserProfile() {
                     </div>
                   </div>
 
-                  <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-6 border border-amber-100 md:col-span-2">
-                    <h4 className="text-lg font-semibold text-gray-800 mb-4">
+                  <div className="bg-gradient-to-br from-amber-900/20 to-orange-900/20 rounded-2xl p-6 border border-amber-500/20 md:col-span-2">
+                    <h4 className="text-lg font-semibold text-slate-200 mb-4">
                       معلومات الاتصال
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="flex justify-between border-b pb-2">
-                        <span className="text-gray-600">الهاتف:</span>
-                        <span className="font-medium">
+                      <div className="flex justify-between border-b border-slate-700 pb-2">
+                        <span className="text-slate-400">الهاتف:</span>
+                        <span className="font-medium text-slate-200">
                           {employeeData.phone || "غير محدد"}
                         </span>
                       </div>
-                      <div className="flex justify-between border-b pb-2">
-                        <span className="text-gray-600">المحافظة:</span>
-                        <span className="font-medium">
+                      <div className="flex justify-between border-b border-slate-700 pb-2">
+                        <span className="text-slate-400">المحافظة:</span>
+                        <span className="font-medium text-slate-200">
                           {employeeData.governorate || "غير محدد"}
                         </span>
                       </div>
-                      <div className="flex justify-between border-b pb-2">
-                        <span className="text-gray-600">المدينة:</span>
-                        <span className="font-medium">
+                      <div className="flex justify-between border-b border-slate-700 pb-2">
+                        <span className="text-slate-400">المدينة:</span>
+                        <span className="font-medium text-slate-200">
                           {employeeData.city || "غير محدد"}
                         </span>
                       </div>
@@ -621,14 +621,14 @@ export default function UserProfile() {
                   </div>
                 </div>
               ) : (
-                <div className="text-center py-12 bg-gradient-to-br from-gray-50 to-blue-50 rounded-2xl border border-gray-100">
-                  <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
-                    <Briefcase className="w-8 h-8 text-gray-500" />
+                <div className="text-center py-12 bg-gradient-to-br from-slate-800 to-slate-700 rounded-2xl border border-slate-600">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-slate-700 rounded-full flex items-center justify-center">
+                    <Briefcase className="w-8 h-8 text-slate-500" />
                   </div>
-                  <h4 className="text-lg font-medium text-gray-700 mb-2">
+                  <h4 className="text-lg font-medium text-slate-300 mb-2">
                     لا توجد بيانات موظف
                   </h4>
-                  <p className="text-gray-500">
+                  <p className="text-slate-500">
                     يجب أن يكون لديك حساب مستخدم مرتبط بموظف
                   </p>
                 </div>
@@ -640,19 +640,19 @@ export default function UserProfile() {
           {activeTab === "permissions" && (
             <div className="animate-fadeIn">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center">
-                  <Shield className="w-6 h-6 text-indigo-600" />
+                <div className="w-10 h-10 rounded-full bg-indigo-900/30 flex items-center justify-center">
+                  <Shield className="w-6 h-6 text-indigo-400" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-800">
+                <h3 className="text-xl font-bold text-slate-100">
                   الصلاحيات والمجموعات
                 </h3>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Groups Section */}
-                <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-6 border border-indigo-100">
-                  <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                    <span className="text-indigo-600">👥</span>
+                <div className="bg-gradient-to-br from-indigo-900/20 to-purple-900/20 rounded-2xl p-6 border border-indigo-500/20">
+                  <h4 className="text-lg font-semibold text-slate-200 mb-4 flex items-center gap-2">
+                    <span className="text-indigo-400">👥</span>
                     مجموعات الصلاحيات
                   </h4>
                   {permissionDetails.groups.length > 0 ? (
@@ -660,28 +660,28 @@ export default function UserProfile() {
                       {permissionDetails.groups.map((group, idx) => (
                         <div
                           key={idx}
-                          className="flex items-center gap-3 p-3 bg-white rounded-lg border border-indigo-100 shadow-sm"
+                          className="flex items-center gap-3 p-3 bg-slate-700 rounded-lg border border-indigo-500/20 shadow-sm"
                         >
-                          <span className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 text-sm font-bold">
+                          <span className="w-8 h-8 rounded-full bg-indigo-900/30 flex items-center justify-center text-indigo-400 text-sm font-bold">
                             {idx + 1}
                           </span>
-                          <span className="font-medium text-gray-800">
+                          <span className="font-medium text-slate-200">
                             {group}
                           </span>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <div className="text-center py-8 bg-white/50 rounded-lg border border-dashed border-indigo-200">
-                      <p className="text-gray-500">لا توجد مجموعات مخصصة</p>
+                    <div className="text-center py-8 bg-slate-700/50 rounded-lg border border-dashed border-indigo-500/30">
+                      <p className="text-slate-500">لا توجد مجموعات مخصصة</p>
                     </div>
                   )}
                 </div>
 
                 {/* Permissions Section */}
-                <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-6 border border-emerald-100">
-                  <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                    <span className="text-emerald-600">🔐</span>
+                <div className="bg-gradient-to-br from-emerald-900/20 to-teal-900/20 rounded-2xl p-6 border border-emerald-500/20">
+                  <h4 className="text-lg font-semibold text-slate-200 mb-4 flex items-center gap-2">
+                    <span className="text-emerald-400">🔐</span>
                     الصلاحيات الممنوحة
                   </h4>
                   {permissionDetails.permissions.length > 0 ? (
@@ -689,36 +689,36 @@ export default function UserProfile() {
                       {permissionDetails.permissions.map((perm, idx) => (
                         <div
                           key={`${perm.key}-${idx}`}
-                          className="p-3 bg-white rounded-lg border border-emerald-100 shadow-sm flex flex-wrap gap-2 justify-between"
+                          className="p-3 bg-slate-700 rounded-lg border border-emerald-500/20 shadow-sm flex flex-wrap gap-2 justify-between"
                         >
                           <div>
-                            <div className="font-semibold text-gray-800">
+                            <div className="font-semibold text-slate-200">
                               {perm.label}
                             </div>
-                            <div className="text-xs text-gray-500">
+                            <div className="text-xs text-slate-400">
                               المفتاح: {perm.key} • الفئة: {perm.category}
                             </div>
                           </div>
-                          <span className="px-2 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-medium border border-emerald-200">
+                          <span className="px-2 py-1 bg-emerald-900/30 text-emerald-300 rounded-full text-xs font-medium border border-emerald-500/30">
                             {perm.source}
                           </span>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <div className="text-center py-8 bg-white/50 rounded-lg border border-dashed border-emerald-200">
-                      <p className="text-gray-500">لا توجد صلاحيات مخصصة</p>
+                    <div className="text-center py-8 bg-slate-700/50 rounded-lg border border-dashed border-emerald-500/30">
+                      <p className="text-slate-500">لا توجد صلاحيات مخصصة</p>
                     </div>
                   )}
                 </div>
               </div>
 
               {/* Info Note */}
-              <div className="mt-6 p-4 bg-blue-50 rounded-xl border border-blue-100 flex items-start gap-3">
-                <span className="text-blue-600 text-xl">ℹ️</span>
+              <div className="mt-6 p-4 bg-blue-900/20 rounded-xl border border-blue-500/30 flex items-start gap-3">
+                <span className="text-blue-400 text-xl">ℹ️</span>
                 <div>
-                  <p className="text-blue-800 font-medium">ملاحظة</p>
-                  <p className="text-blue-600 text-sm">
+                  <p className="text-blue-300 font-medium">ملاحظة</p>
+                  <p className="text-blue-400 text-sm">
                     الصلاحيات تحدد ما يمكنك الوصول إليه في النظام. إذا كنت بحاجة
                     لصلاحيات إضافية، يرجى التواصل مع مدير النظام.
                   </p>
@@ -732,12 +732,12 @@ export default function UserProfile() {
             <div className="animate-fadeIn">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* صورة الراتب */}
-                <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-6 border border-amber-100 shadow-sm hover:shadow-md transition-all">
+                <div className="bg-gradient-to-br from-amber-900/20 to-orange-900/20 rounded-2xl p-6 border border-amber-500/20 shadow-sm hover:shadow-md transition-all">
                   <div className="flex items-center gap-3 mb-6">
-                    <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
-                      <span className="text-amber-600">💰</span>
+                    <div className="w-10 h-10 rounded-full bg-amber-900/30 flex items-center justify-center">
+                      <span className="text-amber-500">💰</span>
                     </div>
-                    <h3 className="text-xl font-bold text-gray-800">
+                    <h3 className="text-xl font-bold text-slate-100">
                       صورة الراتب
                     </h3>
                   </div>
@@ -747,11 +747,11 @@ export default function UserProfile() {
                       <img
                         src={userData.profile.salaryInfo.image}
                         alt="صورة الراتب"
-                        className="w-full h-full object-contain bg-white p-2 rounded-lg"
+                        className="w-full h-full object-contain bg-slate-700 p-2 rounded-lg"
                       />
                     </div>
                   ) : (
-                    <div className="mb-4 rounded-lg overflow-hidden h-48 bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center">
+                    <div className="mb-4 rounded-lg overflow-hidden h-48 bg-gradient-to-br from-amber-900/10 to-orange-900/10 flex items-center justify-center border border-amber-500/10">
                       <div className="text-center text-amber-500">
                         <div className="text-4xl mb-2">💰</div>
                         <p>لا توجد صورة مرفقة</p>
@@ -767,12 +767,12 @@ export default function UserProfile() {
                 </div>
 
                 {/* صورة قائمة الموظفين */}
-                <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-6 border border-emerald-100 shadow-sm hover:shadow-md transition-all">
+                <div className="bg-gradient-to-br from-emerald-900/20 to-teal-900/20 rounded-2xl p-6 border border-emerald-500/20 shadow-sm hover:shadow-md transition-all">
                   <div className="flex items-center gap-3 mb-6">
-                    <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center">
-                      <span className="text-emerald-600">👥</span>
+                    <div className="w-10 h-10 rounded-full bg-emerald-900/30 flex items-center justify-center">
+                      <span className="text-emerald-500">👥</span>
                     </div>
-                    <h3 className="text-xl font-bold text-gray-800">
+                    <h3 className="text-xl font-bold text-slate-100">
                       قائمة الموظفين
                     </h3>
                   </div>
@@ -782,11 +782,11 @@ export default function UserProfile() {
                       <img
                         src={userData.profile.employeeList.image}
                         alt="قائمة الموظفين"
-                        className="w-full h-full object-contain bg-white p-2 rounded-lg"
+                        className="w-full h-full object-contain bg-slate-700 p-2 rounded-lg"
                       />
                     </div>
                   ) : (
-                    <div className="mb-4 rounded-lg overflow-hidden h-48 bg-gradient-to-br from-emerald-100 to-teal-100 flex items-center justify-center">
+                    <div className="mb-4 rounded-lg overflow-hidden h-48 bg-gradient-to-br from-emerald-900/10 to-teal-900/10 flex items-center justify-center border border-emerald-500/10">
                       <div className="text-center text-emerald-500">
                         <div className="text-4xl mb-2">👥</div>
                         <p>لا توجد صورة مرفقة</p>
@@ -803,8 +803,8 @@ export default function UserProfile() {
               </div>
 
               {/* Avatar Upload Section */}
-              <div className="mt-8 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100 shadow-sm">
-                <h3 className="text-xl font-bold text-gray-800 mb-6">
+              <div className="mt-8 bg-gradient-to-br from-blue-900/20 to-indigo-900/20 rounded-2xl p-6 border border-blue-500/20 shadow-sm">
+                <h3 className="text-xl font-bold text-slate-100 mb-6">
                   الصورة الشخصية
                 </h3>
                 <ImageUploadWithScanner
@@ -820,17 +820,21 @@ export default function UserProfile() {
           {activeTab === "documents" && (
             <div className="animate-fadeIn">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
-                  <img src={documentIcon1} alt="" className="w-6 h-6" />
+                <div className="w-10 h-10 rounded-full bg-purple-900/30 flex items-center justify-center">
+                  <img
+                    src={documentIcon1}
+                    alt=""
+                    className="w-6 h-6 opacity-80"
+                  />
                 </div>
-                <h3 className="text-xl font-bold text-gray-800">
+                <h3 className="text-xl font-bold text-slate-100">
                   إدارة المستندات
                 </h3>
               </div>
 
               {authUser?.permissions?.viewDocuments && (
                 <>
-                  <div className="mb-8 p-6 bg-gradient-to-br from-purple-50 to-indigo-50 rounded-2xl border border-purple-100">
+                  <div className="mb-8 p-6 bg-gradient-to-br from-purple-900/20 to-indigo-900/20 rounded-2xl border border-purple-500/20">
                     <div className="mb-6">
                       <div className="flex gap-3 mb-4">
                         <input
@@ -838,7 +842,7 @@ export default function UserProfile() {
                           value={documentName}
                           onChange={(e) => setDocumentName(e.target.value)}
                           placeholder="اسم المستند (اختياري)"
-                          className="flex-1 border rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none shadow-sm"
+                          className="flex-1 border border-slate-600 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none shadow-sm bg-slate-700 text-slate-100 placeholder-slate-500"
                         />
                       </div>
                       <ImageUploadWithScanner
@@ -855,17 +859,17 @@ export default function UserProfile() {
                       {userData.profile.documents.map((doc, idx) => (
                         <div
                           key={idx}
-                          className="flex items-center justify-between bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all animate-fadeInUp delay-100"
+                          className="flex items-center justify-between bg-slate-700 p-4 rounded-xl border border-slate-600 shadow-sm hover:shadow-md transition-all animate-fadeInUp delay-100"
                         >
                           <div className="flex items-center gap-4 flex-1">
-                            <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center">
-                              <FileText className="w-6 h-6 text-blue-600" />
+                            <div className="w-12 h-12 rounded-lg bg-blue-900/30 flex items-center justify-center">
+                              <FileText className="w-6 h-6 text-blue-400" />
                             </div>
                             <div className="flex-1">
-                              <p className="font-medium text-gray-800">
+                              <p className="font-medium text-slate-200">
                                 {doc.name}
                               </p>
-                              <p className="text-sm text-gray-500">
+                              <p className="text-sm text-slate-400">
                                 {new Date(doc.uploadedAt).toLocaleDateString(
                                   "ar-EG"
                                 )}
@@ -876,14 +880,14 @@ export default function UserProfile() {
                             <a
                               href={doc.url}
                               download
-                              className="p-2 hover:bg-blue-100 text-blue-600 rounded-lg transition"
+                              className="p-2 hover:bg-blue-900/30 text-blue-400 rounded-lg transition"
                               title="تحميل"
                             >
                               <Download className="w-5 h-5" />
                             </a>
                             <button
                               onClick={() => handleDeleteDocument(idx)}
-                              className="p-2 hover:bg-red-100 text-red-600 rounded-lg transition"
+                              className="p-2 hover:bg-red-900/30 text-red-400 rounded-lg transition"
                               title="حذف"
                             >
                               <Trash2 className="w-5 h-5" />
@@ -893,18 +897,18 @@ export default function UserProfile() {
                       ))}
                     </div>
                   ) : (
-                    <div className="text-center py-12 bg-gradient-to-br from-gray-50 to-blue-50 rounded-2xl border border-gray-100">
-                      <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                    <div className="text-center py-12 bg-gradient-to-br from-slate-800 to-slate-700 rounded-2xl border border-slate-600">
+                      <div className="w-16 h-16 mx-auto mb-4 bg-slate-700 rounded-full flex items-center justify-center">
                         <img
                           src={badgeIcon1}
                           alt=""
-                          className="w-8 h-8 opacity-70"
+                          className="w-8 h-8 opacity-50"
                         />
                       </div>
-                      <h4 className="text-lg font-medium text-gray-700 mb-2">
+                      <h4 className="text-lg font-medium text-slate-300 mb-2">
                         لا توجد مستندات
                       </h4>
-                      <p className="text-gray-500">ابدأ بتحميل مستند جديد</p>
+                      <p className="text-slate-500">ابدأ بتحميل مستند جديد</p>
                     </div>
                   )}
                 </>

@@ -19,10 +19,10 @@ const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"];
 
 function StatCard({ title, value, sub }) {
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
-      <div className="text-sm text-gray-500">{title}</div>
-      <div className="text-2xl font-bold text-gray-900 mt-1">{value}</div>
-      {sub ? <div className="text-xs text-gray-500 mt-1">{sub}</div> : null}
+    <div className="bg-slate-800 rounded-xl border border-slate-700 p-4 shadow-sm">
+      <div className="text-sm text-slate-400">{title}</div>
+      <div className="text-2xl font-bold text-slate-100 mt-1">{value}</div>
+      {sub ? <div className="text-xs text-slate-500 mt-1">{sub}</div> : null}
     </div>
   );
 }
@@ -272,21 +272,21 @@ function Reports() {
 
   return (
     <div
-      className="p-4 md:p-6 bg-gradient-to-br from-slate-50 to-indigo-50 min-h-screen"
+      className="p-4 md:p-6 bg-slate-900 min-h-screen text-slate-100"
       dir="rtl"
     >
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">التقارير</h1>
-            <p className="text-sm text-gray-600 mt-1">
+            <h1 className="text-3xl font-bold text-slate-100">التقارير</h1>
+            <p className="text-sm text-slate-400 mt-1">
               استعراض بيانات الموظفين مع إحصائيات ورسوم بيانية.
             </p>
           </div>
           <div className="flex gap-2">
             <button
               onClick={() => setShowFilters((v) => !v)}
-              className="px-4 py-2 rounded-lg bg-white border border-gray-200 hover:bg-gray-50"
+              className="px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 hover:bg-slate-700 text-slate-200"
             >
               {showFilters ? "إخفاء الفلاتر" : "عرض الفلاتر"}
             </button>
@@ -316,9 +316,9 @@ function Reports() {
 
         {/* Filters */}
         {showFilters && (
-          <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+          <div className="bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-700">
             <div className="flex items-center justify-between gap-2 mb-4 flex-wrap">
-              <h2 className="text-lg font-semibold">الفلاتر</h2>
+              <h2 className="text-lg font-semibold text-slate-200">الفلاتر</h2>
               <div className="flex gap-2">
                 <button
                   onClick={applyFilters}
@@ -328,7 +328,7 @@ function Reports() {
                 </button>
                 <button
                   onClick={resetFilters}
-                  className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300"
+                  className="px-4 py-2 rounded-lg bg-slate-600 hover:bg-slate-500 text-white"
                 >
                   إعادة ضبط
                 </button>
@@ -341,7 +341,7 @@ function Reports() {
                 placeholder="البحث"
                 value={filters.search}
                 onChange={(e) => handleFilterChange("search", e.target.value)}
-                className="p-2 border rounded"
+                className="p-2 border border-slate-600 bg-slate-700 text-slate-100 rounded placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <input
                 type="text"
@@ -350,12 +350,12 @@ function Reports() {
                 onChange={(e) =>
                   handleFilterChange("governorate", e.target.value)
                 }
-                className="p-2 border rounded"
+                className="p-2 border border-slate-600 bg-slate-700 text-slate-100 rounded placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <select
                 value={filters.gender}
                 onChange={(e) => handleFilterChange("gender", e.target.value)}
-                className="p-2 border rounded"
+                className="p-2 border border-slate-600 bg-slate-700 text-slate-100 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">الجنس</option>
                 <option value="male">ذكر</option>
@@ -368,7 +368,7 @@ function Reports() {
                 onChange={(e) =>
                   handleFilterChange("nationality", e.target.value)
                 }
-                className="p-2 border rounded"
+                className="p-2 border border-slate-600 bg-slate-700 text-slate-100 rounded placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <input
                 type="text"
@@ -377,7 +377,7 @@ function Reports() {
                 onChange={(e) =>
                   handleFilterChange("currentJobTitle", e.target.value)
                 }
-                className="p-2 border rounded"
+                className="p-2 border border-slate-600 bg-slate-700 text-slate-100 rounded placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <input
                 type="text"
@@ -386,7 +386,7 @@ function Reports() {
                 onChange={(e) =>
                   handleFilterChange("university", e.target.value)
                 }
-                className="p-2 border rounded"
+                className="p-2 border border-slate-600 bg-slate-700 text-slate-100 rounded placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <input
                 type="text"
@@ -395,49 +395,49 @@ function Reports() {
                 onChange={(e) =>
                   handleFilterChange("workLocation", e.target.value)
                 }
-                className="p-2 border rounded"
+                className="p-2 border border-slate-600 bg-slate-700 text-slate-100 rounded placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <input
                 type="text"
                 placeholder="المستوى 1"
                 value={filters.level1}
                 onChange={(e) => handleFilterChange("level1", e.target.value)}
-                className="p-2 border rounded"
+                className="p-2 border border-slate-600 bg-slate-700 text-slate-100 rounded placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <input
                 type="text"
                 placeholder="المستوى 2"
                 value={filters.level2}
                 onChange={(e) => handleFilterChange("level2", e.target.value)}
-                className="p-2 border rounded"
+                className="p-2 border border-slate-600 bg-slate-700 text-slate-100 rounded placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <input
                 type="text"
                 placeholder="المستوى 3"
                 value={filters.level3}
                 onChange={(e) => handleFilterChange("level3", e.target.value)}
-                className="p-2 border rounded"
+                className="p-2 border border-slate-600 bg-slate-700 text-slate-100 rounded placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <input
                 type="text"
                 placeholder="المستوى 4"
                 value={filters.level4}
                 onChange={(e) => handleFilterChange("level4", e.target.value)}
-                className="p-2 border rounded"
+                className="p-2 border border-slate-600 bg-slate-700 text-slate-100 rounded placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <input
                 type="text"
                 placeholder="المستوى 5"
                 value={filters.level5}
                 onChange={(e) => handleFilterChange("level5", e.target.value)}
-                className="p-2 border rounded"
+                className="p-2 border border-slate-600 bg-slate-700 text-slate-100 rounded placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <input
                 type="text"
                 placeholder="المستوى 6"
                 value={filters.level6}
                 onChange={(e) => handleFilterChange("level6", e.target.value)}
-                className="p-2 border rounded"
+                className="p-2 border border-slate-600 bg-slate-700 text-slate-100 rounded placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <input
                 type="text"
@@ -446,7 +446,7 @@ function Reports() {
                 onChange={(e) =>
                   handleFilterChange("nationalId", e.target.value)
                 }
-                className="p-2 border rounded"
+                className="p-2 border border-slate-600 bg-slate-700 text-slate-100 rounded placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <input
                 type="text"
@@ -455,12 +455,12 @@ function Reports() {
                 onChange={(e) =>
                   handleFilterChange("jobCategory", e.target.value)
                 }
-                className="p-2 border rounded"
+                className="p-2 border border-slate-600 bg-slate-700 text-slate-100 rounded placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <select
                 value={filters.status}
                 onChange={(e) => handleFilterChange("status", e.target.value)}
-                className="p-2 border rounded"
+                className="p-2 border border-slate-600 bg-slate-700 text-slate-100 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">الحالة</option>
                 <option value="active">نشط</option>
@@ -471,14 +471,14 @@ function Reports() {
                 placeholder="الهاتف"
                 value={filters.phone}
                 onChange={(e) => handleFilterChange("phone", e.target.value)}
-                className="p-2 border rounded"
+                className="p-2 border border-slate-600 bg-slate-700 text-slate-100 rounded placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <select
                 value={filters.employmentType}
                 onChange={(e) =>
                   handleFilterChange("employmentType", e.target.value)
                 }
-                className="p-2 border rounded"
+                className="p-2 border border-slate-600 bg-slate-700 text-slate-100 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">نوع التوظيف</option>
                 <option value="full-time">دوام كامل</option>
@@ -492,14 +492,14 @@ function Reports() {
                 onChange={(e) =>
                   handleFilterChange("selfNumber", e.target.value)
                 }
-                className="p-2 border rounded"
+                className="p-2 border border-slate-600 bg-slate-700 text-slate-100 rounded placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <select
                 value={filters.maritalStatus}
                 onChange={(e) =>
                   handleFilterChange("maritalStatus", e.target.value)
                 }
-                className="p-2 border rounded"
+                className="p-2 border border-slate-600 bg-slate-700 text-slate-100 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">الحالة الاجتماعية</option>
                 <option value="single">أعزب</option>
@@ -514,21 +514,21 @@ function Reports() {
                 onChange={(e) =>
                   handleFilterChange("educationLevel", e.target.value)
                 }
-                className="p-2 border rounded"
+                className="p-2 border border-slate-600 bg-slate-700 text-slate-100 rounded placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <input
                 type="number"
                 placeholder="العمر الأدنى"
                 value={filters.ageMin}
                 onChange={(e) => handleFilterChange("ageMin", e.target.value)}
-                className="p-2 border rounded"
+                className="p-2 border border-slate-600 bg-slate-700 text-slate-100 rounded placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <input
                 type="number"
                 placeholder="العمر الأقصى"
                 value={filters.ageMax}
                 onChange={(e) => handleFilterChange("ageMax", e.target.value)}
-                className="p-2 border rounded"
+                className="p-2 border border-slate-600 bg-slate-700 text-slate-100 rounded placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <input
                 type="date"
@@ -537,7 +537,7 @@ function Reports() {
                 onChange={(e) =>
                   handleFilterChange("hiringDateFrom", e.target.value)
                 }
-                className="p-2 border rounded"
+                className="p-2 border border-slate-600 bg-slate-700 text-slate-100 rounded placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <input
                 type="date"
@@ -546,19 +546,19 @@ function Reports() {
                 onChange={(e) =>
                   handleFilterChange("hiringDateTo", e.target.value)
                 }
-                className="p-2 border rounded"
+                className="p-2 border border-slate-600 bg-slate-700 text-slate-100 rounded placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div className="mt-4 flex gap-2">
               <button
                 onClick={applyFilters}
-                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
               >
                 تطبيق الفلاتر
               </button>
               <button
                 onClick={resetFilters}
-                className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+                className="bg-slate-600 text-white px-4 py-2 rounded hover:bg-slate-500"
               >
                 إعادة تعيين
               </button>
@@ -568,27 +568,35 @@ function Reports() {
 
         <div className="sr-only">Statistics</div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white p-4 rounded-lg shadow">
-            <h3 className="text-lg font-semibold">إجمالي الموظفين</h3>
-            <p className="text-2xl font-bold text-blue-600">
+          <div className="bg-slate-800 p-4 rounded-lg shadow border border-slate-700">
+            <h3 className="text-lg font-semibold text-slate-200">
+              إجمالي الموظفين
+            </h3>
+            <p className="text-2xl font-bold text-blue-400">
               {statistics.totalEmployees || 0}
             </p>
           </div>
-          <div className="bg-white p-4 rounded-lg shadow">
-            <h3 className="text-lg font-semibold">الموظفين النشطين</h3>
-            <p className="text-2xl font-bold text-gray-700">
+          <div className="bg-slate-800 p-4 rounded-lg shadow border border-slate-700">
+            <h3 className="text-lg font-semibold text-slate-200">
+              الموظفين النشطين
+            </h3>
+            <p className="text-2xl font-bold text-slate-300">
               {statistics.activeEmployees || 0}
             </p>
           </div>
-          <div className="bg-white p-4 rounded-lg shadow">
-            <h3 className="text-lg font-semibold">متوسط العمر</h3>
-            <p className="text-2xl font-bold text-purple-600">
+          <div className="bg-slate-800 p-4 rounded-lg shadow border border-slate-700">
+            <h3 className="text-lg font-semibold text-slate-200">
+              متوسط العمر
+            </h3>
+            <p className="text-2xl font-bold text-purple-400">
               {statistics.averageAge || 0}
             </p>
           </div>
-          <div className="bg-white p-4 rounded-lg shadow">
-            <h3 className="text-lg font-semibold">عدد الأقسام</h3>
-            <p className="text-2xl font-bold text-orange-600">
+          <div className="bg-slate-800 p-4 rounded-lg shadow border border-slate-700">
+            <h3 className="text-lg font-semibold text-slate-200">
+              عدد الأقسام
+            </h3>
+            <p className="text-2xl font-bold text-orange-400">
               {statistics.totalDepartments || 0}
             </p>
           </div>
@@ -597,23 +605,34 @@ function Reports() {
         {/* Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           {/* Department Distribution */}
-          <div className="bg-white p-4 rounded-lg shadow">
-            <h3 className="text-xl font-semibold mb-4">توزيع الأقسام</h3>
+          <div className="bg-slate-800 p-4 rounded-lg shadow border border-slate-700">
+            <h3 className="text-xl font-semibold mb-4 text-slate-200">
+              توزيع الأقسام
+            </h3>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={statistics.departmentData || []}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
+                <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
+                <XAxis dataKey="name" stroke="#94a3b8" />
+                <YAxis stroke="#94a3b8" />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "#1e293b",
+                    borderColor: "#334155",
+                    color: "#f1f5f9",
+                  }}
+                  itemStyle={{ color: "#f1f5f9" }}
+                />
+                <Legend wrapperStyle={{ color: "#94a3b8" }} />
                 <Bar dataKey="count" fill="#8884d8" />
               </BarChart>
             </ResponsiveContainer>
           </div>
 
           {/* Gender Distribution */}
-          <div className="bg-white p-4 rounded-lg shadow">
-            <h3 className="text-xl font-semibold mb-4">توزيع الجنس</h3>
+          <div className="bg-slate-800 p-4 rounded-lg shadow border border-slate-700">
+            <h3 className="text-xl font-semibold mb-4 text-slate-200">
+              توزيع الجنس
+            </h3>
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
@@ -635,29 +654,47 @@ function Reports() {
                     />
                   ))}
                 </Pie>
-                <Tooltip />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "#1e293b",
+                    borderColor: "#334155",
+                    color: "#f1f5f9",
+                  }}
+                  itemStyle={{ color: "#f1f5f9" }}
+                />
               </PieChart>
             </ResponsiveContainer>
           </div>
 
           {/* Age Distribution */}
-          <div className="bg-white p-4 rounded-lg shadow">
-            <h3 className="text-xl font-semibold mb-4">توزيع الأعمار</h3>
+          <div className="bg-slate-800 p-4 rounded-lg shadow border border-slate-700">
+            <h3 className="text-xl font-semibold mb-4 text-slate-200">
+              توزيع الأعمار
+            </h3>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={statistics.ageData || []}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="age" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
+                <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
+                <XAxis dataKey="age" stroke="#94a3b8" />
+                <YAxis stroke="#94a3b8" />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "#1e293b",
+                    borderColor: "#334155",
+                    color: "#f1f5f9",
+                  }}
+                  itemStyle={{ color: "#f1f5f9" }}
+                />
+                <Legend wrapperStyle={{ color: "#94a3b8" }} />
                 <Bar dataKey="count" fill="#82ca9d" />
               </BarChart>
             </ResponsiveContainer>
           </div>
 
           {/* Employment Type Distribution */}
-          <div className="bg-white p-4 rounded-lg shadow">
-            <h3 className="text-xl font-semibold mb-4">توزيع نوع التوظيف</h3>
+          <div className="bg-slate-800 p-4 rounded-lg shadow border border-slate-700">
+            <h3 className="text-xl font-semibold mb-4 text-slate-200">
+              توزيع نوع التوظيف
+            </h3>
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
@@ -679,59 +716,100 @@ function Reports() {
                     />
                   ))}
                 </Pie>
-                <Tooltip />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "#1e293b",
+                    borderColor: "#334155",
+                    color: "#f1f5f9",
+                  }}
+                  itemStyle={{ color: "#f1f5f9" }}
+                />
               </PieChart>
             </ResponsiveContainer>
           </div>
 
           {/* Job Category Distribution */}
-          <div className="bg-white p-4 rounded-lg shadow">
-            <h3 className="text-xl font-semibold mb-4">توزيع فئات الوظائف</h3>
+          <div className="bg-slate-800 p-4 rounded-lg shadow border border-slate-700">
+            <h3 className="text-xl font-semibold mb-4 text-slate-200">
+              توزيع فئات الوظائف
+            </h3>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={statistics.jobCategoryData || []}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
+                <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
+                <XAxis dataKey="name" stroke="#94a3b8" />
+                <YAxis stroke="#94a3b8" />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "#1e293b",
+                    borderColor: "#334155",
+                    color: "#f1f5f9",
+                  }}
+                  itemStyle={{ color: "#f1f5f9" }}
+                />
+                <Legend wrapperStyle={{ color: "#94a3b8" }} />
                 <Bar dataKey="count" fill="#ffc658" />
               </BarChart>
             </ResponsiveContainer>
           </div>
 
           {/* Department Distribution */}
-          <div className="bg-white p-4 rounded-lg shadow md:col-span-2 lg:col-span-3">
-            <h3 className="text-xl font-semibold mb-4">توزيع الأقسام</h3>
+          <div className="bg-slate-800 p-4 rounded-lg shadow border border-slate-700 md:col-span-2 lg:col-span-3">
+            <h3 className="text-xl font-semibold mb-4 text-slate-200">
+              توزيع الأقسام
+            </h3>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={statistics.departmentData || []}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
+                <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
+                <XAxis dataKey="name" stroke="#94a3b8" />
+                <YAxis stroke="#94a3b8" />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "#1e293b",
+                    borderColor: "#334155",
+                    color: "#f1f5f9",
+                  }}
+                  itemStyle={{ color: "#f1f5f9" }}
+                />
+                <Legend wrapperStyle={{ color: "#94a3b8" }} />
                 <Bar dataKey="count" fill="#8884d8" />
               </BarChart>
             </ResponsiveContainer>
           </div>
 
           {/* Education Level Distribution */}
-          <div className="bg-white p-4 rounded-lg shadow">
-            <h3 className="text-xl font-semibold mb-4">المستوى التعليمي</h3>
+          <div className="bg-slate-800 p-4 rounded-lg shadow border border-slate-700">
+            <h3 className="text-xl font-semibold mb-4 text-slate-200">
+              المستوى التعليمي
+            </h3>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={statistics.educationData || []} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis type="number" />
-                <YAxis dataKey="name" type="category" width={100} />
-                <Tooltip />
-                <Legend />
+                <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
+                <XAxis type="number" stroke="#94a3b8" />
+                <YAxis
+                  dataKey="name"
+                  type="category"
+                  width={100}
+                  stroke="#94a3b8"
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "#1e293b",
+                    borderColor: "#334155",
+                    color: "#f1f5f9",
+                  }}
+                  itemStyle={{ color: "#f1f5f9" }}
+                />
+                <Legend wrapperStyle={{ color: "#94a3b8" }} />
                 <Bar dataKey="count" fill="#00C49F" />
               </BarChart>
             </ResponsiveContainer>
           </div>
 
           {/* Marital Status Distribution */}
-          <div className="bg-white p-4 rounded-lg shadow">
-            <h3 className="text-xl font-semibold mb-4">الحالة الاجتماعية</h3>
+          <div className="bg-slate-800 p-4 rounded-lg shadow border border-slate-700">
+            <h3 className="text-xl font-semibold mb-4 text-slate-200">
+              الحالة الاجتماعية
+            </h3>
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
@@ -753,25 +831,34 @@ function Reports() {
                     />
                   ))}
                 </Pie>
-                <Tooltip />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "#1e293b",
+                    borderColor: "#334155",
+                    color: "#f1f5f9",
+                  }}
+                  itemStyle={{ color: "#f1f5f9" }}
+                />
               </PieChart>
             </ResponsiveContainer>
           </div>
         </div>
 
         {/* Actions & Archive */}
-        <div className="bg-white p-4 rounded-lg shadow mb-6">
-          <h3 className="text-xl font-semibold mb-4">الإجراءات</h3>
+        <div className="bg-slate-800 p-4 rounded-lg shadow mb-6 border border-slate-700">
+          <h3 className="text-xl font-semibold mb-4 text-slate-200">
+            الإجراءات
+          </h3>
           <div className="flex gap-4 mb-4">
             <button
               onClick={exportToExcel}
-              className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+              className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
             >
               تصدير إلى Excel
             </button>
             <button
               onClick={() => setShowArchive(!showArchive)}
-              className="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600"
+              className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700"
             >
               {showArchive ? "إخفاء الأرشيف" : "عرض الأرشيف"}
             </button>
@@ -783,18 +870,18 @@ function Reports() {
               placeholder="اسم التقرير"
               value={reportName}
               onChange={(e) => setReportName(e.target.value)}
-              className="p-2 border rounded"
+              className="p-2 border border-slate-600 bg-slate-700 text-slate-100 rounded placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <input
               type="text"
               placeholder="وصف التقرير"
               value={reportDescription}
               onChange={(e) => setReportDescription(e.target.value)}
-              className="p-2 border rounded"
+              className="p-2 border border-slate-600 bg-slate-700 text-slate-100 rounded placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <button
               onClick={saveReport}
-              className="bg-governmentGrey-500 text-white px-4 py-2 rounded hover:bg-governmentGrey-600"
+              className="bg-slate-600 text-white px-4 py-2 rounded hover:bg-slate-500"
             >
               حفظ التقرير
             </button>
@@ -805,17 +892,19 @@ function Reports() {
               {archivedReports.map((report, index) => (
                 <div
                   key={index}
-                  className="flex justify-between items-center p-2 border rounded"
+                  className="flex justify-between items-center p-2 border border-slate-600 rounded bg-slate-700/30"
                 >
                   <div>
-                    <p className="font-semibold">{report.name}</p>
-                    <p className="text-sm text-gray-600">
+                    <p className="font-semibold text-slate-200">
+                      {report.name}
+                    </p>
+                    <p className="text-sm text-slate-400">
                       {report.description}
                     </p>
                   </div>
                   <button
                     onClick={() => loadReport(report)}
-                    className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
+                    className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
                   >
                     تحميل
                   </button>
@@ -826,47 +915,56 @@ function Reports() {
         </div>
 
         {/* Data Table */}
-        <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+        <div className="bg-slate-800 rounded-xl border border-slate-700 p-4 shadow-sm">
           <div className="flex items-center justify-between gap-3 flex-wrap">
-            <h3 className="font-semibold text-gray-800">النتائج</h3>
-            <div className="text-sm text-gray-600">
+            <h3 className="font-semibold text-slate-200">النتائج</h3>
+            <div className="text-sm text-slate-400">
               {loading ? "جاري التحميل..." : `عدد النتائج: ${total}`}
             </div>
           </div>
 
           <div className="mt-3 overflow-x-auto">
-            <table className="min-w-full text-sm">
-              <thead className="bg-gray-50">
+            <table className="min-w-full text-sm text-right">
+              <thead className="bg-slate-700 text-slate-200">
                 <tr>
-                  <th className="p-2 text-right">الاسم</th>
-                  <th className="p-2 text-right">القسم</th>
-                  <th className="p-2 text-right">الجنس</th>
-                  <th className="p-2 text-right">الهاتف</th>
-                  <th className="p-2 text-right">الوظيفة</th>
+                  <th className="p-2">الاسم</th>
+                  <th className="p-2">القسم</th>
+                  <th className="p-2">الجنس</th>
+                  <th className="p-2">الهاتف</th>
+                  <th className="p-2">الوظيفة</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-slate-700">
                 {loading ? (
                   <tr>
-                    <td colSpan={5} className="p-4 text-center text-gray-500">
+                    <td colSpan={5} className="p-4 text-center text-slate-500">
                       جاري التحميل...
                     </td>
                   </tr>
                 ) : data?.length ? (
                   data.map((emp) => (
-                    <tr key={emp._id} className="border-t hover:bg-gray-50">
-                      <td className="p-2 font-medium text-gray-900">
+                    <tr
+                      key={emp._id}
+                      className="hover:bg-slate-700/50 transition-colors"
+                    >
+                      <td className="p-2 font-medium text-slate-200">
                         {emp.fullName || "-"}
                       </td>
-                      <td className="p-2">{emp.level4 || "-"}</td>
-                      <td className="p-2">{normalizeLabel(emp.gender)}</td>
-                      <td className="p-2">{emp.phone || "-"}</td>
-                      <td className="p-2">{emp.currentJobTitle || "-"}</td>
+                      <td className="p-2 text-slate-300">
+                        {emp.level4 || "-"}
+                      </td>
+                      <td className="p-2 text-slate-300">
+                        {normalizeLabel(emp.gender)}
+                      </td>
+                      <td className="p-2 text-slate-300">{emp.phone || "-"}</td>
+                      <td className="p-2 text-slate-300">
+                        {emp.currentJobTitle || "-"}
+                      </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={5} className="p-4 text-center text-gray-500">
+                    <td colSpan={5} className="p-4 text-center text-slate-500">
                       لا توجد نتائج
                     </td>
                   </tr>

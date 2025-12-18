@@ -142,10 +142,18 @@ export default function ViewerHome() {
         });
 
         newSocket.on("personal_notification", (data) => {
+          const currentUserId = localStorage.getItem("userId");
+          if (currentUserId && data?.userId && data.userId !== currentUserId) {
+            return;
+          }
           setNotifications((prev) => [data, ...prev].slice(0, 15));
         });
 
         newSocket.on("notification", (data) => {
+          const currentUserId = localStorage.getItem("userId");
+          if (currentUserId && data?.userId && data.userId !== currentUserId) {
+            return;
+          }
           setNotifications((prev) => [data, ...prev].slice(0, 15));
         });
 

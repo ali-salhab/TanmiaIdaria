@@ -1,5 +1,5 @@
 // src/pages/PermissionsPage.jsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import API from "../../api/api";
 import { toast } from "react-hot-toast";
 
@@ -12,6 +12,16 @@ export default function PermissionsPage() {
     description: "",
     category: "view",
   });
+
+  const groupedPermissions = useMemo(() => {
+    const groups = {};
+    permissions.forEach((p) => {
+      const cat = p.category || "Other";
+      if (!groups[cat]) groups[cat] = [];
+      groups[cat].push(p);
+    });
+    return groups;
+  }, [permissions]);
 
   useEffect(() => {
     loadPermissions();
@@ -111,19 +121,32 @@ export default function PermissionsPage() {
         {loading ? (
           <div className="text-slate-400">جاري التحميل...</div>
         ) : (
-          <div className="grid gap-2">
-            {permissions.map((p) => (
-              <div
-                key={p._id}
-                className="flex items-center justify-between border border-slate-600 rounded px-3 py-2 bg-slate-700/30 hover:bg-slate-700/50 transition-colors"
-              >
-                <div>
-                  <div className="font-medium text-slate-200">{p.label}</div>
-                  <div className="text-xs text-slate-400">
-                    {p.key} • {p.category}
-                  </div>
+          <div className="space-y-6">
+            {Object.entries(groupedPermissions).map(([category, perms]) => (
+              <div key={category}>
+                <h4 className="text-lg font-bold text-slate-300 mb-3 capitalize border-b border-slate-600 pb-2">
+                  {category}
+                </h4>
+                <div className="grid gap-2 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+                  {perms.map((p) => (
+                    <div
+                      key={p._id}
+                      className="flex flex-col justify-between border border-slate-600 rounded px-3 py-2 bg-slate-700/30 hover:bg-slate-700/50 transition-colors"
+                    >
+                      <div>
+                        <div className="font-medium text-slate-200">
+                          {p.label}
+                        </div>
+                        <div className="text-xs text-slate-400 font-mono mt-1">
+                          {p.key}
+                        </div>
+                      </div>
+                      <div className="text-sm text-slate-400 mt-2 border-t border-slate-600/50 pt-2">
+                        {p.description}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <div className="text-sm text-slate-400">{p.description}</div>
               </div>
             ))}
             {permissions.length === 0 && (

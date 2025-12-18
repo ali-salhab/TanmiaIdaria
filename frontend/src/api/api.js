@@ -1,11 +1,11 @@
 import axios from "axios";
 
 const API = axios.create({
-  // Default backend is 5001 (see `backend/.env` and `backend/server.js`)
-  // When running on LAN (e.g. http://12.0.0.170:5173), prefer same-host backend.
-  baseURL:
-    import.meta.env.VITE_API_URL ||
-    `http://${window.location.hostname}:5001/api`,
+  // Prefer explicit VITE_API_URL in production/dev env.
+  // When not provided during local dev, use a relative `/api` path so
+  // Vite's dev server proxy can forward requests to the backend and
+  // avoid CORS/credentials issues.
+  baseURL: import.meta.env.VITE_API_URL || `/api`,
   withCredentials: true,
 });
 

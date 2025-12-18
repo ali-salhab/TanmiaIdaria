@@ -27,6 +27,12 @@ const permissions = [
   "incidents.delete",
   "incidents.export",
 
+  // Complaints
+  "complaints.view",
+  "complaints.create",
+  "complaints.edit",
+  "complaints.delete",
+
   // Vacations
   "vacations.view",
   "vacations.create",
@@ -44,7 +50,7 @@ const permissions = [
   "fileshare.send",
   "fileshare.view_inbox",
   "fileshare.read",
-  
+
   // Dywan
   "dywan.receive_files",
 

@@ -11,6 +11,13 @@ router.use(protect);
 // Get report data with statistics
 router.get("/data", checkPermission("reports.view"), reportCtrl.getReportData);
 
+// Export report to Word
+router.get(
+  "/export/word",
+  checkPermission("reports.export"),
+  reportCtrl.exportReportToWord
+);
+
 // Archive management
 router.post(
   "/archive",

@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import DropdownWithSettings from "../components/DropdownWithSettings";
 import API from "../api/api";
 import toast from "react-hot-toast";
-import { Download, Printer } from "lucide-react";
+import { Download, Printer, Trash2 } from "lucide-react";
 import { checkPermission } from "../utils/permissionHelper";
 
 export default function EmployeeVacations() {
@@ -19,6 +19,7 @@ export default function EmployeeVacations() {
     type: "",
     days: "",
     hours: "",
+    endHour: "",
     childOrder: "",
     startDate: "",
     endDate: "",
@@ -219,6 +220,20 @@ export default function EmployeeVacations() {
     }
   };
 
+  const handleDelete = async (vacationId) => {
+    if (!window.confirm("هل أنت متأكد من حذف هذه الإجازة؟")) return;
+    try {
+      await API.delete(`/vacations/${vacationId}`);
+      setVacations(
+        vacations.filter((v) => v._id !== vacationId && v.id !== vacationId)
+      );
+      toast.success("تم الحذف بنجاح");
+    } catch (err) {
+      console.error(err);
+      toast.error("فشل الحذف");
+    }
+  };
+
   const handleExportWord = async () => {
     try {
       const response = await API.get(`/employees/${id}/vacations/export/word`, {
@@ -260,6 +275,43 @@ export default function EmployeeVacations() {
     } catch (error) {
       console.error(error);
       toast.error("فشل تحميل الاستمارة");
+    }
+  };
+
+  const handleDownloadPDF = async (vacationId) => {
+    try {
+      const response = await API.get(`/vacations/${vacationId}/pdf`, {
+        responseType: "blob",
+      });
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `vacation-${vacationId}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      toast.success("تم تحميل ملف PDF بنجاح");
+    } catch (error) {
+      console.error(error);
+      toast.error("فشل تحميل ملف PDF");
+    }
+  };
+
+  const handlePrintPDF = async (vacationId) => {
+    try {
+      const response = await API.get(`/vacations/${vacationId}/pdf`, {
+        responseType: "blob",
+      });
+      const url = window.URL.createObjectURL(
+        new Blob([response.data], { type: "application/pdf" })
+      );
+      window.open(url, "_blank");
+    } catch (error) {
+      console.error(error);
+      toast.error("فشل فتح ملف الطباعة");
     }
   };
 
@@ -405,76 +457,19 @@ export default function EmployeeVacations() {
     printWindow.document.close();
   };
 
-  const handlePrintCircular = () => {
-    const printWindow = window.open("", "_blank");
-    const remaining = getRemainingDays();
-
-    const htmlContent = `
-      <html dir="rtl">
-        <head>
-          <title>بيان إجازات موظف</title>
-          <style>
-            body { font-family: 'Arial', sans-serif; padding: 20px; }
-            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-            th, td { border: 1px solid #000; padding: 8px; text-align: center; }
-            th { background-color: #f0f0f0; }
-            .header { text-align: center; margin-bottom: 30px; }
-            .summary { margin-top: 20px; border: 1px solid #000; padding: 10px; }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <h2>الجمهورية العربية السورية</h2>
-            <h3>وزارة التنمية الإدارية</h3>
-            <h1>بيان وضع إجازات</h1>
-          </div>
-          
-          <div class="summary">
-            <p><strong>اسم الموظف:</strong> ${employee?.fullName || ""}</p>
-            <p><strong>الرصيد الإداري المتبقي:</strong> ${
-              remaining.admin
-            } يوم</p>
-            <p><strong>الرصيد الصحي المتبقي:</strong> ${
-              remaining.health
-            } يوم</p>
-          </div>
-
-          <table>
-            <thead>
-              <tr>
-                <th>نوع الإجازة</th>
-                <th>المدة (أيام)</th>
-                <th>تاريخ البدء</th>
-                <th>ملاحظات</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${vacations
-                .map(
-                  (v) => `
-                <tr>
-                  <td>${v.type}</td>
-                  <td>${v.days}</td>
-                  <td>${new Date(v.startDate).toLocaleDateString("ar-SY")}</td>
-                  <td>${v.notes || "-"}</td>
-                </tr>
-              `
-                )
-                .join("")}
-            </tbody>
-          </table>
-          
-          <div style="margin-top: 50px; display: flex; justify-content: space-between;">
-            <div>توقيع الموظف المختص</div>
-            <div>توقيع المدير المباشر</div>
-          </div>
-        </body>
-      </html>
-    `;
-
-    printWindow.document.write(htmlContent);
-    printWindow.document.close();
-    printWindow.print();
+  const handlePrintCircular = async () => {
+    try {
+      const response = await API.get(`/employees/${id}/vacations/statement`, {
+        responseType: "blob",
+      });
+      const url = window.URL.createObjectURL(
+        new Blob([response.data], { type: "application/pdf" })
+      );
+      window.open(url, "_blank");
+    } catch (error) {
+      console.error(error);
+      toast.error("فشل إنشاء بيان الإجازات");
+    }
   };
 
   const handlePrint = () => {
@@ -560,51 +555,51 @@ export default function EmployeeVacations() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div className="bg-white rounded-lg shadow border-r-4 border-purple-500">
+        <div className="bg-slate-800 rounded-lg shadow border-r-4 border-purple-500">
           <div className="p-4">
-            <h3 className="text-gray-500 text-sm font-medium">
+            <h3 className="text-slate-400 text-sm font-medium">
               معلومات الخدمة
             </h3>
-            <p className="text-sm text-gray-800 mt-2">
+            <p className="text-sm text-slate-200 mt-2">
               <strong>تاريخ التعيين:</strong>{" "}
               {employee?.hiringDate
                 ? new Date(employee.hiringDate).toLocaleDateString("ar-SY")
                 : "تاريخ التعيين غير متوفر"}
             </p>
-            <p className="text-sm text-gray-800">
+            <p className="text-sm text-slate-200">
               <strong>سنوات الخدمة:</strong> {getServiceYears()} سنة
             </p>
-            <p className="text-sm text-gray-800">
+            <p className="text-sm text-slate-200">
               <strong>الاستحقاق السنوي:</strong>{" "}
               {getRemainingDays().entitlement} يوم
             </p>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow border-r-4 border-blue-500">
+        <div className="bg-slate-800 rounded-lg shadow border-r-4 border-blue-500">
           <div className="p-4">
-            <h3 className="text-gray-500 text-sm font-medium">
+            <h3 className="text-slate-400 text-sm font-medium">
               الرصيد الإداري المتبقي
             </h3>
-            <p className="text-2xl font-bold text-gray-800">
+            <p className="text-2xl font-bold text-slate-100">
               {getRemainingDays().admin} يوم
             </p>
-            <p className="text-xs text-gray-400 mt-1">
+            <p className="text-xs text-slate-500 mt-1">
               تم استخدام {getRemainingDays().adminTaken} يوم إداري +{" "}
               {getRemainingDays().hourlyDays} يوم (من{" "}
               {getRemainingDays().hourlyTaken} ساعة)
             </p>
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow border-r-4 border-green-500">
+        <div className="bg-slate-800 rounded-lg shadow border-r-4 border-green-500">
           <div className="p-4">
-            <h3 className="text-gray-500 text-sm font-medium">
+            <h3 className="text-slate-400 text-sm font-medium">
               الرصيد الصحي المتبقي
             </h3>
-            <p className="text-2xl font-bold text-gray-800">
+            <p className="text-2xl font-bold text-slate-100">
               {getRemainingDays().health} يوم
             </p>
-            <p className="text-xs text-gray-400 mt-1">من أصل 180 يوم</p>
+            <p className="text-xs text-slate-500 mt-1">من أصل 180 يوم</p>
           </div>
         </div>
       </div>
@@ -657,6 +652,22 @@ export default function EmployeeVacations() {
                       </button>
                     )}
                     <button
+                      onClick={() => handlePrintPDF(v._id || v.id)}
+                      className="bg-orange-600 text-white px-3 py-1 rounded hover:bg-orange-700 ml-2 transition flex items-center gap-1 text-sm"
+                      title="طباعة مباشرة"
+                    >
+                      <Printer size={14} />
+                      طباعة PDF
+                    </button>
+                    <button
+                      onClick={() => handleDownloadPDF(v._id || v.id)}
+                      className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 ml-2 transition flex items-center gap-1 text-sm"
+                      title="تحميل PDF"
+                    >
+                      <Download size={14} />
+                      PDF
+                    </button>
+                    <button
                       onClick={() => handleDownloadTemplate(v.id)}
                       className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 ml-2 transition flex items-center gap-1 text-sm"
                       title="تحميل استمارة الإجازة"
@@ -670,6 +681,16 @@ export default function EmployeeVacations() {
                     >
                       تعديل
                     </button>
+                    {checkPermission("vacations.delete", user) && (
+                      <button
+                        onClick={() => handleDelete(v._id || v.id)}
+                        className="bg-red-800 text-white px-3 py-1 rounded hover:bg-red-900 ml-2 transition flex items-center gap-1 text-sm"
+                        title="حذف"
+                      >
+                        <Trash2 size={14} />
+                        حذف
+                      </button>
+                    )}
                   </div>
                 </td>
               </tr>
@@ -734,41 +755,54 @@ export default function EmployeeVacations() {
 
               {/* إجازة ساعية → عدد الساعات */}
               {formData.type === "إجازة ساعية" && (
-                <div>
-                  <label className="block mb-1 font-medium text-slate-300">
-                    عدد الساعات
-                  </label>
-                  <input
-                    type="number"
-                    name="hours"
-                    value={formData.hours}
-                    onChange={handleChange}
-                    className="border border-slate-600 bg-slate-900 text-slate-100 p-2 w-full rounded focus:outline-none focus:border-blue-500"
-                    placeholder="أدخل عدد الساعات"
-                  />
-                  <p className="text-sm text-slate-500 mt-1">
-                    كل 8 ساعات = يوم واحد
-                  </p>
-                </div>
+                <>
+                  <div>
+                    <label className="block mb-1 font-medium text-slate-300">
+                      عدد الساعات
+                    </label>
+                    <input
+                      type="number"
+                      name="hours"
+                      value={formData.hours}
+                      onChange={handleChange}
+                      className="border border-slate-600 bg-slate-900 text-slate-100 p-2 w-full rounded focus:outline-none focus:border-blue-500"
+                      placeholder="أدخل عدد الساعات"
+                    />
+                    <p className="text-sm text-slate-500 mt-1">
+                      كل 8 ساعات = يوم واحد
+                    </p>
+                  </div>
+                  <div>
+                    <label className="block mb-1 font-medium text-slate-300">
+                      ساعة النهاية
+                    </label>
+                    <input
+                      type="time"
+                      name="endHour"
+                      value={formData.endHour}
+                      onChange={handleChange}
+                      className="border border-slate-600 bg-slate-900 text-slate-100 p-2 w-full rounded focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+                </>
               )}
 
               {/* عدد الأيام */}
-              <div>
-                <label className="block mb-1 font-medium text-slate-300">
-                  عدد الأيام
-                </label>
-                <input
-                  type="number"
-                  name="days"
-                  value={formData.days}
-                  onChange={handleChange}
-                  className="border border-slate-600 bg-slate-900 text-slate-100 p-2 w-full rounded focus:outline-none focus:border-blue-500"
-                  readOnly={
-                    formData.type === "إجازة أمومة" ||
-                    formData.type === "إجازة ساعية"
-                  }
-                />
-              </div>
+              {formData.type !== "إجازة ساعية" && (
+                <div>
+                  <label className="block mb-1 font-medium text-slate-300">
+                    عدد الأيام
+                  </label>
+                  <input
+                    type="number"
+                    name="days"
+                    value={formData.days}
+                    onChange={handleChange}
+                    className="border border-slate-600 bg-slate-900 text-slate-100 p-2 w-full rounded focus:outline-none focus:border-blue-500"
+                    readOnly={formData.type === "إجازة أمومة"}
+                  />
+                </div>
+              )}
 
               {/* تاريخ البداية */}
               <div>
@@ -785,18 +819,20 @@ export default function EmployeeVacations() {
               </div>
 
               {/* تاريخ النهاية */}
-              <div>
-                <label className="block mb-1 font-medium text-slate-300">
-                  تاريخ النهاية
-                </label>
-                <input
-                  type="date"
-                  name="endDate"
-                  value={formData.endDate || ""}
-                  onChange={handleChange}
-                  className="border border-slate-600 bg-slate-900 text-slate-100 p-2 w-full rounded focus:outline-none focus:border-blue-500"
-                />
-              </div>
+              {formData.type !== "إجازة ساعية" && (
+                <div>
+                  <label className="block mb-1 font-medium text-slate-300">
+                    تاريخ النهاية
+                  </label>
+                  <input
+                    type="date"
+                    name="endDate"
+                    value={formData.endDate || ""}
+                    onChange={handleChange}
+                    className="border border-slate-600 bg-slate-900 text-slate-100 p-2 w-full rounded focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+              )}
 
               <div className="flex justify-between mt-4">
                 <button

@@ -1,8 +1,14 @@
 import mongoose from "mongoose";
 import Permission from "../models/Permission.js";
 import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
 
-dotenv.config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Load .env from backend root
+dotenv.config({ path: path.join(__dirname, "../.env") });
 
 /**
  * Modern Permission System Seeder
@@ -551,6 +557,105 @@ const permissionsConfig = [
       {
         key: "archive.view",
         label: "عرض الأرشيف",
+        description: "الوصول إلى نظام الأرشيف",
+      },
+      {
+        key: "archive.create",
+        label: "إضافة للأرشيف",
+        description: "إضافة ملفات للأرشيف",
+      },
+      {
+        key: "archive.edit",
+        label: "تعديل الأرشيف",
+        description: "تعديل ملفات الأرشيف",
+      },
+      {
+        key: "archive.delete",
+        label: "حذف من الأرشيف",
+        description: "حذف ملفات من الأرشيف",
+      },
+    ],
+  },
+
+  // ============ DYWAN MODULE ============
+  {
+    category: "dywan",
+    label: "الديوان",
+    permissions: [
+      {
+        key: "dywan.view",
+        label: "عرض الديوان",
+        description: "الوصول إلى صفحة الديوان",
+      },
+      {
+        key: "dywan.create",
+        label: "إضافة مستند",
+        description: "إضافة مستند جديد في الديوان",
+      },
+      {
+        key: "dywan.edit",
+        label: "تعديل مستند",
+        description: "تعديل مستند في الديوان",
+      },
+      {
+        key: "dywan.delete",
+        label: "حذف مستند",
+        description: "حذف مستند من الديوان",
+      },
+      {
+        key: "dywan.export",
+        label: "تصدير/تحميل",
+        description: "تحميل المستندات من الديوان",
+      },
+    ],
+  },
+
+  // ============ FILE SHARING MODULE ============
+  {
+    category: "file_sharing",
+    label: "مشاركة الملفات",
+    permissions: [
+      {
+        key: "file_sharing.view_received",
+        label: "عرض الوارد",
+        description: "عرض الملفات الواردة",
+      },
+      {
+        key: "file_sharing.view_sent",
+        label: "عرض الصادر",
+        description: "عرض الملفات الصادرة",
+      },
+      {
+        key: "file_sharing.upload",
+        label: "مشاركة ملف",
+        description: "إرسال/مشاركة ملف جديد",
+      },
+      {
+        key: "file_sharing.delete",
+        label: "حذف مشاركة",
+        description: "حذف ملف مشارك",
+      },
+      {
+        key: "file_sharing.download",
+        label: "تحميل ملف",
+        description: "تحميل الملفات المشاركة",
+      },
+      {
+        key: "file_sharing.dywan_access",
+        label: "وصول الديوان",
+        description: "صلاحية الظهور في قائمة مستلمي الديوان",
+      },
+    ],
+  },
+
+  // ============ ARCHIVE MODULE ============
+  {
+    category: "archive",
+    label: "الأرشيف",
+    permissions: [
+      {
+        key: "archive.view",
+        label: "عرض الأرشيف",
         description: "عرض الملفات المؤرشفة",
       },
       {
@@ -574,9 +679,12 @@ const permissionsConfig = [
 
 const seedPermissions = async () => {
   try {
-    await mongoose.connect(
-      process.env.MONGODB_URI || "mongodb://localhost:27017/tanmia"
-    );
+    const uri =
+      process.env.MONGO_URI ||
+      process.env.MONGODB_URI ||
+      "mongodb://localhost:27017/Emp";
+    console.log("Connecting to:", uri);
+    await mongoose.connect(uri);
     console.log("✅ Connected to MongoDB");
 
     // Clear existing permissions

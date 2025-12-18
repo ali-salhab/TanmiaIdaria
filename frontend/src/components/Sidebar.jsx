@@ -23,6 +23,7 @@ export default function Sidebar({ onLogout, isOpen, onClose }) {
   const [showNotifications, setShowNotifications] = useState(false);
   const { socket } = useSocket();
   const { user } = useAuth();
+  const userId = user?._id;
 
   useEffect(() => {
     if (!socket) return;
@@ -32,6 +33,9 @@ export default function Sidebar({ onLogout, isOpen, onClose }) {
     });
 
     socket.on("notification", (notification) => {
+      if (userId && notification?.userId && notification.userId !== userId) {
+        return;
+      }
       setNotifications((prev) => [notification, ...prev].slice(0, 10));
     });
 
@@ -39,14 +43,28 @@ export default function Sidebar({ onLogout, isOpen, onClose }) {
       socket.off("online_users");
       socket.off("notification");
     };
-  }, [socket]);
+  }, [socket, userId]);
+
+  useEffect(() => {
+    if (!userId) return;
+    setNotifications((prev) =>
+      prev.filter((notification) => {
+        if (!notification?.userId) return false;
+        return notification.userId === userId;
+      })
+    );
+  }, [userId]);
 
   const menuItems = [
     { label: "📋 الموظفين", to: "/dashboard/employees" },
     { label: "📤 قاعدة البيانات", to: "/dashboard/upload" },
     { label: "🎨 تخصيص الصفحة الرئيسية", to: "/dashboard/homepage-builder" },
     { label: "📃 الديوان", to: "/dashboard/dywan", permission: "dywan.view" },
-    { label: "🖨️ الأرشيف", to: "/dashboard/archive" },
+    {
+      label: "🖨️ الأرشيف",
+      to: "/dashboard/archive",
+      permission: "archive.view",
+    },
     { label: "reports", to: "/dashboard/reports", permission: "reports.view" },
   ];
 

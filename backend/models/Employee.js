@@ -56,6 +56,7 @@ const employeeSchema = new mongoose.Schema(
     workLocation: String,
     onStaff: Boolean,
     lastSalary: Number,
+    administrativeLeaveBalance: { type: Number, default: 0 }, // رصيد الإجازات الإدارية
     documents: [
       {
         path: { type: String, required: true },

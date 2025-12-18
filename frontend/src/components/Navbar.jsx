@@ -39,6 +39,7 @@ export default function Navbar({
   const [isFlipping, setIsFlipping] = useState(false);
   const { socket } = useSocket();
   const isAdmin = userInfo?.role === "admin";
+  const userId = userInfo?._id;
 
   const handleNotificationClick = async () => {
     try {
@@ -88,6 +89,10 @@ export default function Navbar({
     if (!socket) return;
 
     const handleNotification = (notification) => {
+      const targetId = notification?.userId;
+      if (userId && targetId && targetId !== userId) {
+        return;
+      }
       setNotifications((prev) => [notification, ...prev].slice(0, 15));
       playNotification();
     };
@@ -121,7 +126,17 @@ export default function Navbar({
       socket.off("notification", handleNotification);
       socket.off("permission_update", handlePermissionUpdate);
     };
-  }, [socket, playNotification]);
+  }, [socket, playNotification, userId]);
+
+  useEffect(() => {
+    if (!userId) return;
+    setNotifications((prev) =>
+      prev.filter((notification) => {
+        if (!notification?.userId) return false;
+        return notification.userId === userId;
+      })
+    );
+  }, [userId]);
 
   return (
     <>

@@ -101,6 +101,70 @@ const permissionGroupsConfig = [
     ],
   },
   {
+    name: "Dywan Manager",
+    nameAr: "مدير الديوان",
+    description: "صلاحيات كاملة لإدارة الديوان والمراسلات",
+    permissionKeys: [
+      // Dywan
+      "dywan.view",
+      "dywan.create",
+      "dywan.edit",
+      "dywan.delete",
+      "dywan.export",
+      // File Sharing
+      "file_sharing.view_received",
+      "file_sharing.view_sent",
+      "file_sharing.upload",
+      "file_sharing.delete",
+      "file_sharing.download",
+      "file_sharing.dywan_access",
+      // Dashboard
+      "dashboard.view",
+      "notifications.view",
+      "notifications.mark_read",
+    ],
+  },
+  {
+    name: "Archive Manager",
+    nameAr: "مدير الأرشيف",
+    description: "صلاحيات كاملة لإدارة الأرشيف",
+    permissionKeys: [
+      // Archive
+      "archive.view",
+      "archive.add",
+      "archive.restore",
+      "archive.delete",
+      // File Sharing (View only)
+      "file_sharing.view_received",
+      "file_sharing.view_sent",
+      "file_sharing.download",
+      // Dashboard
+      "dashboard.view",
+      "notifications.view",
+      "notifications.mark_read",
+    ],
+  },
+  {
+    name: "Reports Manager",
+    nameAr: "مدير التقارير",
+    description: "صلاحيات كاملة لإدارة التقارير",
+    permissionKeys: [
+      // Reports
+      "reports.view",
+      "reports.create",
+      "reports.export",
+      "reports.archive",
+      "reports.delete",
+      "reports.view_archived",
+      // Dashboard
+      "dashboard.view",
+      "dashboard.view_statistics",
+      "dashboard.view_charts",
+      "notifications.view",
+      "notifications.mark_read",
+    ],
+  },
+  {
     name: "Legal Department",
     nameAr: "الشؤون القانونية",
     description: "صلاحيات كاملة للشؤون القانونية والقضايا",

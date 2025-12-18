@@ -7,10 +7,19 @@ import {
   updateVacation,
   deleteVacation,
   generateSingleVacationTemplate,
+  generateVacationPDF,
+  generateVacationStatementPDF,
   logPrintAction,
 } from "../controllers/vacationController.js";
 
 const router = express.Router();
+
+router.get(
+  "/employees/:id/vacations/statement",
+  protect,
+  checkPermission("vacations.view"),
+  generateVacationStatementPDF
+);
 
 router.get(
   "/employees/:id/vacations",
@@ -41,6 +50,13 @@ router.get(
   protect,
   checkPermission("vacations.generate_template"),
   generateSingleVacationTemplate
+);
+
+router.get(
+  "/vacations/:vacationId/pdf",
+  protect,
+  checkPermission("vacations.generate_template"),
+  generateVacationPDF
 );
 
 router.post("/:id/print-log", protect, logPrintAction);

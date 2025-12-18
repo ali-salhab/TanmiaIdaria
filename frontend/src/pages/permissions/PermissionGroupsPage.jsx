@@ -19,6 +19,16 @@ export default function PermissionGroupsPage() {
   const [editingGroupName, setEditingGroupName] = useState("");
   const [editingGroupPermissions, setEditingGroupPermissions] = useState([]);
 
+  const groupedPermissions = useMemo(() => {
+    const groups = {};
+    allPermissions.forEach((p) => {
+      const cat = p.category || "Other";
+      if (!groups[cat]) groups[cat] = [];
+      groups[cat].push(p);
+    });
+    return groups;
+  }, [allPermissions]);
+
   useEffect(() => {
     loadAll();
     loadUsers();
@@ -396,31 +406,73 @@ export default function PermissionGroupsPage() {
                   <div className="font-semibold mb-2 text-slate-200">
                     الصلاحيات المباشرة
                   </div>
-                  <div className="max-h-64 overflow-auto border border-slate-600 rounded bg-slate-700/50">
-                    {allPermissions.map((p) => {
-                      const checked = selectedUserDirectIds.includes(p._id);
-                      return (
-                        <label
-                          key={p._id}
-                          className="flex items-start gap-2 p-2 border-b border-slate-600 last:border-b-0 hover:bg-slate-600/50 transition-colors cursor-pointer"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={checked}
-                            onChange={() => toggleUserDirectPermission(p._id)}
-                            className="mt-1 rounded border-slate-500 bg-slate-600 text-blue-600 focus:ring-blue-500"
-                          />
-                          <div>
-                            <div className="font-medium text-slate-200">
-                              {p.label}
-                            </div>
-                            <div className="text-xs text-slate-400">
-                              {p.key} • {p.category}
-                            </div>
+                  <div className="max-h-64 overflow-auto border border-slate-600 rounded bg-slate-700/50 p-2">
+                    {Object.entries(groupedPermissions).map(
+                      ([category, perms]) => (
+                        <div key={category} className="mb-4">
+                          <h4 className="font-bold text-slate-300 mb-2 capitalize border-b border-slate-600 pb-1 flex justify-between items-center">
+                            <span>{category}</span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const allIds = perms.map((p) => p._id);
+                                const allSelected = allIds.every((id) =>
+                                  selectedUserDirectIds.includes(id)
+                                );
+                                if (allSelected) {
+                                  // Remove all
+                                  allIds.forEach((id) => {
+                                    if (selectedUserDirectIds.includes(id)) {
+                                      toggleUserDirectPermission(id);
+                                    }
+                                  });
+                                } else {
+                                  // Add missing
+                                  allIds.forEach((id) => {
+                                    if (!selectedUserDirectIds.includes(id)) {
+                                      toggleUserDirectPermission(id);
+                                    }
+                                  });
+                                }
+                              }}
+                              className="text-xs text-blue-400 hover:text-blue-300"
+                            >
+                              تحديد الكل
+                            </button>
+                          </h4>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            {perms.map((p) => {
+                              const checked = selectedUserDirectIds.includes(
+                                p._id
+                              );
+                              return (
+                                <label
+                                  key={p._id}
+                                  className="flex items-start gap-2 p-2 border border-slate-600/50 rounded hover:bg-slate-600/50 transition-colors cursor-pointer"
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={checked}
+                                    onChange={() =>
+                                      toggleUserDirectPermission(p._id)
+                                    }
+                                    className="mt-1 rounded border-slate-500 bg-slate-600 text-blue-600 focus:ring-blue-500"
+                                  />
+                                  <div>
+                                    <div className="font-medium text-slate-200 text-sm">
+                                      {p.label}
+                                    </div>
+                                    <div className="text-[10px] text-slate-400">
+                                      {p.key}
+                                    </div>
+                                  </div>
+                                </label>
+                              );
+                            })}
                           </div>
-                        </label>
-                      );
-                    })}
+                        </div>
+                      )
+                    )}
                   </div>
                 </div>
 
@@ -563,41 +615,71 @@ export default function PermissionGroupsPage() {
               className="w-full border border-slate-600 bg-slate-700 text-slate-100 px-3 py-2 rounded mb-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <div className="max-h-72 overflow-auto border border-slate-600 rounded p-2 mb-3 bg-slate-700/50">
-              {allPermissions.map((p) => {
-                const checked = editingGroupPermissions.includes(p._id);
-                return (
-                  <label
-                    key={p._id}
-                    className="flex items-center gap-2 p-2 hover:bg-slate-600/50 rounded cursor-pointer"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={checked}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setEditingGroupPermissions((prev) => [
-                            ...prev,
-                            p._id,
-                          ]);
-                        } else {
+              {Object.entries(groupedPermissions).map(([category, perms]) => (
+                <div key={category} className="mb-4">
+                  <h4 className="font-bold text-slate-300 mb-2 capitalize border-b border-slate-600 pb-1 flex justify-between items-center">
+                    <span>{category}</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const allIds = perms.map((p) => p._id);
+                        const allSelected = allIds.every((id) =>
+                          editingGroupPermissions.includes(id)
+                        );
+                        if (allSelected) {
                           setEditingGroupPermissions((prev) =>
-                            prev.filter((id) => id !== p._id)
+                            prev.filter((id) => !allIds.includes(id))
                           );
+                        } else {
+                          setEditingGroupPermissions((prev) => [
+                            ...new Set([...prev, ...allIds]),
+                          ]);
                         }
                       }}
-                      className="rounded border-slate-500 bg-slate-600 text-blue-600 focus:ring-blue-500"
-                    />
-                    <div>
-                      <div className="font-medium text-slate-200">
-                        {p.label}
-                      </div>
-                      <div className="text-xs text-slate-400">
-                        {p.key} • {p.category}
-                      </div>
-                    </div>
-                  </label>
-                );
-              })}
+                      className="text-xs text-blue-400 hover:text-blue-300"
+                    >
+                      تحديد الكل
+                    </button>
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {perms.map((p) => {
+                      const checked = editingGroupPermissions.includes(p._id);
+                      return (
+                        <label
+                          key={p._id}
+                          className="flex items-center gap-2 p-2 hover:bg-slate-600/50 rounded cursor-pointer border border-slate-600/30"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setEditingGroupPermissions((prev) => [
+                                  ...prev,
+                                  p._id,
+                                ]);
+                              } else {
+                                setEditingGroupPermissions((prev) =>
+                                  prev.filter((id) => id !== p._id)
+                                );
+                              }
+                            }}
+                            className="rounded border-slate-500 bg-slate-600 text-blue-600 focus:ring-blue-500"
+                          />
+                          <div>
+                            <div className="font-medium text-slate-200 text-sm">
+                              {p.label}
+                            </div>
+                            <div className="text-[10px] text-slate-400">
+                              {p.key}
+                            </div>
+                          </div>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
             </div>
 
             <div className="flex gap-2 justify-end">

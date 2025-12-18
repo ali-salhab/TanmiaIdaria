@@ -905,7 +905,7 @@ export default function EmployeeList() {
             تهيئة الحقول
           </button>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-4 ">
             <label className="text-sm font-medium text-gray-300">
               عدد الصفوف:
             </label>
@@ -915,15 +915,15 @@ export default function EmployeeList() {
                 setLimit(Number(e.target.value));
                 setPage(1);
               }}
-              className="border border-white/20 p-3 rounded-xl bg-slate-800/50 text-white focus:outline-none focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400/50 transition-all duration-300 cursor-pointer"
+              className="border  border-white/20  p-2 rounded-xl bg-slate-800 text-white items-center align-center focus:outline-none text-center   focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400/50 transition-all duration-300 cursor-pointer"
             >
-              <option value={10} className="bg-slate-800 m-4">
+              <option value={10} className="bg-slate-800 p-3  ">
                 10
               </option>
-              <option value={20} className="bg-slate-800">
+              <option value={20} className="bg-slate-800 p-3  ">
                 20
               </option>
-              <option value={50} className="bg-slate-800">
+              <option value={50} className="bg-slate-800 p-3    ">
                 50
               </option>
               <option value={100} className="bg-slate-800">

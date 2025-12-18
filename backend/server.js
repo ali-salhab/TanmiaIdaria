@@ -164,6 +164,7 @@ app.use((err, req, res, next) => {
 
 // ------------------------------>
 let adminSocket = null;
+let adminUserId = null;
 
 export { onlineUsers };
 
@@ -172,6 +173,7 @@ io.on("connection", (socket) => {
   socket.on("registerAdmin", (data) => {
     adminSocket = socket;
     if (data?.id) {
+      adminUserId = data.id;
       onlineUsers.set(data.id, socket.id);
       io.emit("online_users", Array.from(onlineUsers.keys()));
     }
@@ -191,10 +193,25 @@ io.on("connection", (socket) => {
     console.log("====================================");
     console.log(onlineUsers);
     console.log("====================================");
-    io.emit("notification", data);
+    const payload = {
+      ...data,
+      userId: adminUserId,
+    };
+
+    if (adminUserId) {
+      const adminTargetSocket = onlineUsers.get(adminUserId);
+      if (adminTargetSocket) {
+        io.to(adminTargetSocket).emit("notification", payload);
+        io.to(adminTargetSocket).emit("adminNotification", payload);
+        console.log("📤 Notification sent to admin", payload);
+        return;
+      }
+    }
+
     if (adminSocket) {
-      adminSocket.emit("adminNotification", data);
-      console.log("📤 Notification sent to admin", data);
+      adminSocket.emit("notification", payload);
+      adminSocket.emit("adminNotification", payload);
+      console.log("📤 Notification sent to admin via fallback socket", payload);
     } else {
       console.log("⚠️ No admin connected");
     }
@@ -342,6 +359,7 @@ io.on("connection", (socket) => {
     console.log("❌ مستخدم قطع الاتصال:", socket.id);
     if (socket === adminSocket) {
       adminSocket = null;
+      adminUserId = null;
       console.log("⚠️ Admin disconnected");
     }
   });

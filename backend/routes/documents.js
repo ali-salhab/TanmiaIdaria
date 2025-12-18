@@ -13,17 +13,17 @@ const router = express.Router();
 
 router.use(protect);
 
-router.get("/", checkPermission("documents.view"), getDocuments);
+router.get("/", checkPermission("dywan.view"), getDocuments);
 router.post(
   "/upload",
-  checkPermission("documents.upload"),
+  checkPermission("dywan.create"),
   upload.single("file"),
   uploadDocument
 );
-router.delete("/:id", checkPermission("documents.delete"), deleteDocument);
+router.delete("/:id", checkPermission("dywan.delete"), deleteDocument);
 router.put(
   "/:id/download",
-  checkPermission("documents.download"),
+  checkPermission("dywan.export"),
   incrementDocumentDownloads
 );
 

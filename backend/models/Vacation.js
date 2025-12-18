@@ -22,6 +22,7 @@ const vacationSchema = new mongoose.Schema(
     },
     days: { type: Number, required: false }, // calculated or manual
     hours: { type: Number, required: false },
+    endHour: { type: String, required: false }, // ساعة النهاية للإجازة الساعية
     childOrder: { type: Number, required: false }, // for maternity leave
     startDate: { type: Date, required: true },
     endDate: { type: Date, required: true },

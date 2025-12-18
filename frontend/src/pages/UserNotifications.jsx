@@ -3,12 +3,15 @@ import { toast } from "react-hot-toast";
 import { useSocket } from "../context/SocketContext";
 import API from "../api/api";
 import { Trash2, CheckCircle2, Circle } from "lucide-react";
+import { useAuth } from "../hooks/useAuth";
 
 export default function UserNotifications() {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
   const { socket } = useSocket();
+  const { user } = useAuth();
+  const userId = user?._id;
 
   useEffect(() => {
     fetchNotifications();
@@ -18,13 +21,26 @@ export default function UserNotifications() {
     if (!socket) return;
 
     const handleNewNotification = (notification) => {
+      if (userId && notification?.userId && notification.userId !== userId) {
+        return;
+      }
       setNotifications((prev) => [notification, ...prev]);
       toast.success(`📢 ${notification.title}`);
     };
 
     socket.on("notification", handleNewNotification);
     return () => socket.off("notification", handleNewNotification);
-  }, [socket]);
+  }, [socket, userId]);
+
+  useEffect(() => {
+    if (!userId) return;
+    setNotifications((prev) =>
+      prev.filter((notification) => {
+        if (!notification?.userId) return false;
+        return notification.userId === userId;
+      })
+    );
+  }, [userId]);
 
   const fetchNotifications = async () => {
     try {

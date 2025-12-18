@@ -1,8 +1,18 @@
 import Employee from "../models/Employee.js";
 import Report from "../models/Report.js";
-import XLSX from "xlsx";
-import jsPDF from "jspdf";
-import "jspdf-autotable";
+import {
+  Document,
+  Packer,
+  Paragraph,
+  TextRun,
+  Table,
+  TableRow,
+  TableCell,
+  WidthType,
+  AlignmentType,
+  HeadingLevel,
+  VerticalAlign,
+} from "docx";
 import { notifyAdmin } from "../services/notificationService.js";
 
 /**
@@ -14,33 +24,41 @@ export const getReportData = async (req, res) => {
   try {
     // Build filters from query
     const filters = {};
-    const allowedFilters = [
-      "governorate",
+    const exactMatchFields = [
       "gender",
-      "nationality",
-      "currentJobTitle",
-      "university",
-      "workLocation",
+      "status",
+      "maritalStatus",
+      "employmentType",
       "level1",
       "level2",
       "level3",
       "level4",
       "level5",
       "level6",
+    ];
+
+    const allowedFilters = [
+      "governorate",
+      "nationality",
+      "currentJobTitle",
+      "university",
+      "workLocation",
       "nationalId",
       "jobCategory",
-      "status",
       "phone",
-      "employmentType",
       "selfNumber",
-      "maritalStatus",
       "educationLevel",
+      ...exactMatchFields,
     ];
 
     allowedFilters.forEach((key) => {
       if (req.query[key]) {
-        // Use case-insensitive partial match for string filters
-        filters[key] = new RegExp(req.query[key], "i");
+        if (exactMatchFields.includes(key)) {
+          filters[key] = req.query[key];
+        } else {
+          // Use case-insensitive partial match for string filters
+          filters[key] = new RegExp(req.query[key], "i");
+        }
       }
     });
 
@@ -109,14 +127,20 @@ export const getReportData = async (req, res) => {
       String(req.query.sortDir || "asc").toLowerCase() === "desc" ? -1 : 1;
     const sort = { [sortBy]: sortDir };
 
-    const [total, employees] = await Promise.all([
+    // Fetch paginated data for table (if needed)
+    const [total, paginatedEmployees, allEmployees] = await Promise.all([
       Employee.countDocuments(filters),
       Employee.find(filters).sort(sort).skip(skip).limit(limit).lean(),
+      Employee.find(filters)
+        .select(
+          "gender level4 employmentType jobCategory birthDate educationLevel maritalStatus"
+        )
+        .lean(),
     ]);
 
-    // Calculate statistics (based on current page results)
+    // Calculate statistics based on ALL matching employees
     const statistics = {
-      total: employees.length,
+      total: allEmployees.length,
       byGender: {},
       byDepartment: {},
       byEmploymentType: {},
@@ -152,7 +176,7 @@ export const getReportData = async (req, res) => {
     let totalAge = 0;
     let ageCount = 0;
 
-    employees.forEach((emp) => {
+    allEmployees.forEach((emp) => {
       // Gender statistics
       if (emp.gender) {
         statistics.byGender[emp.gender] =
@@ -235,7 +259,7 @@ export const getReportData = async (req, res) => {
 
     res.json({
       success: true,
-      data: employees,
+      data: paginatedEmployees,
       statistics: formattedStatistics,
       filters: req.query,
       pagination: {
@@ -539,5 +563,259 @@ export const exportReportExcel = async (req, res) => {
       message: "فشل في تصدير التقرير",
       error: error.message,
     });
+  }
+};
+
+/**
+ * @desc Export report to Word
+ * @route GET /api/reports/export/word
+ * @access Private (Admin only)
+ */
+export const exportReportToWord = async (req, res) => {
+  try {
+    // 1. Build filters (Same logic as getReportData)
+    const filters = {};
+    const exactMatchFields = [
+      "gender",
+      "status",
+      "maritalStatus",
+      "employmentType",
+      "level1",
+      "level2",
+      "level3",
+      "level4",
+      "level5",
+      "level6",
+    ];
+
+    const allowedFilters = [
+      "governorate",
+      "nationality",
+      "currentJobTitle",
+      "university",
+      "workLocation",
+      "nationalId",
+      "jobCategory",
+      "phone",
+      "selfNumber",
+      "educationLevel",
+      ...exactMatchFields,
+    ];
+
+    allowedFilters.forEach((key) => {
+      if (req.query[key]) {
+        if (exactMatchFields.includes(key)) {
+          filters[key] = req.query[key];
+        } else {
+          filters[key] = new RegExp(req.query[key], "i");
+        }
+      }
+    });
+
+    // Search query
+    const searchQuery = req.query.search || req.query.q;
+    if (searchQuery) {
+      filters.$or = [
+        { fullName: new RegExp(searchQuery, "i") },
+        { nationalId: new RegExp(searchQuery, "i") },
+        { phone: new RegExp(searchQuery, "i") },
+        { selfNumber: new RegExp(searchQuery, "i") },
+      ];
+    }
+
+    // Age filter
+    if (req.query.ageMin || req.query.ageMax) {
+      const today = new Date();
+      if (req.query.ageMin) {
+        const maxBirthDate = new Date(
+          today.getFullYear() - parseInt(req.query.ageMin),
+          today.getMonth(),
+          today.getDate()
+        );
+        filters.birthDate = { ...filters.birthDate, $lte: maxBirthDate };
+      }
+      if (req.query.ageMax) {
+        const minBirthDate = new Date(
+          today.getFullYear() - parseInt(req.query.ageMax) - 1,
+          today.getMonth(),
+          today.getDate()
+        );
+        filters.birthDate = { ...filters.birthDate, $gte: minBirthDate };
+      }
+    }
+
+    // Hiring date filter
+    if (req.query.hiringDateFrom || req.query.hiringDateTo) {
+      filters.hiringDate = {};
+      if (req.query.hiringDateFrom) {
+        filters.hiringDate.$gte = new Date(req.query.hiringDateFrom);
+      }
+      if (req.query.hiringDateTo) {
+        filters.hiringDate.$lte = new Date(req.query.hiringDateTo);
+      }
+    }
+
+    // 2. Fetch Data
+    const employees = await Employee.find(filters).lean();
+
+    // 3. Calculate Statistics
+    const stats = {
+      total: employees.length,
+      byGender: {},
+      byDepartment: {},
+      byEmploymentType: {},
+      byJobCategory: {},
+      byAge: { "20-30": 0, "31-40": 0, "41-50": 0, "51-60": 0, "60+": 0 },
+      byEducation: {},
+    };
+
+    const calculateAge = (birthDate) => {
+      if (!birthDate) return null;
+      const today = new Date();
+      const birth = new Date(birthDate);
+      let age = today.getFullYear() - birth.getFullYear();
+      const monthDiff = today.getMonth() - birth.getMonth();
+      if (
+        monthDiff < 0 ||
+        (monthDiff === 0 && today.getDate() < birth.getDate())
+      ) {
+        age--;
+      }
+      return age;
+    };
+
+    employees.forEach((emp) => {
+      if (emp.gender)
+        stats.byGender[emp.gender] = (stats.byGender[emp.gender] || 0) + 1;
+      if (emp.level4)
+        stats.byDepartment[emp.level4] =
+          (stats.byDepartment[emp.level4] || 0) + 1;
+      if (emp.employmentType)
+        stats.byEmploymentType[emp.employmentType] =
+          (stats.byEmploymentType[emp.employmentType] || 0) + 1;
+      if (emp.jobCategory)
+        stats.byJobCategory[emp.jobCategory] =
+          (stats.byJobCategory[emp.jobCategory] || 0) + 1;
+      if (emp.educationLevel)
+        stats.byEducation[emp.educationLevel] =
+          (stats.byEducation[emp.educationLevel] || 0) + 1;
+
+      const age = calculateAge(emp.birthDate);
+      if (age !== null) {
+        if (age >= 20 && age <= 30) stats.byAge["20-30"]++;
+        else if (age >= 31 && age <= 40) stats.byAge["31-40"]++;
+        else if (age >= 41 && age <= 50) stats.byAge["41-50"]++;
+        else if (age >= 51 && age <= 60) stats.byAge["51-60"]++;
+        else if (age > 60) stats.byAge["60+"]++;
+      }
+    });
+
+    // 4. Generate Word Document
+    const createStatTable = (title, data) => {
+      const rows = [
+        new TableRow({
+          cells: [
+            new TableCell({
+              children: [
+                new Paragraph({
+                  text: "الفئة",
+                  bold: true,
+                  alignment: AlignmentType.CENTER,
+                }),
+              ],
+              shading: { fill: "E7E6E6" },
+            }),
+            new TableCell({
+              children: [
+                new Paragraph({
+                  text: "العدد",
+                  bold: true,
+                  alignment: AlignmentType.CENTER,
+                }),
+              ],
+              shading: { fill: "E7E6E6" },
+            }),
+          ],
+        }),
+        ...Object.entries(data).map(
+          ([key, value]) =>
+            new TableRow({
+              cells: [
+                new TableCell({
+                  children: [
+                    new Paragraph({
+                      text: key,
+                      alignment: AlignmentType.CENTER,
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  children: [
+                    new Paragraph({
+                      text: String(value),
+                      alignment: AlignmentType.CENTER,
+                    }),
+                  ],
+                }),
+              ],
+            })
+        ),
+      ];
+
+      return [
+        new Paragraph({
+          text: title,
+          heading: HeadingLevel.HEADING_2,
+          spacing: { before: 400, after: 200 },
+          alignment: AlignmentType.RIGHT,
+        }),
+        new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows }),
+      ];
+    };
+
+    const doc = new Document({
+      sections: [
+        {
+          properties: {},
+          children: [
+            new Paragraph({
+              text: "تقرير إحصائي للموظفين",
+              heading: HeadingLevel.TITLE,
+              alignment: AlignmentType.CENTER,
+            }),
+            new Paragraph({
+              text: `تاريخ التقرير: ${new Date().toLocaleDateString("ar-EG")}`,
+              alignment: AlignmentType.CENTER,
+              spacing: { after: 400 },
+            }),
+
+            new Paragraph({
+              text: `إجمالي عدد الموظفين: ${stats.total}`,
+              heading: HeadingLevel.HEADING_1,
+              alignment: AlignmentType.RIGHT,
+            }),
+
+            ...createStatTable("توزيع الجنس", stats.byGender),
+            ...createStatTable("توزيع الأقسام", stats.byDepartment),
+            ...createStatTable("توزيع نوع التوظيف", stats.byEmploymentType),
+            ...createStatTable("توزيع فئات الوظائف", stats.byJobCategory),
+            ...createStatTable("توزيع الأعمار", stats.byAge),
+            ...createStatTable("المستوى التعليمي", stats.byEducation),
+          ],
+        },
+      ],
+    });
+
+    const buffer = await Packer.toBuffer(doc);
+
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    );
+    res.setHeader("Content-Disposition", "attachment; filename=report.docx");
+    res.send(buffer);
+  } catch (error) {
+    console.error("Error exporting Word report:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };

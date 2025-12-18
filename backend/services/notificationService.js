@@ -1,5 +1,13 @@
 import Notification from "../models/Notification.js";
 import User from "../models/User.js";
+import { onlineUsers } from "../server.js";
+
+const emitToUser = (ioInstance, userId, eventName, payload) => {
+  if (!ioInstance || !userId) return;
+  const socketId = onlineUsers.get(userId.toString());
+  if (!socketId) return;
+  ioInstance.to(socketId).emit(eventName, payload);
+};
 
 /**
  * Create a notification for admin when a normal user performs an action
@@ -106,8 +114,9 @@ export const notifyAdmin = async ({
     // Emit socket event to notify admins
     if (io) {
       notifications.forEach((notification) => {
-        io.emit("admin_notification", {
+        const payload = {
           _id: notification._id,
+          userId: notification.userId.toString(),
           title: notification.title,
           message: notification.message,
           section: notification.section,
@@ -118,7 +127,10 @@ export const notifyAdmin = async ({
           actionBy: notification.actionBy,
           createdAt: notification.createdAt,
           read: notification.read,
-        });
+        };
+
+        emitToUser(io, notification.userId, "admin_notification", payload);
+        emitToUser(io, notification.userId, "notification", payload);
       });
     } else {
       console.warn("Socket.IO instance not provided to notifyAdmin");
@@ -172,9 +184,9 @@ export const notifyUser = async ({
     });
 
     if (io) {
-      io.emit("notification", {
+      emitToUser(io, notification.userId, "notification", {
         _id: notification._id,
-        userId: notification.userId,
+        userId: notification.userId.toString(),
         title: notification.title,
         message: notification.message,
         type: notification.type,

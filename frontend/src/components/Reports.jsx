@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   BarChart,
   Bar,
@@ -40,6 +40,29 @@ function topN(data, n = 10, valueKey = "count") {
   return [...data]
     .sort((a, b) => (b?.[valueKey] || 0) - (a?.[valueKey] || 0))
     .slice(0, n);
+}
+
+function topNWithOther(data, n = 12, valueKey = "count", otherLabel = "أخرى") {
+  if (!Array.isArray(data)) return [];
+  const sorted = [...data].sort(
+    (a, b) => (b?.[valueKey] || 0) - (a?.[valueKey] || 0)
+  );
+  if (sorted.length <= n) return sorted;
+
+  const topItems = sorted.slice(0, n);
+  const otherSum = sorted
+    .slice(n)
+    .reduce((sum, item) => sum + (Number(item?.[valueKey]) || 0), 0);
+
+  if (otherSum <= 0) return topItems;
+  return [...topItems, { name: otherLabel, [valueKey]: otherSum }];
+}
+
+function buildPieLabel(formatName = (name) => name) {
+  return ({ name, percent }) => {
+    if (!name || percent < 0.05) return "";
+    return `${formatName(name)}: ${(percent * 100).toFixed(0)}%`;
+  };
 }
 
 function Reports() {
@@ -86,6 +109,86 @@ function Reports() {
   const [showArchive, setShowArchive] = useState(false);
   const [reportName, setReportName] = useState("");
   const [reportDescription, setReportDescription] = useState("");
+
+  const genderSummary = useMemo(() => {
+    const totals = { male: 0, female: 0, other: 0 };
+    (statistics?.genderData || []).forEach(({ name, value }) => {
+      const raw = String(name || "").trim();
+      const lower = raw.toLowerCase();
+      const numericValue = Number(value) || 0;
+
+      if (raw === "ذكر" || lower === "male") {
+        totals.male += numericValue;
+      } else if (raw === "أنثى" || lower === "female") {
+        totals.female += numericValue;
+      } else {
+        totals.other += numericValue;
+      }
+    });
+    return totals;
+  }, [statistics?.genderData]);
+
+  const departmentChartData = useMemo(
+    () => topNWithOther(statistics?.departmentData || [], 12, "count"),
+    [statistics?.departmentData]
+  );
+
+  const jobCategoryChartData = useMemo(
+    () => topNWithOther(statistics?.jobCategoryData || [], 12, "count"),
+    [statistics?.jobCategoryData]
+  );
+
+  const educationChartData = useMemo(
+    () => topNWithOther(statistics?.educationData || [], 12, "count"),
+    [statistics?.educationData]
+  );
+
+  const genderChartData = useMemo(
+    () => topNWithOther(statistics?.genderData || [], 6, "value"),
+    [statistics?.genderData]
+  );
+
+  const employmentTypeChartData = useMemo(
+    () => topNWithOther(statistics?.employmentTypeData || [], 6, "value"),
+    [statistics?.employmentTypeData]
+  );
+
+  const maritalStatusChartData = useMemo(
+    () => topNWithOther(statistics?.maritalStatusData || [], 6, "value"),
+    [statistics?.maritalStatusData]
+  );
+
+  const departmentCount = useMemo(
+    () => Object.keys(statistics?.byDepartment || {}).length,
+    [statistics?.byDepartment]
+  );
+
+  const topDepartmentName = useMemo(() => {
+    const source = statistics?.departmentData || [];
+    if (!source.length) return "غير متوفر";
+    const sorted = [...source].sort(
+      (a, b) => (b?.count || 0) - (a?.count || 0)
+    );
+    return sorted[0]?.name || "غير متوفر";
+  }, [statistics?.departmentData]);
+
+  const topJobCategoryName = useMemo(() => {
+    const source = statistics?.jobCategoryData || [];
+    if (!source.length) return "غير متوفر";
+    const sorted = [...source].sort(
+      (a, b) => (b?.count || 0) - (a?.count || 0)
+    );
+    return sorted[0]?.name || "غير متوفر";
+  }, [statistics?.jobCategoryData]);
+
+  const topEmploymentTypeName = useMemo(() => {
+    const source = statistics?.employmentTypeData || [];
+    if (!source.length) return "غير متوفر";
+    const sorted = [...source].sort(
+      (a, b) => (b?.value || 0) - (a?.value || 0)
+    );
+    return sorted[0]?.name || "غير متوفر";
+  }, [statistics?.employmentTypeData]);
 
   const apiUrl =
     import.meta.env.VITE_API_URL ||
@@ -242,7 +345,7 @@ function Reports() {
     fetchData();
   };
 
-  const exportToExcel = async () => {
+  const exportToWord = async () => {
     if (!checkPermission("reports.export", user)) {
       toast.error("ليس لديك صلاحية لتصدير التقارير");
       return;
@@ -255,7 +358,7 @@ function Reports() {
       });
 
       const response = await fetch(
-        `${apiUrl}/reports/export/excel?${queryParams}`,
+        `${apiUrl}/reports/export/word?${queryParams}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -268,7 +371,7 @@ function Reports() {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = "report.xlsx";
+        a.download = "report.docx";
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
@@ -304,10 +407,10 @@ function Reports() {
               {showFilters ? "إخفاء الفلاتر" : "عرض الفلاتر"}
             </button>
             <button
-              onClick={exportToExcel}
-              className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white"
+              onClick={exportToWord}
+              className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white"
             >
-              تصدير Excel
+              تصدير Word
             </button>
           </div>
         </div>
@@ -320,11 +423,19 @@ function Reports() {
           />
           <StatCard
             title="متوسط العمر"
-            value={statistics?.averageAge || 0}
+            value={Number(statistics?.averageAge || 0).toFixed(1)}
             sub="بالسنوات"
           />
-          <StatCard title="ذكور" value={statistics?.byGender?.male || 0} />
-          <StatCard title="إناث" value={statistics?.byGender?.female || 0} />
+          <StatCard title="ذكور" value={genderSummary.male} />
+          <StatCard
+            title="إناث"
+            value={genderSummary.female}
+            sub={
+              genderSummary.other
+                ? `فئات أخرى: ${genderSummary.other}`
+                : undefined
+            }
+          />
         </div>
 
         {/* Filters */}
@@ -371,8 +482,8 @@ function Reports() {
                 className="p-2 border border-slate-600 bg-slate-700 text-slate-100 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">الجنس</option>
-                <option value="male">ذكر</option>
-                <option value="female">أنثى</option>
+                <option value="ذكر">ذكر</option>
+                <option value="أنثى">أنثى</option>
               </select>
               <input
                 type="text"
@@ -476,8 +587,11 @@ function Reports() {
                 className="p-2 border border-slate-600 bg-slate-700 text-slate-100 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">الحالة</option>
-                <option value="active">نشط</option>
-                <option value="inactive">غير نشط</option>
+                <option value="قائم على رأس عمله">قائم على رأس عمله</option>
+                <option value="مجاز">مجاز</option>
+                <option value="مكفوف اليد">مكفوف اليد</option>
+                <option value="مستقيل">مستقيل</option>
+                <option value="متقاعد">متقاعد</option>
               </select>
               <input
                 type="text"
@@ -494,9 +608,8 @@ function Reports() {
                 className="p-2 border border-slate-600 bg-slate-700 text-slate-100 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">نوع التوظيف</option>
-                <option value="full-time">دوام كامل</option>
-                <option value="part-time">دوام جزئي</option>
-                <option value="contract">عقد</option>
+                <option value="مثبت">مثبت</option>
+                <option value="متعاقد">متعاقد</option>
               </select>
               <input
                 type="text"
@@ -515,10 +628,10 @@ function Reports() {
                 className="p-2 border border-slate-600 bg-slate-700 text-slate-100 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">الحالة الاجتماعية</option>
-                <option value="single">أعزب</option>
-                <option value="married">متزوج</option>
-                <option value="divorced">مطلق</option>
-                <option value="widowed">أرمل</option>
+                <option value="عازب">عازب</option>
+                <option value="متزوج">متزوج</option>
+                <option value="مطلق">مطلق</option>
+                <option value="أرمل">أرمل</option>
               </select>
               <input
                 type="text"
@@ -583,84 +696,62 @@ function Reports() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <div className="bg-slate-800 p-4 rounded-lg shadow border border-slate-700">
             <h3 className="text-lg font-semibold text-slate-200">
-              إجمالي الموظفين
+              إجمالي المطابقة
             </h3>
             <p className="text-2xl font-bold text-blue-400">
-              {statistics.totalEmployees || 0}
+              {statistics?.total || 0}
+            </p>
+            <p className="text-sm text-slate-500 mt-2">
+              عدد الأقسام الفريدة: {departmentCount}
             </p>
           </div>
           <div className="bg-slate-800 p-4 rounded-lg shadow border border-slate-700">
             <h3 className="text-lg font-semibold text-slate-200">
-              الموظفين النشطين
+              أكثر قسم ظهوراً
             </h3>
             <p className="text-2xl font-bold text-slate-300">
-              {statistics.activeEmployees || 0}
+              {topDepartmentName}
             </p>
           </div>
           <div className="bg-slate-800 p-4 rounded-lg shadow border border-slate-700">
             <h3 className="text-lg font-semibold text-slate-200">
-              متوسط العمر
+              أبرز فئة وظيفية
             </h3>
             <p className="text-2xl font-bold text-purple-400">
-              {statistics.averageAge || 0}
+              {topJobCategoryName}
             </p>
           </div>
           <div className="bg-slate-800 p-4 rounded-lg shadow border border-slate-700">
             <h3 className="text-lg font-semibold text-slate-200">
-              عدد الأقسام
+              أكثر نوع توظيف
             </h3>
             <p className="text-2xl font-bold text-orange-400">
-              {statistics.totalDepartments || 0}
+              {topEmploymentTypeName}
             </p>
           </div>
         </div>
 
         {/* Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-          {/* Department Distribution */}
-          <div className="bg-slate-800 p-4 rounded-lg shadow border border-slate-700">
-            <h3 className="text-xl font-semibold mb-4 text-slate-200">
-              توزيع الأقسام
-            </h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={statistics.departmentData || []}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
-                <XAxis dataKey="name" stroke="#94a3b8" />
-                <YAxis stroke="#94a3b8" />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "#1e293b",
-                    borderColor: "#334155",
-                    color: "#f1f5f9",
-                  }}
-                  itemStyle={{ color: "#f1f5f9" }}
-                />
-                <Legend wrapperStyle={{ color: "#94a3b8" }} />
-                <Bar dataKey="count" fill="#8884d8" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-
           {/* Gender Distribution */}
           <div className="bg-slate-800 p-4 rounded-lg shadow border border-slate-700">
             <h3 className="text-xl font-semibold mb-4 text-slate-200">
               توزيع الجنس
             </h3>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={350}>
               <PieChart>
                 <Pie
-                  data={statistics.genderData || []}
+                  data={genderChartData}
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ name, percent }) =>
-                    `${name} ${(percent * 100).toFixed(0)}%`
-                  }
-                  outerRadius={80}
+                  label={buildPieLabel(normalizeLabel)}
+                  outerRadius={90}
                   fill="#8884d8"
                   dataKey="value"
+                  paddingAngle={2}
                 >
-                  {(statistics.genderData || []).map((entry, index) => (
+                  {genderChartData.map((entry, index) => (
                     <Cell
                       key={`cell-${index}`}
                       fill={COLORS[index % COLORS.length]}
@@ -675,6 +766,10 @@ function Reports() {
                   }}
                   itemStyle={{ color: "#f1f5f9" }}
                 />
+                <Legend
+                  wrapperStyle={{ color: "#94a3b8" }}
+                  formatter={(value) => normalizeLabel(value)}
+                />
               </PieChart>
             </ResponsiveContainer>
           </div>
@@ -684,10 +779,21 @@ function Reports() {
             <h3 className="text-xl font-semibold mb-4 text-slate-200">
               توزيع الأعمار
             </h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={statistics.ageData || []}>
+            <ResponsiveContainer width="100%" height={380}>
+              <BarChart
+                data={statistics.ageData || []}
+                margin={{ bottom: 100 }}
+              >
                 <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
-                <XAxis dataKey="age" stroke="#94a3b8" />
+                <XAxis
+                  dataKey="age"
+                  stroke="#94a3b8"
+                  angle={-45}
+                  textAnchor="end"
+                  height={100}
+                  interval={0}
+                  tick={{ fontSize: 12, fontWeight: 600 }}
+                />
                 <YAxis stroke="#94a3b8" />
                 <Tooltip
                   contentStyle={{
@@ -708,17 +814,17 @@ function Reports() {
             <h3 className="text-xl font-semibold mb-4 text-slate-200">
               توزيع نوع التوظيف
             </h3>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={350}>
               <PieChart>
                 <Pie
                   data={statistics.employmentTypeData || []}
                   cx="50%"
                   cy="50%"
-                  labelLine={false}
+                  labelLine={true}
                   label={({ name, percent }) =>
-                    `${name} ${(percent * 100).toFixed(0)}%`
+                    `${name}: ${(percent * 100).toFixed(0)}%`
                   }
-                  outerRadius={80}
+                  outerRadius={100}
                   fill="#8884d8"
                   dataKey="value"
                 >
@@ -737,6 +843,7 @@ function Reports() {
                   }}
                   itemStyle={{ color: "#f1f5f9" }}
                 />
+                <Legend wrapperStyle={{ color: "#94a3b8" }} />
               </PieChart>
             </ResponsiveContainer>
           </div>
@@ -746,11 +853,22 @@ function Reports() {
             <h3 className="text-xl font-semibold mb-4 text-slate-200">
               توزيع فئات الوظائف
             </h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={statistics.jobCategoryData || []}>
+            <ResponsiveContainer width="100%" height={420}>
+              <BarChart
+                data={jobCategoryChartData}
+                layout="vertical"
+                margin={{ top: 24, bottom: 24, left: 32, right: 32 }}
+              >
                 <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
-                <XAxis dataKey="name" stroke="#94a3b8" />
-                <YAxis stroke="#94a3b8" />
+                <XAxis type="number" stroke="#94a3b8" />
+                <YAxis
+                  type="category"
+                  dataKey="name"
+                  width={220}
+                  stroke="#94a3b8"
+                  interval={0}
+                  tick={{ fontSize: 11, wordWrap: "break-word" }}
+                />
                 <Tooltip
                   contentStyle={{
                     backgroundColor: "#1e293b",
@@ -760,7 +878,7 @@ function Reports() {
                   itemStyle={{ color: "#f1f5f9" }}
                 />
                 <Legend wrapperStyle={{ color: "#94a3b8" }} />
-                <Bar dataKey="count" fill="#ffc658" />
+                <Bar dataKey="count" fill="#ffc658" barSize={18} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -770,11 +888,22 @@ function Reports() {
             <h3 className="text-xl font-semibold mb-4 text-slate-200">
               توزيع الأقسام
             </h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={statistics.departmentData || []}>
+            <ResponsiveContainer width="100%" height={500}>
+              <BarChart
+                data={departmentChartData}
+                layout="vertical"
+                margin={{ top: 24, bottom: 24, left: 32, right: 32 }}
+              >
                 <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
-                <XAxis dataKey="name" stroke="#94a3b8" />
-                <YAxis stroke="#94a3b8" />
+                <XAxis type="number" stroke="#94a3b8" />
+                <YAxis
+                  type="category"
+                  dataKey="name"
+                  width={220}
+                  stroke="#94a3b8"
+                  interval={0}
+                  tick={{ fontSize: 12, wordWrap: "break-word" }}
+                />
                 <Tooltip
                   contentStyle={{
                     backgroundColor: "#1e293b",
@@ -784,7 +913,7 @@ function Reports() {
                   itemStyle={{ color: "#f1f5f9" }}
                 />
                 <Legend wrapperStyle={{ color: "#94a3b8" }} />
-                <Bar dataKey="count" fill="#8884d8" />
+                <Bar dataKey="count" fill="#8884d8" barSize={20} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -794,15 +923,21 @@ function Reports() {
             <h3 className="text-xl font-semibold mb-4 text-slate-200">
               المستوى التعليمي
             </h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={statistics.educationData || []} layout="vertical">
+            <ResponsiveContainer width="100%" height={400}>
+              <BarChart
+                data={educationChartData}
+                layout="vertical"
+                margin={{ top: 24, bottom: 24, left: 32, right: 32 }}
+              >
                 <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
                 <XAxis type="number" stroke="#94a3b8" />
                 <YAxis
                   dataKey="name"
                   type="category"
-                  width={100}
+                  width={220}
                   stroke="#94a3b8"
+                  interval={0}
+                  tick={{ fontSize: 12, width: 200, wordWrap: "break-word" }}
                 />
                 <Tooltip
                   contentStyle={{
@@ -813,7 +948,7 @@ function Reports() {
                   itemStyle={{ color: "#f1f5f9" }}
                 />
                 <Legend wrapperStyle={{ color: "#94a3b8" }} />
-                <Bar dataKey="count" fill="#00C49F" />
+                <Bar dataKey="count" fill="#00C49F" barSize={18} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -823,17 +958,17 @@ function Reports() {
             <h3 className="text-xl font-semibold mb-4 text-slate-200">
               الحالة الاجتماعية
             </h3>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={350}>
               <PieChart>
                 <Pie
                   data={statistics.maritalStatusData || []}
                   cx="50%"
                   cy="50%"
-                  labelLine={false}
+                  labelLine={true}
                   label={({ name, percent }) =>
-                    `${name} ${(percent * 100).toFixed(0)}%`
+                    `${name}: ${(percent * 100).toFixed(0)}%`
                   }
-                  outerRadius={80}
+                  outerRadius={100}
                   fill="#8884d8"
                   dataKey="value"
                 >
@@ -852,6 +987,7 @@ function Reports() {
                   }}
                   itemStyle={{ color: "#f1f5f9" }}
                 />
+                <Legend wrapperStyle={{ color: "#94a3b8" }} />
               </PieChart>
             </ResponsiveContainer>
           </div>
@@ -864,10 +1000,10 @@ function Reports() {
           </h3>
           <div className="flex gap-4 mb-4">
             <button
-              onClick={exportToExcel}
-              className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+              onClick={exportToWord}
+              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
             >
-              تصدير إلى Excel
+              تصدير إلى Word
             </button>
             <button
               onClick={() => setShowArchive(!showArchive)}
@@ -927,69 +1063,7 @@ function Reports() {
           )}
         </div>
 
-        {/* Data Table */}
-        <div className="bg-slate-800 rounded-xl border border-slate-700 p-4 shadow-sm">
-          <div className="flex items-center justify-between gap-3 flex-wrap">
-            <h3 className="font-semibold text-slate-200">النتائج</h3>
-            <div className="text-sm text-slate-400">
-              {loading ? "جاري التحميل..." : `عدد النتائج: ${total}`}
-            </div>
-          </div>
-
-          <div className="mt-3 overflow-x-auto">
-            <table className="min-w-full text-sm text-right">
-              <thead className="bg-slate-700 text-slate-200">
-                <tr>
-                  <th className="p-2">الاسم</th>
-                  <th className="p-2">القسم</th>
-                  <th className="p-2">الجنس</th>
-                  <th className="p-2">الهاتف</th>
-                  <th className="p-2">الوظيفة</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-700">
-                {loading ? (
-                  <tr>
-                    <td colSpan={5} className="p-4 text-center text-slate-500">
-                      جاري التحميل...
-                    </td>
-                  </tr>
-                ) : data?.length ? (
-                  data.map((emp) => (
-                    <tr
-                      key={emp._id}
-                      className="hover:bg-slate-700/50 transition-colors"
-                    >
-                      <td className="p-2 font-medium text-slate-200">
-                        {emp.fullName || "-"}
-                      </td>
-                      <td className="p-2 text-slate-300">
-                        {emp.level4 || "-"}
-                      </td>
-                      <td className="p-2 text-slate-300">
-                        {normalizeLabel(emp.gender)}
-                      </td>
-                      <td className="p-2 text-slate-300">{emp.phone || "-"}</td>
-                      <td className="p-2 text-slate-300">
-                        {emp.currentJobTitle || "-"}
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={5} className="p-4 text-center text-slate-500">
-                      لا توجد نتائج
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="mt-4">
-            <Pagination page={page} totalPages={totalPages} setPage={setPage} />
-          </div>
-        </div>
+        {/* Data Table Removed as per request */}
       </div>
     </div>
   );

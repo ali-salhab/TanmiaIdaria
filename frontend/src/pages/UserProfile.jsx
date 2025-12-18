@@ -226,8 +226,8 @@ export default function UserProfile() {
       label: "الصلاحيات والمجموعات",
       icon: <Shield size={20} />,
     },
-    { id: "images", label: "الصور", icon: <Image size={20} /> },
-    { id: "documents", label: "المستندات", icon: <FileIcon size={20} /> },
+    // { id: "images", label: "الصور", icon: <Image size={20} /> },
+    // { id: "documents", label: "المستندات", icon: <FileIcon size={20} /> },
   ];
 
   if (loading) {
@@ -596,7 +596,7 @@ export default function UserProfile() {
                         <span className="text-slate-400">الراتب الأخير:</span>
                         <span className="font-medium text-slate-200">
                           {employeeData.lastSalary
-                            ? `${employeeData.lastSalary} دينار`
+                            ? `${employeeData.lastSalary} ل س`
                             : "غير محدد"}
                         </span>
                       </div>
@@ -826,104 +826,6 @@ export default function UserProfile() {
           )}
 
           {/* Documents Tab */}
-          {activeTab === "documents" && (
-            <div className="animate-fadeIn">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-full bg-purple-900/30 flex items-center justify-center">
-                  <img
-                    src={documentIcon1}
-                    alt=""
-                    className="w-6 h-6 opacity-80"
-                  />
-                </div>
-                <h3 className="text-xl font-bold text-slate-100">
-                  إدارة المستندات
-                </h3>
-              </div>
-
-              {authUser?.permissions?.viewDocuments && (
-                <>
-                  <div className="mb-8 p-6 bg-gradient-to-br from-purple-900/20 to-indigo-900/20 rounded-2xl border border-purple-500/20">
-                    <div className="mb-6">
-                      <div className="flex gap-3 mb-4">
-                        <input
-                          type="text"
-                          value={documentName}
-                          onChange={(e) => setDocumentName(e.target.value)}
-                          placeholder="اسم المستند (اختياري)"
-                          className="flex-1 border border-slate-600 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none shadow-sm bg-slate-700 text-slate-100 placeholder-slate-500"
-                        />
-                      </div>
-                      <ImageUploadWithScanner
-                        label="تحميل مستند جديد"
-                        onUpload={handleDocumentUpload}
-                        accept="image/*,.pdf,.doc,.docx"
-                      />
-                    </div>
-                  </div>
-
-                  {userData?.profile?.documents &&
-                  userData.profile.documents.length > 0 ? (
-                    <div className="space-y-4">
-                      {userData.profile.documents.map((doc, idx) => (
-                        <div
-                          key={idx}
-                          className="flex items-center justify-between bg-slate-700 p-4 rounded-xl border border-slate-600 shadow-sm hover:shadow-md transition-all animate-fadeInUp delay-100"
-                        >
-                          <div className="flex items-center gap-4 flex-1">
-                            <div className="w-12 h-12 rounded-lg bg-blue-900/30 flex items-center justify-center">
-                              <FileText className="w-6 h-6 text-blue-400" />
-                            </div>
-                            <div className="flex-1">
-                              <p className="font-medium text-slate-200">
-                                {doc.name}
-                              </p>
-                              <p className="text-sm text-slate-400">
-                                {new Date(doc.uploadedAt).toLocaleDateString(
-                                  "ar-EG"
-                                )}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex gap-2">
-                            <a
-                              href={doc.url}
-                              download
-                              className="p-2 hover:bg-blue-900/30 text-blue-400 rounded-lg transition"
-                              title="تحميل"
-                            >
-                              <Download className="w-5 h-5" />
-                            </a>
-                            <button
-                              onClick={() => handleDeleteDocument(idx)}
-                              className="p-2 hover:bg-red-900/30 text-red-400 rounded-lg transition"
-                              title="حذف"
-                            >
-                              <Trash2 className="w-5 h-5" />
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-12 bg-gradient-to-br from-slate-800 to-slate-700 rounded-2xl border border-slate-600">
-                      <div className="w-16 h-16 mx-auto mb-4 bg-slate-700 rounded-full flex items-center justify-center">
-                        <img
-                          src={badgeIcon1}
-                          alt=""
-                          className="w-8 h-8 opacity-50"
-                        />
-                      </div>
-                      <h4 className="text-lg font-medium text-slate-300 mb-2">
-                        لا توجد مستندات
-                      </h4>
-                      <p className="text-slate-500">ابدأ بتحميل مستند جديد</p>
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-          )}
         </div>
       </div>
 

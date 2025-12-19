@@ -132,7 +132,7 @@ export default function Navbar({
     if (!userId) return;
     setNotifications((prev) =>
       prev.filter((notification) => {
-        if (!notification?.userId) return false;
+        if (!notification?.userId) return true;
         return notification.userId === userId;
       })
     );

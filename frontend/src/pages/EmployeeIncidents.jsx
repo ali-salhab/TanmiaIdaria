@@ -30,6 +30,7 @@ export default function EmployeeIncidents() {
     const fetchUser = async () => {
       try {
         const res = await API.get("/auth/me");
+        console.log(res.data.user);
         setUser(res.data.user);
         if (!checkPermission("incidents.view", res.data.user)) {
           toast.error("❌ ليس لديك صلاحية لعرض الوقوعات");
@@ -333,7 +334,12 @@ export default function EmployeeIncidents() {
                     );
                     const link = document.createElement("a");
                     link.href = url;
-                    link.setAttribute("download", `البطاقة_الداتية.xlsx`);
+                    link.setAttribute(
+                      "download",
+                      ` البطاقة الداتية 
+                      ${currentEmployee.firstName} ${currentEmployee.lastName} 
+                       .xlsx`
+                    );
                     document.body.appendChild(link);
                     link.click();
                     link.parentNode.removeChild(link);

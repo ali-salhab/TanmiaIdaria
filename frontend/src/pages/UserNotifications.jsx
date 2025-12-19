@@ -36,7 +36,7 @@ export default function UserNotifications() {
     if (!userId) return;
     setNotifications((prev) =>
       prev.filter((notification) => {
-        if (!notification?.userId) return false;
+        if (!notification?.userId) return true;
         return notification.userId === userId;
       })
     );
@@ -46,7 +46,20 @@ export default function UserNotifications() {
     try {
       setLoading(true);
       const res = await API.get("/notifications");
-      setNotifications(res.data);
+      const items = Array.isArray(res.data) ? res.data : [];
+      setNotifications(items);
+
+      const hasUnread = items.some((notif) => !notif.read);
+      if (hasUnread) {
+        try {
+          await API.put("/notifications/mark-read");
+          setNotifications((prev) =>
+            prev.map((notif) => (notif.read ? notif : { ...notif, read: true }))
+          );
+        } catch (error) {
+          console.error("Error marking notifications as read:", error);
+        }
+      }
     } catch (error) {
       console.error("Error fetching notifications:", error);
       toast.error("فشل جلب الإشعارات");

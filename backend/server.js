@@ -30,6 +30,7 @@ import penaltyRoutes from "./routes/penalties.js";
 import courseRoutes from "./routes/courses.js";
 import complaintRoutes from "./routes/complaints.js";
 import dbRecoveryRoutes from "./routes/dbRecovery.js";
+import { initBackupScheduler } from "./services/backupScheduler.js";
 import { fileURLToPath } from "url";
 import http from "http";
 import { Server } from "socket.io";
@@ -374,6 +375,9 @@ mongoose
   })
   .then(async () => {
     console.log("MongoDB connected");
+
+    // Initialize backup scheduler
+    initBackupScheduler();
 
     const User = (await import("./models/User.js")).default;
     const bcrypt = (await import("bcryptjs")).default;

@@ -824,7 +824,7 @@ function Reports() {
                   label={({ name, percent }) =>
                     `${name}: ${(percent * 100).toFixed(0)}%`
                   }
-                  outerRadius={100}
+                  outerRadius={150}
                   fill="#8884d8"
                   dataKey="value"
                 >
@@ -857,17 +857,17 @@ function Reports() {
               <BarChart
                 data={jobCategoryChartData}
                 layout="vertical"
-                margin={{ top: 24, bottom: 24, left: 32, right: 32 }}
+                margin={{ top: 6, bottom: 2, left: 32, right: 32 }}
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
-                <XAxis type="number" stroke="#94a3b8" />
+                <XAxis type="number" stroke="#fff" />
                 <YAxis
                   type="category"
                   dataKey="name"
-                  width={220}
-                  stroke="#94a3b8"
+                  stroke="#fff"
                   interval={0}
-                  tick={{ fontSize: 11, wordWrap: "break-word" }}
+                  tickMargin={60}
+                  tick={{ fontSize: 12, wordWrap: "break-word" }}
                 />
                 <Tooltip
                   contentStyle={{
@@ -877,8 +877,13 @@ function Reports() {
                   }}
                   itemStyle={{ color: "#f1f5f9" }}
                 />
-                <Legend wrapperStyle={{ color: "#94a3b8" }} />
-                <Bar dataKey="count" fill="#ffc658" barSize={18} />
+                <Legend wrapperStyle={{ color: "#fff" }} />
+                <Bar
+                  stopOpacity={0.1}
+                  dataKey="count"
+                  fill="#ffc658"
+                  barSize={"20"}
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -901,6 +906,7 @@ function Reports() {
                   dataKey="name"
                   width={220}
                   stroke="#94a3b8"
+                  tickMargin={200}
                   interval={0}
                   tick={{ fontSize: 12, wordWrap: "break-word" }}
                 />
@@ -932,6 +938,7 @@ function Reports() {
                 <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
                 <XAxis type="number" stroke="#94a3b8" />
                 <YAxis
+                  tickMargin={100}
                   dataKey="name"
                   type="category"
                   width={220}

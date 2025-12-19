@@ -22,6 +22,15 @@ export default function DbRecovery() {
   const [selected, setSelected] = useState("");
   const [drop, setDrop] = useState(true);
 
+  // Scheduled backup settings
+  const [backupSettings, setBackupSettings] = useState({
+    enabled: false,
+    interval: "daily",
+    retention: 7,
+  });
+  const [savingSettings, setSavingSettings] = useState(false);
+  const [toolsInfo, setToolsInfo] = useState(null);
+
   const canRestore = useMemo(
     () => Boolean(selected) && !restoring,
     [selected, restoring]
@@ -40,9 +49,44 @@ export default function DbRecovery() {
     }
   };
 
+  const fetchToolsInfo = async () => {
+    try {
+      const res = await API.get("/db-recovery/tools");
+      setToolsInfo(res.data);
+    } catch (err) {
+      console.error("Failed to fetch tools info", err);
+    }
+  };
+
+  const fetchSettings = async () => {
+    try {
+      const res = await API.get("/app-settings");
+      if (res.data?.backupSettings) {
+        setBackupSettings(res.data.backupSettings);
+      }
+    } catch (err) {
+      console.error("Failed to fetch backup settings", err);
+    }
+  };
+
   useEffect(() => {
     fetchBackups();
+    fetchSettings();
+    fetchToolsInfo();
   }, []);
+
+  const handleSaveSettings = async () => {
+    try {
+      setSavingSettings(true);
+      await API.put("/app-settings", { backupSettings });
+      toast.success("تم حفظ إعدادات النسخ المجدول");
+    } catch (err) {
+      console.error(err);
+      toast.error("فشل حفظ الإعدادات");
+    } finally {
+      setSavingSettings(false);
+    }
+  };
 
   const handleCreateBackup = async () => {
     if (!confirm("إنشاء نسخة احتياطية جديدة الآن؟")) return;
@@ -121,6 +165,100 @@ export default function DbRecovery() {
             className="px-4 py-2 rounded-lg bg-teal-600 hover:bg-teal-700 text-white disabled:opacity-50 transition-colors"
           >
             {creating ? "جاري الإنشاء..." : "إنشاء نسخة احتياطية"}
+          </button>
+        </div>
+      </div>
+
+      {toolsInfo &&
+        (toolsInfo.mongodump.hint || toolsInfo.mongorestore.hint) && (
+          <div className="bg-red-900/20 border border-red-500/50 rounded-xl p-4 text-red-200 text-sm">
+            <h4 className="font-bold mb-2 flex items-center gap-2">
+              ⚠️ تنبيه: أدوات MongoDB غير موجودة
+            </h4>
+            <p className="mb-2">
+              لم يتم العثور على أدوات النسخ الاحتياطي (mongodump/mongorestore)
+              في السيرفر. لن يعمل النسخ الاحتياطي أو الاستعادة حتى يتم تثبيتها.
+            </p>
+            <div className="bg-black/40 p-3 rounded font-mono text-xs break-all">
+              <div className="mb-1 text-slate-400">المسار الذي تم البحث فيه: {toolsInfo.mongodump.command}</div>
+              {toolsInfo.mongodump.hint || toolsInfo.mongorestore.hint}
+            </div>
+          </div>
+        )}
+
+      <div className="bg-slate-800 rounded-xl border border-slate-700 p-4">
+        <h3 className="font-semibold text-slate-100 mb-4 flex items-center gap-2">
+          📅 النسخ الاحتياطي المجدول
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+          <div className="space-y-2">
+            <label className="text-sm text-slate-400">
+              تفعيل النسخ التلقائي
+            </label>
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={backupSettings.enabled}
+                onChange={(e) =>
+                  setBackupSettings({
+                    ...backupSettings,
+                    enabled: e.target.checked,
+                  })
+                }
+                className="w-4 h-4 rounded border-slate-600 bg-slate-700 text-teal-500 focus:ring-teal-500"
+              />
+              <span className="text-sm text-slate-200">
+                {backupSettings.enabled ? "مفعل" : "معطل"}
+              </span>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm text-slate-400">التكرار</label>
+            <select
+              value={backupSettings.interval}
+              onChange={(e) =>
+                setBackupSettings({
+                  ...backupSettings,
+                  interval: e.target.value,
+                })
+              }
+              disabled={!backupSettings.enabled}
+              className="w-full border border-slate-700 bg-slate-900 text-slate-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-500 disabled:opacity-50"
+            >
+              <option value="daily">يومي (منتصف الليل)</option>
+              <option value="weekly">أسبوعي (الأحد)</option>
+              <option value="monthly">شهري (بداية الشهر)</option>
+            </select>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm text-slate-400">
+              عدد النسخ المحفوظة (Retention)
+            </label>
+            <input
+              type="number"
+              min="1"
+              max="100"
+              value={backupSettings.retention}
+              onChange={(e) =>
+                setBackupSettings({
+                  ...backupSettings,
+                  retention: parseInt(e.target.value) || 7,
+                })
+              }
+              disabled={!backupSettings.enabled}
+              className="w-full border border-slate-700 bg-slate-900 text-slate-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-500 disabled:opacity-50"
+            />
+          </div>
+        </div>
+        <div className="mt-4 flex justify-end">
+          <button
+            onClick={handleSaveSettings}
+            disabled={savingSettings}
+            className="px-6 py-2 rounded-lg bg-teal-600 hover:bg-teal-700 text-white disabled:opacity-50 transition-colors text-sm font-medium"
+          >
+            {savingSettings ? "جاري الحفظ..." : "حفظ إعدادات الجدولة"}
           </button>
         </div>
       </div>

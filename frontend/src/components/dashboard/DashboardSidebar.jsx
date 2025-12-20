@@ -66,6 +66,12 @@ export default function DashboardSidebar({
       permission: "complaints.view",
     },
     {
+      label: " الشؤون القانونية",
+      to: "/dashboard/legal",
+      icon: "⚖️",
+      permission: "legal.view_cases",
+    },
+    {
       label: " ادارة قاعدة البيانات",
       to: "/dashboard/upload",
       icon: "💾",

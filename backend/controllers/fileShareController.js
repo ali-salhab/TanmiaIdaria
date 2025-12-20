@@ -3,14 +3,15 @@ import User from "../models/User.js";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { notifyAdmin } from "../services/notificationService.js";
+import { notifyAdmin, notifyUser } from "../services/notificationService.js";
+import { io } from "../server.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export const uploadAndShareFile = async (req, res) => {
   try {
-    const { recipientId, message } = req.body;
+    const { recipientId, message, subject } = req.body;
     const senderId = req.user._id;
 
     if (!req.file) {
@@ -34,7 +35,22 @@ export const uploadAndShareFile = async (req, res) => {
       fileUrl,
       fileSize: req.file.size,
       fileType,
+      subject,
       message,
+    });
+
+    // Notify recipient
+    await notifyUser({
+      userId: recipientId,
+      actionBy: senderId,
+      type: "file_shared",
+      title: "📧 ملف جديد مستلم",
+      message: `قام ${req.user.username} بإرسال ملف لك: ${
+        subject || req.file.originalname
+      }`,
+      section: "file_sharing",
+      action: "receive",
+      io,
     });
 
     // Notify admin if action is performed by non-admin user
@@ -45,6 +61,7 @@ export const uploadAndShareFile = async (req, res) => {
         action: "create",
         title: "تم مشاركة ملف جديد",
         message: `تم مشاركة ملف: ${req.file.originalname}`,
+        io,
       });
     }
 

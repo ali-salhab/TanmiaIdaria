@@ -19,6 +19,7 @@ export const createLegalCase = async (req, res) => {
       assignedTo,
       dueDate,
       tags,
+      relatedDocument,
     } = req.body;
     const createdBy = req.user._id;
 
@@ -31,6 +32,7 @@ export const createLegalCase = async (req, res) => {
       assignedTo,
       dueDate,
       tags,
+      relatedDocument,
     });
 
     // Populate the case with user information

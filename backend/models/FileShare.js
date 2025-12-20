@@ -28,6 +28,9 @@ const fileShareSchema = new mongoose.Schema(
       enum: ["image", "document", "other"],
       default: "other",
     },
+    subject: {
+      type: String,
+    },
     message: {
       type: String,
     },

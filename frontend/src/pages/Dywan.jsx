@@ -12,6 +12,7 @@ import {
   Send,
   MessageSquare,
   Archive,
+  Scale,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import DropdownWithSettings from "../components/DropdownWithSettings";
@@ -48,6 +49,15 @@ export default function Dywan() {
   const [filterYear, setFilterYear] = useState("");
   const [selectedDocument, setSelectedDocument] = useState(null);
 
+  // Legal Modal State
+  const [showLegalModal, setShowLegalModal] = useState(false);
+  const [legalCaseData, setLegalCaseData] = useState({
+    title: "",
+    description: "",
+    priority: "عادية",
+    caseType: "استشارة قانونية",
+  });
+
   // File sharing states
   const [receivedFiles, setReceivedFiles] = useState([]);
   const [sentFiles, setSentFiles] = useState([]);
@@ -55,6 +65,7 @@ export default function Dywan() {
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [selectedFileForShare, setSelectedFileForShare] = useState(null);
   const [selectedRecipient, setSelectedRecipient] = useState("");
+  const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
   const [fileSharingLoading, setFileSharingLoading] = useState(false);
 
@@ -89,6 +100,52 @@ export default function Dywan() {
     filterStatus,
     filterYear,
   ]);
+
+  useEffect(() => {
+    if (selectedDocument) {
+      setDepartment(selectedDocument.department || "");
+      setDocumentType(selectedDocument.documentType || "");
+      setStatus(selectedDocument.status || "");
+      setDocumentNumber(selectedDocument.documentNumber || "");
+      setDocumentYear(
+        selectedDocument.year || new Date().getFullYear().toString()
+      );
+      setIncomingNumber(selectedDocument.incomingNumber || "");
+      setIncomingFromEntity(selectedDocument.incomingFromEntity || "");
+      setIncomingMailNumber(selectedDocument.incomingMailNumber || "");
+      setIncomingRegistryNumber(selectedDocument.incomingRegistryNumber || "");
+
+      // Ensure date is in YYYY-MM-DD format for input type="date"
+      let formattedDate = "";
+      if (selectedDocument.incomingRegisteredAt) {
+        try {
+          const dateObj = new Date(selectedDocument.incomingRegisteredAt);
+          if (!isNaN(dateObj.getTime())) {
+            formattedDate = dateObj.toISOString().split("T")[0];
+          }
+        } catch (e) {
+          console.error("Date parsing error:", e);
+        }
+      }
+      setIncomingRegisteredAt(formattedDate);
+
+      setIncomingSubject(selectedDocument.incomingSubject || "");
+    } else {
+      // Reset form for new entry
+      setDepartment("");
+      setDocumentType("");
+      setStatus("");
+      setDocumentNumber("");
+      setDocumentYear(new Date().getFullYear().toString());
+      setIncomingNumber("");
+      setIncomingFromEntity("");
+      setIncomingMailNumber("");
+      setIncomingRegistryNumber("");
+      setIncomingRegisteredAt("");
+      setIncomingSubject("");
+      setFile(null);
+    }
+  }, [selectedDocument]);
 
   const fetchDocuments = async () => {
     try {
@@ -174,12 +231,12 @@ export default function Dywan() {
   };
 
   const handleScan = async () => {
-    if (!checkPermission("documents.upload", user)) {
+    if (!checkPermission("dywan.create", user)) {
       toast.error("ليس لديك صلاحية لرفع الوثائق");
       return;
     }
 
-    if (!file) {
+    if (!selectedDocument && !file) {
       toast.error("يرجى اختيار وثيقة أولاً");
       return;
     }
@@ -190,31 +247,39 @@ export default function Dywan() {
     }
 
     const formData = new FormData();
-    formData.append("file", file);
+    if (file) formData.append("file", file);
     formData.append("department", department);
     formData.append("documentType", documentType);
     formData.append("status", status);
     formData.append("documentNumber", documentNumber);
     formData.append("incomingNumber", incomingNumber);
+    formData.append("incomingFromEntity", incomingFromEntity);
+    formData.append("incomingMailNumber", incomingMailNumber);
+    formData.append("incomingRegistryNumber", incomingRegistryNumber);
+    formData.append("incomingRegisteredAt", incomingRegisteredAt);
+    formData.append("incomingSubject", incomingSubject);
     formData.append("year", documentYear);
 
     try {
       setLoading(true);
-      const res = await API.post("/documents/upload", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      toast.success("تم رفع الوثيقة بنجاح");
+      if (selectedDocument) {
+        await API.put(`/documents/${selectedDocument._id}`, formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+        toast.success("تم تحديث الوثيقة بنجاح");
+      } else {
+        await API.post("/documents/upload", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+        toast.success("تم رفع الوثيقة بنجاح");
+      }
       fetchDocuments();
-      setFile(null);
-      setDepartment("");
-      setDocumentType("");
-      setStatus("");
-      setDocumentNumber("");
-      setIncomingNumber("");
-      setDocumentYear(new Date().getFullYear().toString());
-      document.getElementById("fileInput").value = "";
+      setSelectedDocument(null);
+      if (document.getElementById("fileInput")) {
+        document.getElementById("fileInput").value = "";
+      }
     } catch (err) {
-      toast.error(err.response?.data?.message || "خطأ في رفع الوثيقة");
+      toast.error(err.response?.data?.message || "خطأ في حفظ الوثيقة");
     } finally {
       setLoading(false);
     }
@@ -291,6 +356,7 @@ export default function Dywan() {
       const formData = new FormData();
       formData.append("file", selectedFileForShare);
       formData.append("recipientId", selectedRecipient);
+      formData.append("subject", subject);
       formData.append("message", message);
 
       await API.post("/file-share/upload", formData, {
@@ -301,6 +367,7 @@ export default function Dywan() {
       setUploadModalOpen(false);
       setSelectedFileForShare(null);
       setSelectedRecipient("");
+      setSubject("");
       setMessage("");
       fetchSentFiles();
     } catch (error) {
@@ -382,6 +449,11 @@ export default function Dywan() {
                     : "📎"}
                 </div>
                 <div className="min-w-0">
+                  {file.subject && (
+                    <p className="font-bold text-amber-400 text-lg mb-1">
+                      {file.subject}
+                    </p>
+                  )}
                   <p className="font-medium truncate text-gray-800">
                     {file.fileName}
                   </p>
@@ -434,6 +506,37 @@ export default function Dywan() {
         ))}
       </div>
     );
+  };
+
+  const handleSendToLegal = async (e) => {
+    e.preventDefault();
+    if (!selectedDocument) return;
+
+    try {
+      setLoading(true);
+      await API.post("/legal", {
+        ...legalCaseData,
+        relatedDocument: selectedDocument._id,
+        title:
+          legalCaseData.title ||
+          `بخصوص وثيقة: ${
+            selectedDocument.incomingSubject || selectedDocument.documentNumber
+          }`,
+      });
+      toast.success("تم إرسال الوثيقة إلى الشؤون القانونية");
+      setShowLegalModal(false);
+      setLegalCaseData({
+        title: "",
+        description: "",
+        priority: "عادية",
+        caseType: "استشارة قانونية",
+      });
+    } catch (error) {
+      console.error("Error sending to legal:", error);
+      toast.error("فشل الإرسال إلى الشؤون القانونية");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const years = Array.from(
@@ -589,21 +692,38 @@ export default function Dywan() {
 
             <div className="p-5 grid grid-cols-1 lg:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-slate-300 mb-1">
                   نوع الوارد*
                 </label>
                 <DropdownWithSettings
                   id="dywan_incoming_department"
                   value={department}
                   onChange={(e) => setDepartment(e.target.value)}
-                  options={[{ value: "", label: "اختر" }]}
+                  options={[
+                    { value: "", label: "اختر" },
+                    { value: "مديرية المعلوماتية", label: "المعلوماتية" },
+                    {
+                      value: "مديرية التنمية الإدارية",
+                      label: "التنمية الإدارية",
+                    },
+                    { value: "مكتب التنمية المحلية", label: "التنمية المحلية" },
+                    {
+                      value: "مديرية إدارة النفايات الصلبة",
+                      label: "النفايات الصلبة",
+                    },
+                    {
+                      value: "مديرية المجالس المحلية",
+                      label: "المجالس المحلية",
+                    },
+                  ]}
                   placeholder="اختر"
+                  className={inputClass}
                   isAdmin={isAdmin}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-slate-300 mb-1">
                   نوع الوثيقة
                 </label>
                 <DropdownWithSettings
@@ -620,19 +740,20 @@ export default function Dywan() {
                     { value: "أخرى", label: "أخرى" },
                   ]}
                   placeholder="اختر"
+                  className={inputClass}
                   isAdmin={isAdmin}
                 />
               </div>
 
               <div className="lg:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-slate-300 mb-1">
                   اسم الجهة الوارد منها البريد الوارد
                 </label>
                 <input
                   type="text"
                   value={incomingFromEntity}
                   onChange={(e) => setIncomingFromEntity(e.target.value)}
-                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className={inputClass}
                 />
               </div>
 
@@ -815,6 +936,16 @@ export default function Dywan() {
                         <Trash2 className="w-4 h-4" />
                         حذف
                       </button>
+                      {checkPermission("legal.send_files", user) && (
+                        <button
+                          type="button"
+                          onClick={() => setShowLegalModal(true)}
+                          className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded transition text-sm col-span-full sm:col-span-1"
+                        >
+                          <Scale className="w-4 h-4" />
+                          إرسال للقانونية
+                        </button>
+                      )}
                     </div>
                   </div>
                 ) : (
@@ -826,25 +957,25 @@ export default function Dywan() {
             </div>
 
             {/* Bottom action bar (Dywan-like) */}
-            <div className="mt-auto border-t bg-gray-50 p-3 flex items-center justify-end gap-2">
+            <div className="mt-auto border-t border-slate-800 bg-slate-900/80 p-3 flex items-center justify-end gap-2">
               <button
                 type="button"
                 onClick={() => setSelectedDocument(null)}
-                className="px-4 py-2 text-sm bg-white border rounded hover:bg-gray-100"
+                className="px-4 py-2 text-sm bg-slate-800 border border-slate-700 rounded hover:bg-slate-700 text-slate-200"
               >
                 إغلاق
               </button>
               <button
                 type="button"
                 onClick={handleScan}
-                disabled={loading || !file}
-                className={`px-4 py-2 text-sm rounded text-white ${
-                  loading || !file
-                    ? "bg-gray-400"
-                    : "bg-teal-600 hover:bg-teal-700"
+                disabled={loading || (!file && !selectedDocument)}
+                className={`px-4 py-2 text-sm rounded text-white font-semibold transition ${
+                  loading || (!file && !selectedDocument)
+                    ? "bg-slate-700 cursor-not-allowed"
+                    : "bg-amber-600 hover:bg-amber-500 shadow-lg shadow-amber-600/20"
                 }`}
               >
-                حفظ
+                {loading ? "جاري الحفظ..." : "حفظ"}
               </button>
             </div>
           </div>
@@ -924,6 +1055,20 @@ export default function Dywan() {
                         MB)
                       </p>
                     )}
+                  </div>
+
+                  <div>
+                    <label className="block mb-2 font-medium text-slate-200">
+                      الموضوع
+                    </label>
+                    <input
+                      type="text"
+                      value={subject}
+                      onChange={(e) => setSubject(e.target.value)}
+                      placeholder="أدخل موضوع الرسالة..."
+                      className={`${inputClass} bg-slate-950/80`}
+                      required
+                    />
                   </div>
 
                   <div>
@@ -1281,6 +1426,118 @@ export default function Dywan() {
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      )}
+      {/* Legal Case Modal */}
+      {showLegalModal && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-900 border border-slate-700 rounded-xl w-full max-w-lg p-6 shadow-2xl">
+            <h3 className="text-xl font-bold text-amber-300 mb-4 flex items-center gap-2">
+              <Scale className="w-6 h-6" />
+              إرسال إلى الشؤون القانونية
+            </h3>
+            <form onSubmit={handleSendToLegal} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-1">
+                  العنوان
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={legalCaseData.title}
+                  onChange={(e) =>
+                    setLegalCaseData({
+                      ...legalCaseData,
+                      title: e.target.value,
+                    })
+                  }
+                  placeholder={`بخصوص وثيقة: ${
+                    selectedDocument?.incomingSubject ||
+                    selectedDocument?.documentNumber ||
+                    ""
+                  }`}
+                  className="w-full bg-slate-950 border border-slate-700 rounded px-3 py-2 text-sm focus:border-amber-500 outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-1">
+                  الوصف / المطلوب
+                </label>
+                <textarea
+                  required
+                  value={legalCaseData.description}
+                  onChange={(e) =>
+                    setLegalCaseData({
+                      ...legalCaseData,
+                      description: e.target.value,
+                    })
+                  }
+                  className="w-full bg-slate-950 border border-slate-700 rounded px-3 py-2 text-sm focus:border-amber-500 outline-none h-24"
+                  placeholder="يرجى بيان الرأي القانوني بخصوص..."
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-1">
+                    النوع
+                  </label>
+                  <select
+                    value={legalCaseData.caseType}
+                    onChange={(e) =>
+                      setLegalCaseData({
+                        ...legalCaseData,
+                        caseType: e.target.value,
+                      })
+                    }
+                    className="w-full bg-slate-950 border border-slate-700 rounded px-3 py-2 text-sm focus:border-amber-500 outline-none"
+                  >
+                    <option value="استشارة قانونية">استشارة قانونية</option>
+                    <option value="قضية إدارية">قضية إدارية</option>
+                    <option value="شكوى">شكوى</option>
+                    <option value="أخرى">أخرى</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-1">
+                    الأولوية
+                  </label>
+                  <select
+                    value={legalCaseData.priority}
+                    onChange={(e) =>
+                      setLegalCaseData({
+                        ...legalCaseData,
+                        priority: e.target.value,
+                      })
+                    }
+                    className="w-full bg-slate-950 border border-slate-700 rounded px-3 py-2 text-sm focus:border-amber-500 outline-none"
+                  >
+                    <option value="عادية">عادية</option>
+                    <option value="متوسطة">متوسطة</option>
+                    <option value="عاجلة">عاجلة</option>
+                    <option value="عاجل جداً">عاجل جداً</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 mt-6">
+                <button
+                  type="button"
+                  onClick={() => setShowLegalModal(false)}
+                  className="px-4 py-2 text-sm text-slate-300 hover:bg-slate-800 rounded transition"
+                >
+                  إلغاء
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="px-4 py-2 text-sm bg-amber-600 hover:bg-amber-500 text-white rounded transition font-semibold flex items-center gap-2"
+                >
+                  {loading ? "جاري الإرسال..." : "إرسال"}
+                  <Send size={16} />
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

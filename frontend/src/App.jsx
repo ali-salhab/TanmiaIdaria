@@ -35,7 +35,6 @@ import Circulars from "./pages/Circulars";
 import Settings from "./pages/Settings";
 import DbRecovery from "./pages/DbRecovery";
 import EmployeePenalties from "./pages/EmployeePenalties";
-import EmployeeDetailPage from "./pages/EmployeeDetailPage";
 import PermissionGroupsPage from "./pages/permissions/PermissionGroupsPage";
 import PermissionManager from "./pages/permissions/PermissionsManager";
 import PermissionsPage from "./pages/permissions/PermissionsPage";
@@ -43,6 +42,7 @@ import Reports from "./components/Reports";
 import RequirePermission from "./components/RequirePermission";
 import WelcomeMessage from "./components/WelcomeMessage";
 import Complaints from "./pages/Complaints";
+import Legal from "./pages/Legal";
 
 function ProtectedRoute({ children, allowedRoles }) {
   const token = localStorage.getItem("token");
@@ -100,7 +100,7 @@ function App() {
 
             {/* Auth routes */}
             <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
+            {/* <Route path="/register" element={<Register />} /> */}
             <Route
               path="/onboarding"
               element={

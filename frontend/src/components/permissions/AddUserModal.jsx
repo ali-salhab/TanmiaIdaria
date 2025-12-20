@@ -30,7 +30,6 @@ function AddUserModal() {
             { value: "employee", label: "مدير فرعي" },
             { value: "viewer", label: "مشاهد" },
             { value: "hr", label: "شؤون الموظفين" },
-            { value: "finance", label: "محاسب" },
           ]}
           placeholder="اختر الدور"
           className="border rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-blue-400 outline-none"

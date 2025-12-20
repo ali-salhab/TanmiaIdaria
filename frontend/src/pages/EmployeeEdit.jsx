@@ -409,13 +409,15 @@ export default function EmployeeEdit() {
 
       {/* الأزرار السفلية */}
       <div className="flex justify-between mt-8">
-        <button
-          onClick={handleSave}
-          className="px-6 py-2 rounded-lg bg-amber-500 text-slate-900 font-semibold hover:bg-amber-400 transition focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2 focus:ring-offset-slate-900"
-        >
-          {isNew ? "إضافة الموظف" : "حفظ التعديلات"}
-        </button>
-        {!isNew && (
+        {checkPermission("employees.edit", user) && (
+          <button
+            onClick={handleSave}
+            className="px-6 py-2 rounded-lg bg-amber-500 text-slate-900 font-semibold hover:bg-amber-400 transition focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2 focus:ring-offset-slate-900"
+          >
+            {isNew ? "إضافة الموظف" : "حفظ التعديلات"}
+          </button>
+        )}
+        {!isNew && checkPermission("employees.delete", user) && (
           <button
             onClick={handleDelete}
             className="px-6 py-2 rounded-lg bg-rose-600 text-white font-semibold hover:bg-rose-500 transition focus:outline-none focus:ring-2 focus:ring-rose-400 focus:ring-offset-2 focus:ring-offset-slate-900"

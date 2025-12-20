@@ -10,11 +10,34 @@ import {
   removeUserFromGroup,
   updateUserPermissions,
   getUserPermissions,
+  rebuildPermissions,
+  giveAllPermissionsToUser,
+  removeAllPermissionsFromUser,
 } from "../controllers/permissionController.js";
 import { protect } from "../middleware/auth.js";
 import checkPermission from "../middleware/checkPermission.js";
 
 const router = express.Router();
+
+// --- System Actions ---
+router.post(
+  "/rebuild",
+  protect,
+  checkPermission("users.manage_permissions"),
+  rebuildPermissions
+);
+router.post(
+  "/give-all/:userId",
+  protect,
+  checkPermission("users.manage_permissions"),
+  giveAllPermissionsToUser
+);
+router.post(
+  "/remove-all/:userId",
+  protect,
+  checkPermission("users.manage_permissions"),
+  removeAllPermissionsFromUser
+);
 
 // --- Permissions ---
 router.get(

@@ -26,6 +26,11 @@ export const uploadDocument = async (req, res) => {
       status,
       documentNumber,
       incomingNumber,
+      incomingFromEntity,
+      incomingMailNumber,
+      incomingRegistryNumber,
+      incomingRegisteredAt,
+      incomingSubject,
       year,
     } = req.body;
 
@@ -48,6 +53,11 @@ export const uploadDocument = async (req, res) => {
       status,
       documentNumber,
       incomingNumber,
+      incomingFromEntity,
+      incomingMailNumber,
+      incomingRegistryNumber,
+      incomingRegisteredAt,
+      incomingSubject,
       year,
       fileName: req.file.originalname,
       fileUrl,
@@ -111,5 +121,35 @@ export const incrementDocumentDownloads = async (req, res) => {
   } catch (error) {
     console.error("Error incrementing download count:", error);
     res.status(500).json({ message: "خطأ أثناء تحميل الوثيقة" });
+  }
+};
+
+// PUT /api/documents/:id
+export const updateDocument = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updateData = { ...req.body };
+
+    if (req.file) {
+      updateData.fileUrl = `/uploads/${req.file.filename}`;
+      updateData.fileName = req.file.originalname;
+      updateData.fileSize = req.file.size;
+      updateData.fileType = req.file.mimetype?.startsWith("image/")
+        ? "image"
+        : "document";
+    }
+
+    const document = await Document.findByIdAndUpdate(id, updateData, {
+      new: true,
+    });
+
+    if (!document) {
+      return res.status(404).json({ message: "الوثيقة غير موجودة" });
+    }
+
+    res.json({ message: "تم تحديث الوثيقة بنجاح", document });
+  } catch (error) {
+    console.error("Error updating document:", error);
+    res.status(500).json({ message: "خطأ في تحديث الوثيقة" });
   }
 };

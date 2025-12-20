@@ -226,8 +226,8 @@ export default function UserProfile() {
       label: "الصلاحيات والمجموعات",
       icon: <Shield size={20} />,
     },
-    // { id: "images", label: "الصور", icon: <Image size={20} /> },
-    // { id: "documents", label: "المستندات", icon: <FileIcon size={20} /> },
+    { id: "images", label: "الصور", icon: <Image size={20} /> },
+    { id: "documents", label: "المستندات", icon: <FileIcon size={20} /> },
   ];
 
   if (loading) {

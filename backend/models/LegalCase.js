@@ -45,6 +45,10 @@ const legalCaseSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
+    relatedDocument: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Document",
+    },
     attachments: [
       {
         fileName: { type: String, required: true },

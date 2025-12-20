@@ -180,7 +180,9 @@ export default function DbRecovery() {
               في السيرفر. لن يعمل النسخ الاحتياطي أو الاستعادة حتى يتم تثبيتها.
             </p>
             <div className="bg-black/40 p-3 rounded font-mono text-xs break-all">
-              <div className="mb-1 text-slate-400">المسار الذي تم البحث فيه: {toolsInfo.mongodump.command}</div>
+              <div className="mb-1 text-slate-400">
+                المسار الذي تم البحث فيه: {toolsInfo.mongodump.command}
+              </div>
               {toolsInfo.mongodump.hint || toolsInfo.mongorestore.hint}
             </div>
           </div>

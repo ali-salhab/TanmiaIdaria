@@ -57,14 +57,39 @@ export default function PermissionsPage() {
     }
   };
 
+  const rebuildPermissions = async () => {
+    if (
+      !window.confirm(
+        "هل أنت متأكد من إعادة بناء جميع الصلاحيات؟ سيتم تحديث المسميات والوصف للغة العربية."
+      )
+    )
+      return;
+    try {
+      const res = await API.post("/permissions/rebuild");
+      toast.success(res.data.message);
+      loadPermissions();
+    } catch (err) {
+      console.error("rebuildPermissions error:", err);
+      toast.error("❌ فشل في إعادة بناء الصلاحيات");
+    }
+  };
+
   return (
     <div
       className="p-6 min-h-screen bg-slate-900 text-slate-100 font-custom"
       dir="rtl"
     >
-      <h2 className="text-2xl font-semibold mb-4 text-slate-100">
-        📋 إدارة الصلاحيات
-      </h2>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-semibold text-slate-100">
+          📋 إدارة الصلاحيات
+        </h2>
+        <button
+          onClick={rebuildPermissions}
+          className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-medium transition shadow-lg shadow-emerald-900/20 flex items-center gap-2"
+        >
+          🔄 إعادة بناء الصلاحيات (عربي)
+        </button>
+      </div>
 
       <div className="bg-slate-800 p-4 rounded shadow mb-6 border border-slate-700">
         <h3 className="font-medium mb-2 text-slate-200">

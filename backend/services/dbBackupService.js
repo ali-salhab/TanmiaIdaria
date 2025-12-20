@@ -79,16 +79,80 @@ export function findMongoTool(toolBaseName) {
   // 2. Check common Windows installation paths
   if (isWindows()) {
     const candidates = [
-      path.join("C:\\", "Program Files", "MongoDB", "Tools", "100", "bin", exeName),
+      path.join(
+        "C:\\",
+        "Program Files",
+        "MongoDB",
+        "Tools",
+        "100",
+        "bin",
+        exeName
+      ),
       path.join("C:\\", "Program Files", "MongoDB", "Tools", "bin", exeName),
       path.join("C:\\", "MongoDB", "Tools", "bin", exeName),
-      path.join("C:\\", "Program Files", "MongoDB", "Server", "8.0", "bin", exeName),
-      path.join("C:\\", "Program Files", "MongoDB", "Server", "7.0", "bin", exeName),
-      path.join("C:\\", "Program Files", "MongoDB", "Server", "6.0", "bin", exeName),
-      path.join("C:\\", "Program Files", "MongoDB", "Server", "5.0", "bin", exeName),
-      path.join("C:\\", "Program Files", "MongoDB", "Server", "4.4", "bin", exeName),
-      path.join("C:\\", "Program Files", "MongoDB", "Server", "4.2", "bin", exeName),
-      path.join("C:\\", "Program Files", "MongoDB", "Server", "4.0", "bin", exeName),
+      path.join(
+        "C:\\",
+        "Program Files",
+        "MongoDB",
+        "Server",
+        "8.0",
+        "bin",
+        exeName
+      ),
+      path.join(
+        "C:\\",
+        "Program Files",
+        "MongoDB",
+        "Server",
+        "7.0",
+        "bin",
+        exeName
+      ),
+      path.join(
+        "C:\\",
+        "Program Files",
+        "MongoDB",
+        "Server",
+        "6.0",
+        "bin",
+        exeName
+      ),
+      path.join(
+        "C:\\",
+        "Program Files",
+        "MongoDB",
+        "Server",
+        "5.0",
+        "bin",
+        exeName
+      ),
+      path.join(
+        "C:\\",
+        "Program Files",
+        "MongoDB",
+        "Server",
+        "4.4",
+        "bin",
+        exeName
+      ),
+      path.join(
+        "C:\\",
+        "Program Files",
+        "MongoDB",
+        "Server",
+        "4.2",
+        "bin",
+        exeName
+      ),
+      path.join(
+        "C:\\",
+        "Program Files",
+        "MongoDB",
+        "Server",
+        "4.0",
+        "bin",
+        exeName
+      ),
     ];
     for (const c of candidates) {
       if (existsFile(c)) return c;

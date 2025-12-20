@@ -2,6 +2,7 @@ import express from "express";
 import {
   getDocuments,
   uploadDocument,
+  updateDocument,
   deleteDocument,
   incrementDocumentDownloads,
 } from "../controllers/documentController.js";
@@ -19,6 +20,12 @@ router.post(
   checkPermission("dywan.create"),
   upload.single("file"),
   uploadDocument
+);
+router.put(
+  "/:id",
+  checkPermission("dywan.create"),
+  upload.single("file"),
+  updateDocument
 );
 router.delete("/:id", checkPermission("dywan.delete"), deleteDocument);
 router.put(

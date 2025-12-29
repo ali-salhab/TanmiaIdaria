@@ -13,6 +13,7 @@ export const getDropdownSettings = async (req, res) => {
           category: ["أولى", "تانية", "تالتة", "رابعة", "خامسة"],
           reason: ["زيادة أجر", "تجديد عقد", "تثبيت", "ترفيع"],
           document_type: ["مرسوم", "قرار"],
+          incidentType: ["داخلي", "خارجي"],
         },
       });
       await settings.save();

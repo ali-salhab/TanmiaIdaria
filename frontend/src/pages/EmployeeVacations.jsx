@@ -537,13 +537,7 @@ export default function EmployeeVacations() {
             <Printer size={18} />
             طباعة بيان وضع
           </button>
-          <button
-            onClick={handleExportWord}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded flex items-center gap-2 transition"
-          >
-            <Download size={18} />
-            تصدير Word
-          </button>
+
           <button
             onClick={handleAdd}
             className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded transition"
@@ -667,20 +661,14 @@ export default function EmployeeVacations() {
                       <Download size={14} />
                       PDF
                     </button>
-                    <button
-                      onClick={() => handleDownloadTemplate(v.id)}
-                      className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 ml-2 transition flex items-center gap-1 text-sm"
-                      title="تحميل استمارة الإجازة"
-                    >
-                      <Download size={14} />
-                      استمارة
-                    </button>
-                    <button
-                      onClick={() => handleEdit(v)}
-                      className="bg-slate-600 text-white px-3 py-1 rounded hover:bg-slate-500 ml-2 transition"
-                    >
-                      تعديل
-                    </button>
+                    {checkPermission("vacations.edit", user) && (
+                      <button
+                        onClick={() => handleEdit(v)}
+                        className="bg-slate-600 text-white px-3 py-1 rounded hover:bg-slate-500 ml-2 transition"
+                      >
+                        تعديل
+                      </button>
+                    )}
                     {checkPermission("vacations.delete", user) && (
                       <button
                         onClick={() => handleDelete(v._id || v.id)}

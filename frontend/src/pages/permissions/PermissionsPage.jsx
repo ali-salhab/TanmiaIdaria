@@ -83,62 +83,6 @@ export default function PermissionsPage() {
         <h2 className="text-2xl font-semibold text-slate-100">
           📋 إدارة الصلاحيات
         </h2>
-        <button
-          onClick={rebuildPermissions}
-          className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-medium transition shadow-lg shadow-emerald-900/20 flex items-center gap-2"
-        >
-          🔄 إعادة بناء الصلاحيات (عربي)
-        </button>
-      </div>
-
-      <div className="bg-slate-800 p-4 rounded shadow mb-6 border border-slate-700">
-        <h3 className="font-medium mb-2 text-slate-200">
-          ➕ إضافة صلاحية جديدة
-        </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
-          <input
-            placeholder="key (مثال: employees.view)"
-            value={newPerm.key}
-            onChange={(e) => setNewPerm({ ...newPerm, key: e.target.value })}
-            className="border border-slate-600 bg-slate-700 text-slate-100 px-2 py-2 rounded placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <input
-            placeholder="label (مثال: عرض الموظفين)"
-            value={newPerm.label}
-            onChange={(e) => setNewPerm({ ...newPerm, label: e.target.value })}
-            className="border border-slate-600 bg-slate-700 text-slate-100 px-2 py-2 rounded placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <input
-            placeholder="description (اختياري)"
-            value={newPerm.description}
-            onChange={(e) =>
-              setNewPerm({ ...newPerm, description: e.target.value })
-            }
-            className="border border-slate-600 bg-slate-700 text-slate-100 px-2 py-2 rounded placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <select
-            value={newPerm.category}
-            onChange={(e) =>
-              setNewPerm({ ...newPerm, category: e.target.value })
-            }
-            className="border border-slate-600 bg-slate-700 text-slate-100 px-2 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="view">view</option>
-            <option value="create">create</option>
-            <option value="edit">edit</option>
-            <option value="delete">delete</option>
-            <option value="manage">manage</option>
-            <option value="admin">admin</option>
-          </select>
-        </div>
-        <div className="mt-3">
-          <button
-            onClick={createPermission}
-            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded transition-colors"
-          >
-            إضافة
-          </button>
-        </div>
       </div>
 
       <div className="bg-slate-800 p-4 rounded shadow border border-slate-700">

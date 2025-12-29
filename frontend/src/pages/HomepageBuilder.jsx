@@ -558,7 +558,7 @@ export default function HomepageBuilder() {
                     : "bg-slate-700 text-slate-300 hover:bg-slate-600"
                 }`}
               >
-                🛡️ إدارة الصلاحيات
+                🛡️ كافة الصلاحيات
               </button>
 
               <button

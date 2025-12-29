@@ -8,6 +8,7 @@ import {
   Plus,
   Edit2,
   Trash2,
+  ChevronDownIcon,
   X,
 } from "lucide-react";
 import API from "../api/api";
@@ -453,7 +454,7 @@ export default function DropdownWithSettings({
           <select
             value={value}
             onChange={onChange}
-            className={`w-full border-2 border-gray-300 px-4 py-3 pr-12 rounded-xl bg-white text-gray-800 font-medium shadow-sm hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ${className}`}
+            className={`w-full border-2 border-gray-300 px-4 py-3 pr-12 rounded-xl bg-slate appearance-none text-gray-800 font-medium shadow-sm hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ${className}`}
           >
             <option value="">{placeholder}</option>
             {visibleOptions.map((opt) => (
@@ -462,11 +463,12 @@ export default function DropdownWithSettings({
               </option>
             ))}
           </select>
+          <ChevronDownIcon className="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-500"></ChevronDownIcon>
 
           {isAdmin && (
             <button
               onClick={() => setShowSettings(!showSettings)}
-              className="absolute left-2 top-1/2 -translate-y-1/2 p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-all duration-200 group-hover:scale-110 shadow-sm hover:shadow-md border border-blue-200"
+              className="absolute left-2 top-1/2 -translate-y-1/2 p-2 bg-slate hover:bg-blue-100 text-blue-600 rounded-lg transition-all duration-200 group-hover:scale-110 shadow-sm hover:shadow-md border border-blue-200"
               title="إعدادات القائمة المنسدلة"
             >
               <Settings className="w-4 h-4" />
@@ -476,9 +478,9 @@ export default function DropdownWithSettings({
       </div>
 
       {showSettings && (
-        <div className="absolute top-full right-0 mt-2 w-96 bg-white border-2 border-blue-200 rounded-xl shadow-2xl p-4 z-50 backdrop-blur-sm">
+        <div className="absolute top-full right-0 mt-2 w-96 bg-slate-800 border-2 border-blue-200 rounded-xl shadow-2xl p-4 z-50 ">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-gray-800">إعدادات الخيارات</h3>
+            <h3 className="font-semibold text-white">إعدادات الخيارات</h3>
             <button
               onClick={() => setShowSettings(false)}
               className="text-gray-500 hover:text-gray-700"
@@ -577,9 +579,9 @@ export default function DropdownWithSettings({
 
       {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+          <div className="bg-slate-900 rounded-lg shadow-xl p-6 w-full max-w-md">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-800">
+              <h3 className="text-lg font-semibold text-white-800">
                 إضافة خيار جديد
               </h3>
               <button
@@ -601,7 +603,7 @@ export default function DropdownWithSettings({
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-white-700 mb-1">
                   الاسم (الظاهر)
                 </label>
                 <input
@@ -609,11 +611,11 @@ export default function DropdownWithSettings({
                   value={newOptionLabel}
                   onChange={(e) => setNewOptionLabel(e.target.value)}
                   placeholder="أدخل اسم الخيار"
-                  className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full text-gray-800 border border-gray-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-white-700 mb-1">
                   القيمة (بدون مسافات)
                 </label>
                 <input
@@ -623,7 +625,7 @@ export default function DropdownWithSettings({
                     setNewOptionValue(e.target.value.replace(/\s+/g, "_"))
                   }
                   placeholder="أدخل قيمة الخيار"
-                  className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border text-gray-900 border-gray-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>

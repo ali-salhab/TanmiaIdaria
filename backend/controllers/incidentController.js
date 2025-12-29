@@ -141,10 +141,10 @@ export const createIncident = async (req, res) => {
       const employee = await Employee.findById(incident.employee);
       await notifyAdmin({
         actionBy: req.user._id,
-        section: "incidents",
+        section: "الوقوعات الوظيفية",
         action: "create",
-        title: "تم إنشاء حادث جديد",
-        message: `تم إنشاء حادث جديد للموظف: ${
+        title: "تم إنشاء وقوع وظيفي  جديد",
+        message: `تم إنشاء وقوع وظيفي جديد للموظف: ${
           employee?.fullName || "غير محدد"
         }`,
         employeeName: employee?.fullName,

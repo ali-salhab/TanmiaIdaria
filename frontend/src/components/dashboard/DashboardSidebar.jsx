@@ -39,7 +39,7 @@ export default function DashboardSidebar({
       label: " الأرشيف",
       to: "/dashboard/archive",
       icon: "📦",
-      permission: "documents.view",
+      permission: "archive.view",
     },
     {
       label: " الاشعارات",
@@ -66,10 +66,10 @@ export default function DashboardSidebar({
       permission: "complaints.view",
     },
     {
-      label: " الشؤون القانونية",
+      label: "  القانونية",
       to: "/dashboard/legal",
       icon: "⚖️",
-      permission: "legal.view_cases",
+      permission: "legal.view",
     },
     {
       label: " ادارة قاعدة البيانات",
@@ -97,6 +97,8 @@ export default function DashboardSidebar({
     if (!item.permission) return true; // Always show if no permission required
     return checkPermission(item.permission, userInfo);
   });
+  console.log("menu items");
+  console.log(menuItems);
 
   const isActive = (path) => {
     return location.pathname === path;

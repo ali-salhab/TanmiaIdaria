@@ -50,6 +50,8 @@ export default function EmployeeIncidents() {
   const fetchDropdownSettings = async () => {
     try {
       const res = await API.get("/app-settings/dropdowns");
+      console.log("drop down setting /app-settings/dropdowns");
+      console.log(res.data);
       if (res.data) {
         setDropdownSettings(res.data);
       }

@@ -31,12 +31,20 @@ export default function EmployeeEdit() {
   const tabConfig = useMemo(
     () => [
       { key: "info", label: "البيانات الشخصية", permission: null },
-      { key: "documents", label: "الوثائق", permission: "employees.view" },
+      { key: "documents", label: "الوثائق", permission: "documents.view" },
       { key: "incidents", label: "الوقوعات", permission: "incidents.view" },
       { key: "vacations", label: "الإجازات", permission: "vacations.view" },
-      { key: "rewards", label: "المكافآت", permission: "rewards.view" },
-      { key: "Penalties", label: "العقوبات", permission: "punishments.view" },
-      { key: "courses", label: "الدورات", permission: null },
+      {
+        key: "rewards",
+        label: "المكافآت",
+        permission: "incidents.view_rewards",
+      },
+      {
+        key: "Penalties",
+        label: "العقوبات",
+        permission: "incidents.view_penalties",
+      },
+      { key: "courses", label: "الدورات", permission: "courses.view" },
     ],
     []
   );

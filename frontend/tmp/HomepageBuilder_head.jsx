@@ -393,7 +393,7 @@ export default function HomepageBuilder() {
                 : "bg-gray-200 text-gray-800 hover:bg-gray-300"
             }`}
           >
-            🎨 الصفحة الرئيسية
+            🎨للمستخدم الصفحة الرئيسية
           </button>
           {isAdmin && (
             <>
@@ -415,7 +415,7 @@ export default function HomepageBuilder() {
                     : "bg-gray-200 text-gray-800 hover:bg-gray-300"
                 }`}
               >
-                🛡️ إدارة الصلاحيات
+                🛡️ المتوفرة الصلاحيات
               </button>
 
               <button
@@ -435,10 +435,7 @@ export default function HomepageBuilder() {
 
       {/* Homepage Builder Tab */}
       {activeTab === "permission-manager" && (
-        <PermissionManager
-          allPermissions={allPermissions}
-          users={users}
-        />
+        <PermissionManager allPermissions={allPermissions} users={users} />
       )}
       {activeTab === "homepage" && (
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -745,8 +742,6 @@ export default function HomepageBuilder() {
                             <option value="admin">مدير عام</option>
                             <option value="employee">مدير فرعي</option>
                             <option value="viewer">مشاهد</option>
-                            <option value="hr">شؤون الموظفين</option>
-                            <option value="finance">محاسب</option>
                           </select>
                         ) : (
                           u.role

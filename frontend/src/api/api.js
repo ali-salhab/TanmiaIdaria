@@ -1,58 +1,36 @@
 import axios from "axios";
 
-// Dynamically determine the API base URL
-const getBaseURL = () => {
-  // Check if we're running in development
-  if (import.meta.env.DEV) {
-    // Use environment variable if set, otherwise detect from window location
-    if (import.meta.env.VITE_API_URL) {
-      return import.meta.env.VITE_API_URL;
-    }
-
-    // Auto-detect: use the same host as the frontend but port 5000
-    const hostname = window.location.hostname;
-    const baseURL = `http://${hostname}:5000/api`;
-    console.log("🔧 API Base URL:", baseURL);
-    return baseURL;
-  }
-
-  // Production: use environment variable or relative path
-  return import.meta.env.VITE_API_URL || "/api";
-};
-
 const API = axios.create({
-  baseURL: getBaseURL(),
+  // Prefer explicit VITE_API_URL in production/dev env.
+  // When not provided during local dev, use a relative `/api` path so
+  // Vite's dev server proxy can forward requests to the backend and
+  // avoid CORS/credentials issues.
+  baseURL: import.meta.env.VITE_API_URL || `/api`,
+  withCredentials: true,
 });
 
-console.log("✅ API initialized with baseURL:", API.defaults.baseURL);
-
-//
+// Add a request interceptor to include the auth token
 API.interceptors.request.use((config) => {
-  console.log("==================interceptors called==================");
-  console.log("🚀 Request URL:", config.baseURL + config.url);
-
   const token = localStorage.getItem("token");
-  console.log("===============token========in interpreter =============");
-  console.log(token);
-  console.log("====================================");
-  if (token) config.headers.Authorization = `Bearer ${token}`;
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
   return config;
 });
 
-// Add response interceptor for better error handling
+// Add a response interceptor to handle token expiration
 API.interceptors.response.use(
-  (response) => {
-    console.log("✅ Response received:", response.config.url);
-    return response;
-  },
+  (response) => response,
   (error) => {
-    console.error("❌ API Error:", {
-      url: error.config?.url,
-      baseURL: error.config?.baseURL,
-      method: error.config?.method,
-      status: error.response?.status,
-      message: error.response?.data?.message || error.message,
-    });
+    if (error.response?.status === 401) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      // Let the app decide how/when to navigate.
+      // This prevents unexpected redirects from background API calls.
+      window.dispatchEvent(
+        new CustomEvent("auth:logout", { detail: { reason: "401" } })
+      );
+    }
     return Promise.reject(error);
   }
 );

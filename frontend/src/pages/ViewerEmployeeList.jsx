@@ -5,7 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 import API from "../api/api";
 import Pagination from "../components/Pagination";
 import DropdownWithSettings from "../components/DropdownWithSettings";
-import * as XLSX from "xlsx";
+import XLSX from "xlsx-js-style";
 import { saveAs } from "file-saver";
 import jsPDF from "jspdf";
 // Correct import for autotable with Vite/ES6
@@ -30,18 +30,18 @@ export default function ViewerEmployeeList() {
     const doc = new jsPDF();
 
     const tableColumn = [
-      "ID",
-      "Full Name",
-      "National ID",
-      "Gender",
-      "Level4level4",
+      "الرقم الذاتي",
+      "الاسم الكامل",
+      "الرقم الوطني",
+      "الجنس",
+      "المستوى الإداري الرابع",
     ];
     const tableRows = employees.map((emp) => [
       emp.selfNumber,
       emp.fullName,
       emp.nationalId,
       emp.gender,
-      emp.level1,
+      emp.level4,
     ]);
 
     // Call autoTable like this:

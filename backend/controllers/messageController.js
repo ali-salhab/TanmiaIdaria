@@ -73,4 +73,3 @@ export const getUnreadCount = async (req, res) => {
     res.status(500).json({ message: "Failed to get unread count", error: error.message });
   }
 };
-

@@ -1,12 +1,17 @@
 import User from "../models/User.js";
+import Employee from "../models/Employee.js";
 import bcrypt from "bcryptjs";
 import { io } from "../server.js";
 import OperationLog from "../models/ActivityLog.js";
+import { notifyAdmin } from "../services/notificationService.js";
 
 // ✅ Get all users
 export const getUsers = async (req, res) => {
   try {
-    const users = await User.find().select("-password").sort({ createdAt: -1 });
+    const users = await User.find()
+      .select("-password")
+      .sort({ createdAt: -1 })
+      .populate("employeeId");
     console.log(users);
     res.json(users);
   } catch (err) {
@@ -20,7 +25,9 @@ export const getUser = async (req, res) => {
   console.log("get user by id function");
   console.log("====================================");
   try {
-    const user = await User.findById(req.params.id).select("-password");
+    const user = await User.findById(req.params.id)
+      .select("-password")
+      .populate("employeeId");
     if (!user) return res.status(404).json({ message: "User not found" });
     res.json(user);
   } catch (err) {
@@ -34,12 +41,46 @@ export const createUser = async (req, res) => {
   console.log("Create User controller ");
   console.log("====================================");
   try {
-    const { username, password, role, permissions } = req.body;
+    const {
+      username,
+      password,
+      role,
+      employeeId,
+      permissionGroups,
+      directPermissions,
+    } = req.body;
+
+    // Check if employeeId is provided
+    if (!employeeId) {
+      return res.status(400).json({ message: "Employee ID is required" });
+    }
+
+    // Check if employee exists
+    const employee = await Employee.findById(employeeId);
+    if (!employee) {
+      return res.status(400).json({ message: "Employee not found" });
+    }
+
+    // Check if employee already has a user account
+    const existingUser = await User.findOne({ employeeId });
+    if (existingUser) {
+      return res
+        .status(400)
+        .json({ message: "This employee already has a user account" });
+    }
+
     const exists = await User.findOne({ username });
     if (exists)
       return res.status(400).json({ message: "Username already exists" });
 
-    const user = new User({ username, password, role, permissions });
+    const user = new User({
+      username,
+      password,
+      role,
+      employeeId,
+      permissionGroups: permissionGroups || [],
+      directPermissions: directPermissions || [],
+    });
     console.log(user);
 
     const createdUser = await user.save();
@@ -47,15 +88,21 @@ export const createUser = async (req, res) => {
     console.log(createdUser._id);
 
     const log = await OperationLog.create({
-      userId: createdUser._id,
-      username: req.body.username,
-      action: "update",
-      section: "vacations",
-      details: `قام ${req.user.name} بتعديل إجازة رقم `,
+      userId: req.user._id,
+      username: req.user.username,
+      action: "create",
+      section: "users",
+      details: `قام ${req.user.username} بإنشاء مستخدم جديد: ${username}`,
     });
     io.emit("new_operation", log);
 
-    res.status(201).json({ message: "User created", user });
+    // Populate employee data in response
+    const userWithEmployee = await User.findById(createdUser._id)
+      .populate("employeeId")
+      .populate("permissionGroups")
+      .populate("directPermissions");
+
+    res.status(201).json({ message: "User created", user: userWithEmployee });
   } catch (err) {
     console.log(err.message);
     res.status(500).json({ message: err.message });
@@ -65,12 +112,63 @@ export const createUser = async (req, res) => {
 // ✅ Update user info (like role)
 export const updateUser = async (req, res) => {
   try {
-    const { username, role } = req.body;
-    const user = await User.findByIdAndUpdate(
-      req.params.id,
-      { username, role },
-      { new: true }
-    ).select("-password");
+    const { username, role, permissionGroups } = req.body;
+    const updateData = { username, role };
+
+    // Get old user data for comparison
+    const oldUser = await User.findById(req.params.id).populate(
+      "permissionGroups"
+    );
+    const oldGroupIds = (oldUser?.permissionGroups || []).map((g) =>
+      g._id.toString()
+    );
+
+    if (permissionGroups) {
+      updateData.permissionGroups = permissionGroups;
+    }
+
+    const user = await User.findByIdAndUpdate(req.params.id, updateData, {
+      new: true,
+    })
+      .select("-password")
+      .populate("employeeId")
+      .populate("permissionGroups");
+
+    // Check if permission groups changed
+    const newGroupIds = (user?.permissionGroups || []).map((g) =>
+      g._id.toString()
+    );
+    const groupsChanged =
+      permissionGroups &&
+      (oldGroupIds.length !== newGroupIds.length ||
+        !oldGroupIds.every((id) => newGroupIds.includes(id)));
+
+    if (groupsChanged) {
+      const permissionUpdateEvent = {
+        userId: req.params.id,
+        username: user.username,
+        type: "groups_updated",
+        timestamp: new Date(),
+      };
+
+      io.emit("permission_update", permissionUpdateEvent);
+
+      const notificationEvent = {
+        type: "permission_change",
+        message: `تم تحديث مجموعات صلاحيات المستخدم ${user.username}`,
+        userId: req.params.id,
+        time: new Date(),
+      };
+
+      io.emit("notification", notificationEvent);
+
+      // Send personal notification to the user
+      const userSocketId = req.onlineUsers?.get(req.params.id);
+      if (userSocketId) {
+        io.to(userSocketId).emit("personal_notification", notificationEvent);
+      }
+    }
+
     res.json(user);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -154,7 +252,21 @@ export const updateUserProfile = async (req, res) => {
         "profile.bio": bio,
       },
       { new: true }
-    ).select("-password");
+    )
+      .select("-password")
+      .populate("employeeId");
+
+    // Notify admin for non-admin changes
+    if (req.user && req.user.role !== "admin") {
+      await notifyAdmin({
+        actionBy: req.user._id,
+        section: "users",
+        action: "update",
+        title: "تعديل الملف الشخصي",
+        message: `قام ${req.user.username || "مستخدم"} بتعديل ملفه الشخصي`,
+        io: req.io,
+      });
+    }
     res.json(user);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -171,7 +283,20 @@ export const uploadAvatar = async (req, res) => {
       req.params.id,
       { "profile.avatar": `/uploads/${req.file.filename}` },
       { new: true }
-    ).select("-password");
+    )
+      .select("-password")
+      .populate("employeeId");
+
+    if (req.user && req.user.role !== "admin") {
+      await notifyAdmin({
+        actionBy: req.user._id,
+        section: "users",
+        action: "update",
+        title: "تحديث الصورة الشخصية",
+        message: `قام ${req.user.username || "مستخدم"} بتحديث صورته الشخصية`,
+        io: req.io,
+      });
+    }
     res.json({ message: "Avatar uploaded successfully", user });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -196,7 +321,27 @@ export const uploadDocument = async (req, res) => {
     });
 
     await user.save();
-    res.json({ message: "Document uploaded successfully", user });
+    // Populate employee data in response
+    const userWithEmployee = await User.findById(user._id)
+      .select("-password")
+      .populate("employeeId");
+
+    if (req.user && req.user.role !== "admin") {
+      await notifyAdmin({
+        actionBy: req.user._id,
+        section: "users",
+        action: "update",
+        title: "رفع مستند",
+        message: `قام ${
+          req.user.username || "مستخدم"
+        } برفع مستند إلى ملفه الشخصي`,
+        io: req.io,
+      });
+    }
+    res.json({
+      message: "Document uploaded successfully",
+      user: userWithEmployee,
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -215,7 +360,22 @@ export const uploadSalaryImage = async (req, res) => {
         "profile.salaryInfo.uploadedAt": new Date(),
       },
       { new: true }
-    ).select("-password");
+    )
+      .select("-password")
+      .populate("employeeId");
+
+    if (req.user && req.user.role !== "admin") {
+      await notifyAdmin({
+        actionBy: req.user._id,
+        section: "users",
+        action: "update",
+        title: "رفع صورة الراتب",
+        message: `قام ${
+          req.user.username || "مستخدم"
+        } برفع صورة الراتب في ملفه الشخصي`,
+        io: req.io,
+      });
+    }
     res.json({ message: "Salary image uploaded successfully", user });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -235,7 +395,22 @@ export const uploadEmployeeListImage = async (req, res) => {
         "profile.employeeList.uploadedAt": new Date(),
       },
       { new: true }
-    ).select("-password");
+    )
+      .select("-password")
+      .populate("employeeId");
+
+    if (req.user && req.user.role !== "admin") {
+      await notifyAdmin({
+        actionBy: req.user._id,
+        section: "users",
+        action: "update",
+        title: "رفع صورة قائمة الموظفين",
+        message: `قام ${
+          req.user.username || "مستخدم"
+        } برفع صورة قائمة الموظفين في ملفه الشخصي`,
+        io: req.io,
+      });
+    }
     res.json({ message: "Employee list image uploaded successfully", user });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -249,12 +424,56 @@ export const deleteDocument = async (req, res) => {
     const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    if (user.profile.documents && documentIndex < user.profile.documents.length) {
+    if (
+      user.profile.documents &&
+      documentIndex < user.profile.documents.length
+    ) {
       user.profile.documents.splice(documentIndex, 1);
       await user.save();
     }
 
-    res.json({ message: "Document deleted successfully", user });
+    // Populate employee data in response
+    const userWithEmployee = await User.findById(user._id)
+      .select("-password")
+      .populate("employeeId");
+    res.json({
+      message: "Document deleted successfully",
+      user: userWithEmployee,
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// ✅ Search employees for user creation
+export const searchEmployees = async (req, res) => {
+  try {
+    const { q } = req.query;
+    if (!q) {
+      return res.status(400).json({ message: "Search query is required" });
+    }
+
+    // Exclude employees that already have user accounts
+    const userEmployeeIds = await User.find({ employeeId: { $ne: null } })
+      .select("employeeId")
+      .lean();
+    const excludedEmployeeIds = userEmployeeIds
+      .map((u) => u.employeeId)
+      .filter(Boolean);
+
+    // Search for employees by name or national ID
+    const employees = await Employee.find({
+      _id: { $nin: excludedEmployeeIds },
+      $or: [
+        { fullName: new RegExp(q, "i") },
+        { nationalId: new RegExp(q, "i") },
+        { phone: new RegExp(q, "i") },
+      ],
+    })
+      .limit(20)
+      .lean();
+
+    res.json(employees);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

@@ -5,6 +5,17 @@ import User from "../models/User.js";
 import { verifyToken } from "../middleware/authMiddleware.js";
 const router = express.Router();
 
+// Helper to ensure JWT secret is configured
+const getJwtSecret = () => {
+  if (!process.env.JWT_SECRET) {
+    console.warn(
+      "⚠️ JWT_SECRET missing; using fallback development secret. Set JWT_SECRET in env."
+    );
+    return "development-secret-change-me";
+  }
+  return process.env.JWT_SECRET;
+};
+
 // Register (admin only — you can disable protect for initial setup)
 router.post(
   "/register",
@@ -27,7 +38,13 @@ router.post(
       user = new User({ username, password, role });
       await user.save();
 
-      const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      const secret = getJwtSecret();
+      if (!secret)
+        return res
+          .status(500)
+          .json({ message: "Server misconfiguration: JWT_SECRET not set" });
+
+      const token = jwt.sign({ id: user._id }, secret, {
         expiresIn: process.env.TOKEN_EXPIRES_IN || "7d",
       });
 
@@ -133,7 +150,13 @@ router.post("/login", async (req, res) => {
     console.log("Password match:", isMatch);
     if (!isMatch)
       return res.status(400).json({ message: "Invalid credentials password" });
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+    const secret = getJwtSecret();
+    if (!secret)
+      return res
+        .status(500)
+        .json({ message: "Server misconfiguration: JWT_SECRET not set" });
+
+    const token = jwt.sign({ id: user._id }, secret, {
       expiresIn: process.env.TOKEN_EXPIRES_IN || "7d",
     });
     res.json({

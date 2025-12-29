@@ -46,13 +46,15 @@ export const SocketProvider = ({ children }) => {
       transports: ["websocket"],
     });
 
-    // Notify backend user connected
-    if (userId) newSocket.emit("user_connected", userId);
-
     setSocket(newSocket);
 
     newSocket.on("connect", async () => {
       console.log("⚡ Socket connected:", newSocket.id);
+
+      // Ensure we register presence after the connection is established
+      if (userId) {
+        newSocket.emit("user_connected", userId);
+      }
 
       try {
         const apiURL = getAPIURL();
@@ -68,7 +70,9 @@ export const SocketProvider = ({ children }) => {
 
         if (user.role === "admin") {
           newSocket.emit("registerAdmin", { id: user._id });
-          console.log("🧑‍💼 Registered as ADMIN");
+          // Also register in the generic users map so messages can target admin
+          newSocket.emit("registerUser", { id: user._id });
+          console.log("🧑‍💼 Registered as ADMIN (and user map)");
         } else {
           newSocket.emit("registerUser", { id: user._id });
           console.log("🙋 Registered as USER");

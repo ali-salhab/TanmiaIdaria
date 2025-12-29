@@ -7,5 +7,14 @@ export default defineConfig({
   server: {
     host: true, // Allow access from network (0.0.0.0)
     port: 5173,
+    proxy: {
+      // Proxy `/api` to backend during development to avoid CORS.
+      // Adjust the target port if your backend uses a different port.
+      "/api": {
+        target: "http://localhost:5001",
+        changeOrigin: true,
+        secure: false,
+      },
+    },
   },
 });

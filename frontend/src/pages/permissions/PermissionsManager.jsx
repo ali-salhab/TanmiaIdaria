@@ -65,9 +65,10 @@ export default function PermissionManager() {
   };
 
   const filteredUsers = useMemo(() => {
-    return users.filter((u) =>
-      u.username.toLowerCase().includes(userSearch.toLowerCase()) ||
-      u.email?.toLowerCase().includes(userSearch.toLowerCase())
+    return users.filter(
+      (u) =>
+        u.username.toLowerCase().includes(userSearch.toLowerCase()) ||
+        u.email?.toLowerCase().includes(userSearch.toLowerCase())
     );
   }, [users, userSearch]);
 
@@ -118,17 +119,12 @@ export default function PermissionManager() {
       toast.error("اختر مستخدماً أولاً");
       return;
     }
-    const allPermIds = allPermissions.map((p) => p._id);
+    if (!window.confirm("هل أنت متأكد من منح هذا المستخدم جميع الصلاحيات؟"))
+      return;
     try {
-      await API.put(`/permissions/users/${selectedUserId}/permissions`, {
-        directPermissions: allPermIds,
-      });
-      setDirectPermissionIds(allPermIds);
-      const res = await API.get(
-        `/permissions/user/${selectedUserId}/permissions`
-      );
-      setAggregatedPermissionIds(res.data.permissionIds || []);
-      toast.success("✅ تم منح جميع الصلاحيات");
+      await API.post(`/permissions/give-all/${selectedUserId}`);
+      toast.success("✅ تم منح جميع الصلاحيات بنجاح");
+      loadUserPermissions(selectedUserId);
     } catch (err) {
       console.error("assignAllPermissions error:", err);
       toast.error("❌ فشل في منح الصلاحيات");
@@ -140,17 +136,12 @@ export default function PermissionManager() {
       toast.error("اختر مستخدماً أولاً");
       return;
     }
-    if (!window.confirm("هل تريد إزالة جميع الصلاحيات المباشرة؟")) return;
+    if (!window.confirm("هل أنت متأكد من سحب جميع الصلاحيات من هذا المستخدم؟"))
+      return;
     try {
-      await API.put(`/permissions/users/${selectedUserId}/permissions`, {
-        directPermissions: [],
-      });
-      setDirectPermissionIds([]);
-      const res = await API.get(
-        `/permissions/user/${selectedUserId}/permissions`
-      );
-      setAggregatedPermissionIds(res.data.permissionIds || []);
-      toast.success("✅ تم إزالة جميع الصلاحيات المباشرة");
+      await API.post(`/permissions/remove-all/${selectedUserId}`);
+      toast.success("✅ تم سحب جميع الصلاحيات بنجاح");
+      loadUserPermissions(selectedUserId);
     } catch (err) {
       console.error("removeAllPermissions error:", err);
       toast.error("❌ فشل في إزالة الصلاحيات");
@@ -223,13 +214,17 @@ export default function PermissionManager() {
   return (
     <div className="p-6 bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
       <div className="max-w-7xl mx-auto">
-        <h2 className="text-3xl font-bold mb-6 text-slate-800">👥 إدارة الصلاحيات</h2>
+        <h2 className="text-3xl font-bold mb-6 text-slate-800">
+          👥 إدارة الصلاحيات
+        </h2>
 
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Users Section */}
           <div className="lg:col-span-1 bg-white rounded-xl shadow-lg p-6">
-            <h3 className="text-lg font-semibold mb-4 text-slate-700">المستخدمون</h3>
-            
+            <h3 className="text-lg font-semibold mb-4 text-slate-700">
+              المستخدمون
+            </h3>
+
             <div className="relative mb-4">
               <Search className="absolute right-3 top-3 w-4 h-4 text-gray-400" />
               <input
@@ -257,9 +252,24 @@ export default function PermissionManager() {
             {selectedUserId && (
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-slate-700">
                 <div className="font-semibold mb-2">📊 إحصائيات:</div>
-                <div>صلاحيات مباشرة: <span className="font-bold text-blue-600">{directPermissionIds.length}</span></div>
-                <div>مجموعات: <span className="font-bold text-blue-600">{userGroupIds.length}</span></div>
-                <div>إجمالي صلاحيات: <span className="font-bold text-green-600">{aggregatedPermissionIds.length}</span></div>
+                <div>
+                  صلاحيات مباشرة:{" "}
+                  <span className="font-bold text-blue-600">
+                    {directPermissionIds.length}
+                  </span>
+                </div>
+                <div>
+                  مجموعات:{" "}
+                  <span className="font-bold text-blue-600">
+                    {userGroupIds.length}
+                  </span>
+                </div>
+                <div>
+                  إجمالي صلاحيات:{" "}
+                  <span className="font-bold text-green-600">
+                    {aggregatedPermissionIds.length}
+                  </span>
+                </div>
               </div>
             )}
           </div>
@@ -270,7 +280,9 @@ export default function PermissionManager() {
               <>
                 {/* Quick Actions */}
                 <div className="bg-white rounded-xl shadow-lg p-6">
-                  <h3 className="text-lg font-semibold mb-4 text-slate-700">⚡ إجراءات سريعة</h3>
+                  <h3 className="text-lg font-semibold mb-4 text-slate-700">
+                    ⚡ إجراءات سريعة
+                  </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <button
                       onClick={assignAllPermissions}
@@ -309,7 +321,9 @@ export default function PermissionManager() {
 
                 {/* Groups */}
                 <div className="bg-white rounded-xl shadow-lg p-6">
-                  <h3 className="text-lg font-semibold mb-4 text-slate-700">👥 المجموعات</h3>
+                  <h3 className="text-lg font-semibold mb-4 text-slate-700">
+                    👥 المجموعات
+                  </h3>
                   <div className="space-y-2 max-h-64 overflow-y-auto">
                     {groups.map((g) => {
                       const member = userGroupIds.includes(g._id);
@@ -319,7 +333,9 @@ export default function PermissionManager() {
                           className="flex items-center justify-between bg-slate-50 p-3 rounded-lg border border-slate-200"
                         >
                           <div className="flex-1">
-                            <div className="font-semibold text-slate-800">{g.name}</div>
+                            <div className="font-semibold text-slate-800">
+                              {g.name}
+                            </div>
                             <div className="text-xs text-slate-500">
                               {g.permissions?.length || 0} صلاحية
                             </div>
@@ -352,15 +368,19 @@ export default function PermissionManager() {
                       );
                     })}
                     {groups.length === 0 && (
-                      <div className="text-center text-gray-500 py-4">لا توجد مجموعات</div>
+                      <div className="text-center text-gray-500 py-4">
+                        لا توجد مجموعات
+                      </div>
                     )}
                   </div>
                 </div>
 
                 {/* Permissions with Search & Filter */}
                 <div className="bg-white rounded-xl shadow-lg p-6">
-                  <h3 className="text-lg font-semibold mb-4 text-slate-700">🔐 الصلاحيات المباشرة</h3>
-                  
+                  <h3 className="text-lg font-semibold mb-4 text-slate-700">
+                    🔐 الصلاحيات المباشرة
+                  </h3>
+
                   <div className="mb-4 space-y-3">
                     <div className="relative">
                       <Search className="absolute right-3 top-3 w-4 h-4 text-gray-400" />
@@ -390,7 +410,9 @@ export default function PermissionManager() {
                   <div className="space-y-2 max-h-96 overflow-y-auto">
                     {filteredPermissions.length > 0 ? (
                       filteredPermissions.map((p) => {
-                        const isAggregated = aggregatedPermissionIds.includes(p._id);
+                        const isAggregated = aggregatedPermissionIds.includes(
+                          p._id
+                        );
                         const isDirect = directPermissionIds.includes(p._id);
                         return (
                           <label
@@ -408,12 +430,16 @@ export default function PermissionManager() {
                               className="accent-green-600 w-4 h-4"
                             />
                             <div className="flex-1">
-                              <div className="font-semibold text-slate-800">{p.label}</div>
+                              <div className="font-semibold text-slate-800">
+                                {p.label}
+                              </div>
                               <div className="text-xs text-slate-500">
                                 {p.key} • {p.category}
                               </div>
                               {p.description && (
-                                <div className="text-xs text-slate-600 mt-1">{p.description}</div>
+                                <div className="text-xs text-slate-600 mt-1">
+                                  {p.description}
+                                </div>
                               )}
                             </div>
                             <div className="text-xs font-semibold">
@@ -427,7 +453,9 @@ export default function PermissionManager() {
                         );
                       })
                     ) : (
-                      <div className="text-center text-gray-500 py-6">لا توجد نتائج</div>
+                      <div className="text-center text-gray-500 py-6">
+                        لا توجد نتائج
+                      </div>
                     )}
                   </div>
                 </div>

@@ -1,4 +1,5 @@
 import AppSettings from "../models/AppSettings.js";
+import { updateBackupJob } from "../services/backupScheduler.js";
 
 export const getDropdownSettings = async (req, res) => {
   try {
@@ -12,6 +13,7 @@ export const getDropdownSettings = async (req, res) => {
           category: ["أولى", "تانية", "تالتة", "رابعة", "خامسة"],
           reason: ["زيادة أجر", "تجديد عقد", "تثبيت", "ترفيع"],
           document_type: ["مرسوم", "قرار"],
+          incidentType: ["داخلي", "خارجي"],
         },
       });
       await settings.save();
@@ -48,7 +50,10 @@ export const saveDropdownSettings = async (req, res) => {
     }
 
     await settings.save();
-    res.json({ message: "Settings saved successfully", dropdowns: settings.dropdowns });
+    res.json({
+      message: "Settings saved successfully",
+      dropdowns: settings.dropdowns,
+    });
   } catch (error) {
     res.status(500).json({ message: "Failed to save settings", error });
   }
@@ -60,7 +65,7 @@ export const getAppSettings = async (req, res) => {
     let settings = await AppSettings.findOne({ userId });
 
     if (!settings) {
-      settings = new AppSettings({ 
+      settings = new AppSettings({
         userId,
         theme: "light",
         language: "ar",
@@ -81,7 +86,7 @@ export const getAppSettings = async (req, res) => {
 export const updateAppSettings = async (req, res) => {
   try {
     const userId = req.user._id || req.user.id;
-    const { theme, language, sounds, dropdowns } = req.body;
+    const { theme, language, sounds, dropdowns, backupSettings } = req.body;
 
     let settings = await AppSettings.findOne({ userId });
 
@@ -93,8 +98,15 @@ export const updateAppSettings = async (req, res) => {
     if (language !== undefined) settings.language = language;
     if (sounds !== undefined) settings.sounds = sounds;
     if (dropdowns !== undefined) settings.dropdowns = dropdowns;
+    if (backupSettings !== undefined) settings.backupSettings = backupSettings;
 
     await settings.save();
+
+    // If backup settings were updated, refresh the scheduler
+    if (backupSettings !== undefined) {
+      await updateBackupJob();
+    }
+
     res.json(settings);
   } catch (error) {
     res.status(500).json({ message: "Failed to update settings", error });

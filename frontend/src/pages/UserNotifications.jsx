@@ -3,12 +3,15 @@ import { toast } from "react-hot-toast";
 import { useSocket } from "../context/SocketContext";
 import API from "../api/api";
 import { Trash2, CheckCircle2, Circle } from "lucide-react";
+import { useAuth } from "../hooks/useAuth";
 
 export default function UserNotifications() {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
   const { socket } = useSocket();
+  const { user } = useAuth();
+  const userId = user?._id;
 
   useEffect(() => {
     fetchNotifications();
@@ -18,19 +21,45 @@ export default function UserNotifications() {
     if (!socket) return;
 
     const handleNewNotification = (notification) => {
+      if (userId && notification?.userId && notification.userId !== userId) {
+        return;
+      }
       setNotifications((prev) => [notification, ...prev]);
       toast.success(`📢 ${notification.title}`);
     };
 
     socket.on("notification", handleNewNotification);
     return () => socket.off("notification", handleNewNotification);
-  }, [socket]);
+  }, [socket, userId]);
+
+  useEffect(() => {
+    if (!userId) return;
+    setNotifications((prev) =>
+      prev.filter((notification) => {
+        if (!notification?.userId) return true;
+        return notification.userId === userId;
+      })
+    );
+  }, [userId]);
 
   const fetchNotifications = async () => {
     try {
       setLoading(true);
       const res = await API.get("/notifications");
-      setNotifications(res.data);
+      const items = Array.isArray(res.data) ? res.data : [];
+      setNotifications(items);
+
+      const hasUnread = items.some((notif) => !notif.read);
+      if (hasUnread) {
+        try {
+          await API.put("/notifications/mark-read");
+          setNotifications((prev) =>
+            prev.map((notif) => (notif.read ? notif : { ...notif, read: true }))
+          );
+        } catch (error) {
+          console.error("Error marking notifications as read:", error);
+        }
+      }
     } catch (error) {
       console.error("Error fetching notifications:", error);
       toast.error("فشل جلب الإشعارات");
@@ -77,10 +106,10 @@ export default function UserNotifications() {
   return (
     <div className="space-y-4" dir="rtl">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">🔔 الإشعارات</h2>
-        <span className="text-sm text-gray-600">
+        <h2 className="text-2xl font-bold text-slate-100">🔔 الإشعارات</h2>
+        <span className="text-sm text-slate-400">
           {unreadCount > 0 && (
-            <span className="ml-2 px-3 py-1 bg-red-100 text-red-700 rounded-full font-semibold">
+            <span className="ml-2 px-3 py-1 bg-red-500/20 text-red-400 rounded-full font-semibold border border-red-500/20">
               {unreadCount} جديدة
             </span>
           )}
@@ -93,7 +122,7 @@ export default function UserNotifications() {
           className={`px-4 py-2 rounded-lg transition ${
             filter === "all"
               ? "bg-teal-600 text-white"
-              : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+              : "bg-slate-700 text-slate-300 hover:bg-slate-600"
           }`}
         >
           الكل ({notifications.length})
@@ -103,7 +132,7 @@ export default function UserNotifications() {
           className={`px-4 py-2 rounded-lg transition ${
             filter === "unread"
               ? "bg-blue-600 text-white"
-              : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+              : "bg-slate-700 text-slate-300 hover:bg-slate-600"
           }`}
         >
           الجديدة ({unreadCount})
@@ -113,7 +142,7 @@ export default function UserNotifications() {
           className={`px-4 py-2 rounded-lg transition ${
             filter === "read"
               ? "bg-green-600 text-white"
-              : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+              : "bg-slate-700 text-slate-300 hover:bg-slate-600"
           }`}
         >
           المقروءة ({notifications.filter((n) => n.read).length})
@@ -125,33 +154,33 @@ export default function UserNotifications() {
           <div className="inline-block animate-spin">
             <div className="w-8 h-8 border-4 border-teal-300 border-t-teal-600 rounded-full"></div>
           </div>
-          <p className="mt-2 text-gray-600">جاري تحميل الإشعارات...</p>
+          <p className="mt-2 text-slate-400">جاري تحميل الإشعارات...</p>
         </div>
       ) : filteredNotifications.length > 0 ? (
         <div className="space-y-3">
           {filteredNotifications.map((notif) => (
             <div
               key={notif._id}
-              className={`p-4 rounded-lg border-2 transition hover:shadow-md ${
+              className={`p-4 rounded-lg border transition hover:shadow-md ${
                 notif.read
-                  ? "bg-white border-gray-200"
-                  : "bg-blue-50 border-blue-300 shadow-sm"
+                  ? "bg-slate-800 border-slate-700"
+                  : "bg-slate-700/50 border-slate-600 shadow-sm"
               }`}
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
                     {notif.read ? (
-                      <CheckCircle2 className="w-5 h-5 text-green-600" />
+                      <CheckCircle2 className="w-5 h-5 text-green-500" />
                     ) : (
-                      <Circle className="w-5 h-5 text-blue-600" />
+                      <Circle className="w-5 h-5 text-blue-500" />
                     )}
-                    <h3 className="font-semibold text-gray-800 text-lg">
+                    <h3 className="font-semibold text-slate-100 text-lg">
                       {notif.title}
                     </h3>
                   </div>
-                  <p className="text-gray-700 text-sm mb-2">{notif.message}</p>
-                  <div className="flex items-center gap-4 text-xs text-gray-500">
+                  <p className="text-slate-300 text-sm mb-2">{notif.message}</p>
+                  <div className="flex items-center gap-4 text-xs text-slate-500">
                     <span>
                       {new Date(notif.createdAt).toLocaleDateString("ar-SA")}
                     </span>
@@ -159,7 +188,7 @@ export default function UserNotifications() {
                       {new Date(notif.createdAt).toLocaleTimeString("ar-SA")}
                     </span>
                     {notif.type && (
-                      <span className="px-2 py-1 bg-gray-200 rounded text-gray-700">
+                      <span className="px-2 py-1 bg-slate-700 rounded text-slate-300 border border-slate-600">
                         {notif.type === "permission_granted" && "🔐 صلاحية"}
                         {notif.type === "permission_denied" && "⛔ سحب صلاحية"}
                         {notif.type === "system" && "⚙️ نظام"}
@@ -172,7 +201,7 @@ export default function UserNotifications() {
                   {!notif.read && (
                     <button
                       onClick={() => handleMarkAsRead(notif._id)}
-                      className="p-2 text-green-600 hover:bg-green-100 rounded transition"
+                      className="p-2 text-green-500 hover:bg-green-500/20 rounded transition"
                       title="تحديث كمقروء"
                     >
                       <CheckCircle2 className="w-5 h-5" />
@@ -180,7 +209,7 @@ export default function UserNotifications() {
                   )}
                   <button
                     onClick={() => handleDeleteNotification(notif._id)}
-                    className="p-2 text-red-600 hover:bg-red-100 rounded transition"
+                    className="p-2 text-red-500 hover:bg-red-500/20 rounded transition"
                     title="حذف"
                   >
                     <Trash2 className="w-5 h-5" />
@@ -191,8 +220,8 @@ export default function UserNotifications() {
           ))}
         </div>
       ) : (
-        <div className="text-center py-12 bg-gray-50 rounded-lg">
-          <p className="text-gray-500 text-lg">
+        <div className="text-center py-12 bg-slate-800 rounded-lg border border-slate-700">
+          <p className="text-slate-500 text-lg">
             {filter === "unread"
               ? "لا توجد إشعارات جديدة 🎉"
               : filter === "read"

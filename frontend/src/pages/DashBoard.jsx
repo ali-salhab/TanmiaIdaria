@@ -11,6 +11,7 @@ export default function Dashboard() {
   const [showChat, setShowChat] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userInfo, setUserInfo] = useState(null);
+  const [unreadChatCount, setUnreadChatCount] = useState(0);
 
   const { socket } = useSocket();
 
@@ -27,6 +28,25 @@ export default function Dashboard() {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handlePrivateMessage = (data) => {
+      // If chat is closed, increment unread count
+      // Also check if the message is NOT from me
+      if (!showChat && data.from !== userInfo?._id) {
+        setUnreadChatCount((prev) => prev + 1);
+        toast.success(`رسالة جديدة من ${data.fromUsername}`);
+      }
+    };
+
+    socket.on("private_message", handlePrivateMessage);
+
+    return () => {
+      socket.off("private_message", handlePrivateMessage);
+    };
+  }, [socket, showChat, userInfo]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -91,14 +111,15 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-blue-900 via-indigo-900 to-gray-900 font-custom text-white relative overflow-hidden">
-      <div className="absolute inset-0 backdrop-blur-3xl bg-white/10"></div>
+    <div className="flex min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 font-custom text-white relative overflow-hidden">
+      <div className="absolute inset-0 backdrop-blur-3xl bg-black/20"></div>
 
       {/* Sidebar Component */}
       <DashboardSidebar
         isOpen={sidebarOpen}
         onClose={closeSidebar}
         onLogout={handleLogout}
+        userInfo={userInfo}
       />
 
       {/* Main Content */}
@@ -107,14 +128,16 @@ export default function Dashboard() {
           userInfo={userInfo}
           sidebarOpen={sidebarOpen}
           onToggleSidebar={toggleSidebar}
-          onOpenChat={() => setShowChat(true)}
+          onOpenChat={() => {
+            setShowChat(true);
+            setUnreadChatCount(0);
+          }}
+          unreadChatCount={unreadChatCount}
         />
 
-        <main className="flex-1 p-2 sm:p-4 md:p-6 overflow-y-auto mt-16">
-          <div className="backdrop-blur-xl bg-white/15 border border-white/20 rounded-lg md:rounded-2xl shadow-lg p-3 md:p-6 animate-scaleUp">
-            <div className="bg-white rounded-lg md:rounded-xl shadow-md p-3 md:p-4 text-gray-800 overflow-x-auto">
-              <Outlet />
-            </div>
+        <main className="flex-1  sm:p-4 md:p-6 overflow-y-auto mt-14">
+          <div className="bg-slate-800/80 backdrop-blur-md rounded-lg md:rounded-xl shadow-md p-1 md:p-4 text-gray-100 overflow-x-auto border">
+            <Outlet context={{ userInfo }} />
           </div>
         </main>
       </div>
@@ -142,10 +165,10 @@ export default function Dashboard() {
           .animate-fadeSlide {
             animation: fadeSlide 0.6s ease-out forwards;
           }
-          .animate-scaleUp {
-            animation: scaleUp 0.4s ease-out forwards;
-          }
-        `}
+        .animate-scaleUp {
+              animation: scaleUp 0.4s ease-out forwards;
+            }
+          `}
       </style>
     </div>
   );

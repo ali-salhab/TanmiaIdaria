@@ -1,0 +1,28 @@
+<!-- Government emblem placeholder SVG (stylized eagle with stars) -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" role="img" aria-label="Government Emblem">
+  <defs>
+    <linearGradient id="gold" x1="0%" x2="100%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#ecd58a"/>
+      <stop offset="100%" stop-color="#b58b4a"/>
+    </linearGradient>
+  </defs>
+  <rect width="100%" height="100%" fill="transparent" />
+  <!-- simplified eagle body -->
+  <g transform="translate(100,95)">
+    <path d="M-55,15 C-35,5 -15,0 0,-5 C15,0 35,5 55,15 C35,0 15,-5 0,-10 C-15,-5 -35,0 -55,15 Z" fill="url(#gold)" stroke="#7a5a2f" stroke-width="1"/>
+    <!-- wings -->
+    <path d="M-55,15 C-80,0 -110,-10 -120,-30 L-100,-35 C-85,-18 -60,-10 -55,15 Z" fill="url(#gold)" stroke="#7a5a2f" stroke-width="1"/>
+    <path d="M55,15 C80,0 110,-10 120,-30 L100,-35 C85,-18 60,-10 55,15 Z" fill="url(#gold)" stroke="#7a5a2f" stroke-width="1"/>
+    <!-- head -->
+    <circle cx="4" cy="-12" r="6" fill="#b58b4a" stroke="#7a5a2f" stroke-width="1"/>
+    <path d="M8,-14 L14,-18 L10,-12 Z" fill="#7a5a2f"/>
+    <!-- tail -->
+    <path d="M-10,15 L-4,30 L4,30 L10,15 Z" fill="#b58b4a" stroke="#7a5a2f" stroke-width="1"/>
+    <!-- three stars above -->
+    <g transform="translate(0,-45)" fill="#b58b4a">
+      <polygon points="-30,0 -24,10 -14,10 -22,16 -18,26 -30,20 -42,26 -38,16 -46,10 -36,10"/>
+      <polygon points="0,0 6,10 16,10 8,16 12,26 0,20 -12,26 -8,16 -16,10 -6,10"/>
+      <polygon points="30,0 36,10 46,10 38,16 42,26 30,20 18,26 22,16 14,10 24,10"/>
+    </g>
+  </g>
+</svg>

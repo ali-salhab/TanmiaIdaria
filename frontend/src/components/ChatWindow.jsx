@@ -3,6 +3,7 @@ import { useSocket } from "../context/SocketContext";
 import { X, Send } from "lucide-react";
 import API from "../api/api";
 import UserAvatar from "./common/UserAvatar";
+import { getCurrentUserId, getCurrentUsername } from "../utils/authIdentity";
 
 export default function ChatWindow({ userId, onClose, index = 0 }) {
   const { socket } = useSocket();
@@ -38,7 +39,10 @@ export default function ChatWindow({ userId, onClose, index = 0 }) {
 
     const handlePrivateMessage = ({ from, message, timestamp }) => {
       if (from === userId) {
-        setMessages((prev) => [...prev, { from, message, timestamp: timestamp || new Date() }]);
+        setMessages((prev) => [
+          ...prev,
+          { from, message, timestamp: timestamp || new Date() },
+        ]);
       }
     };
 
@@ -47,31 +51,38 @@ export default function ChatWindow({ userId, onClose, index = 0 }) {
   }, [socket, userId]);
 
   const sendMessage = () => {
-    const from = localStorage.getItem("userId");
-    const fromUsername = localStorage.getItem("username") || "Admin";
+    const from = getCurrentUserId();
+    const fromUsername = getCurrentUsername() || "Admin";
+    if (!from) {
+      alert("تعذر تحديد المستخدم الحالي. يرجى تسجيل الدخول مرة أخرى.");
+      return;
+    }
     if (!input.trim()) return;
-    socket.emit("private_message", { 
-      to: userId, 
-      message: input, 
+    socket.emit("private_message", {
+      to: userId,
+      message: input,
       from,
-      fromUsername 
+      fromUsername,
     });
-    setMessages((prev) => [...prev, { 
-      from, 
-      message: input, 
-      timestamp: new Date() 
-    }]);
+    setMessages((prev) => [
+      ...prev,
+      {
+        from,
+        message: input,
+        timestamp: new Date(),
+      },
+    ]);
     setInput("");
   };
 
   const offset = index * 380;
 
-  const currentUserId = localStorage.getItem("userId");
+  const currentUserId = getCurrentUserId();
 
   return (
-    <div 
-      className="fixed z-40 bg-white border-2 border-gray-200 rounded-xl shadow-2xl flex flex-col w-80 h-[500px] transition-all duration-300 hover:shadow-3xl" 
-      style={{ bottom: '20px', right: `${20 + offset}px` }}
+    <div
+      className="fixed z-40 bg-white border-2 border-gray-200 rounded-xl shadow-2xl flex flex-col w-80 h-[500px] transition-all duration-300 hover:shadow-3xl"
+      style={{ bottom: "20px", right: `${20 + offset}px` }}
     >
       {/* Header with User Info */}
       <div className="flex justify-between items-center p-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-t-xl">
@@ -90,7 +101,9 @@ export default function ChatWindow({ userId, onClose, index = 0 }) {
                 size="md"
               />
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-sm truncate">{userInfo.username}</p>
+                <p className="font-semibold text-sm truncate">
+                  {userInfo.username}
+                </p>
                 <p className="text-xs text-blue-100 flex items-center gap-1">
                   <span className="w-2 h-2 bg-emerald-300 rounded-full animate-pulse"></span>
                   متصل الآن
@@ -98,11 +111,13 @@ export default function ChatWindow({ userId, onClose, index = 0 }) {
               </div>
             </>
           ) : (
-            <span className="font-semibold text-sm">User {userId.slice(-4)}</span>
+            <span className="font-semibold text-sm">
+              User {userId.slice(-4)}
+            </span>
           )}
         </div>
-        <button 
-          onClick={onClose} 
+        <button
+          onClick={onClose}
           className="text-white hover:text-gray-200 p-1 hover:bg-white/20 rounded transition-all"
         >
           <X className="w-5 h-5" />
@@ -116,7 +131,9 @@ export default function ChatWindow({ userId, onClose, index = 0 }) {
             <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center mb-3">
               <span className="text-2xl">💬</span>
             </div>
-            <p className="text-center text-gray-400 text-sm">لا توجد رسائل بعد</p>
+            <p className="text-center text-gray-400 text-sm">
+              لا توجد رسائل بعد
+            </p>
           </div>
         )}
         {messages.map((m, i) => {
@@ -139,9 +156,11 @@ export default function ChatWindow({ userId, onClose, index = 0 }) {
                 />
               )}
 
-              <div className={`flex flex-col max-w-[75%] ${
-                isFromCurrent ? "items-end" : "items-start"
-              }`}>
+              <div
+                className={`flex flex-col max-w-[75%] ${
+                  isFromCurrent ? "items-end" : "items-start"
+                }`}
+              >
                 <div
                   className={`rounded-2xl text-sm p-3 ${
                     isFromCurrent
@@ -150,9 +169,11 @@ export default function ChatWindow({ userId, onClose, index = 0 }) {
                   }`}
                 >
                   <p className="whitespace-pre-wrap break-words">{m.message}</p>
-                  <p className={`text-xs mt-1.5 ${
-                    isFromCurrent ? "text-blue-100" : "text-gray-500"
-                  }`}>
+                  <p
+                    className={`text-xs mt-1.5 ${
+                      isFromCurrent ? "text-blue-100" : "text-gray-500"
+                    }`}
+                  >
                     {new Date(m.timestamp).toLocaleTimeString("ar-EG", {
                       hour: "2-digit",
                       minute: "2-digit",

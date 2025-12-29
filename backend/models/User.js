@@ -22,6 +22,15 @@ const userSchema = new mongoose.Schema(
         ref: "Permission",
       },
     ],
+    employeeId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Employee",
+      required: function () {
+        return this.role !== "admin";
+      },
+      unique: true,
+      sparse: true,
+    },
 
     profile: {
       firstName: String,
@@ -51,13 +60,33 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+userSchema.virtual("permissions").get(function () {
+  const perms = {};
+  if (Array.isArray(this.directPermissions)) {
+    this.directPermissions.forEach((perm) => {
+      if (perm && perm.key) perms[perm.key] = true;
+    });
+  }
+  if (Array.isArray(this.permissionGroups)) {
+    this.permissionGroups.forEach((group) => {
+      if (group && Array.isArray(group.permissions)) {
+        group.permissions.forEach((perm) => {
+          if (perm && perm.key) perms[perm.key] = true;
+        });
+      }
+    });
+  }
+  return perms;
+});
+
+userSchema.set("toObject", { virtuals: true });
+userSchema.set("toJSON", { virtuals: true });
+
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
   next();
-  // console.log(this);
-  // console.log(this);
 });
 
 userSchema.methods.comparePassword = async function (candidate) {

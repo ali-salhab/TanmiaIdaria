@@ -41,6 +41,13 @@ export default function UploadExcel() {
     }
   };
 
+  const downloadEmployeeTemplate = () => {
+    const base =
+      import.meta.env.VITE_API_URL ||
+      `http://${window.location.hostname}:5001/api`;
+    window.open(`${base}/employees/template`, "_blank");
+  };
+
   return (
     <div className="max-w-2xl mx-auto bg-white shadow-lg rounded-2xl p-8 mt-6 border border-gray-200">
       <h2 className="text-2xl font-semibold text-gray-800 mb-4">
@@ -50,6 +57,34 @@ export default function UploadExcel() {
         Upload your Excel file (.xlsx or .xls) to import employee records into
         the system.
       </p>
+
+      {/* Downloadable templates */}
+      <div className="grid gap-3 sm:grid-cols-2 mb-6">
+        <div className="rounded-xl border border-gray-200 p-4 bg-gray-50">
+          <h3 className="text-lg font-semibold text-gray-800 mb-2">
+            نموذج الموظفين
+          </h3>
+          <p className="text-sm text-gray-600 mb-3">
+            حمّل قالب Excel الجاهز للتعبئة واستيراد بيانات الموظفين.
+          </p>
+          <button
+            type="button"
+            onClick={downloadEmployeeTemplate}
+            className="w-full py-2 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700"
+          >
+            تنزيل قالب الموظفين
+          </button>
+        </div>
+        <div className="rounded-xl border border-dashed border-gray-200 p-4 bg-white">
+          <h3 className="text-lg font-semibold text-gray-800 mb-2">
+            قوالب مستندات أخرى
+          </h3>
+          <p className="text-sm text-gray-600">
+            أضفنا قالب الموظفين الآن. أرسل أسماء المستندات المطلوبة لنجهز لك
+            روابط التنزيل.
+          </p>
+        </div>
+      </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="flex flex-col items-center border-2 border-dashed border-gray-300 rounded-xl p-8 hover:border-blue-400 transition">

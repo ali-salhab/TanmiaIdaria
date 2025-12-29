@@ -1,0 +1,821 @@
+import Employee from "../models/Employee.js";
+import Report from "../models/Report.js";
+import {
+  Document,
+  Packer,
+  Paragraph,
+  TextRun,
+  Table,
+  TableRow,
+  TableCell,
+  WidthType,
+  AlignmentType,
+  HeadingLevel,
+  VerticalAlign,
+} from "docx";
+import { notifyAdmin } from "../services/notificationService.js";
+
+/**
+ * @desc Get filtered employee data with statistics
+ * @route GET /api/reports/data
+ * @access Private (Admin only)
+ */
+export const getReportData = async (req, res) => {
+  try {
+    // Build filters from query
+    const filters = {};
+    const exactMatchFields = [
+      "gender",
+      "status",
+      "maritalStatus",
+      "employmentType",
+      "level1",
+      "level2",
+      "level3",
+      "level4",
+      "level5",
+      "level6",
+    ];
+
+    const allowedFilters = [
+      "governorate",
+      "nationality",
+      "currentJobTitle",
+      "university",
+      "workLocation",
+      "nationalId",
+      "jobCategory",
+      "phone",
+      "selfNumber",
+      "educationLevel",
+      ...exactMatchFields,
+    ];
+
+    allowedFilters.forEach((key) => {
+      if (req.query[key]) {
+        if (exactMatchFields.includes(key)) {
+          filters[key] = req.query[key];
+        } else {
+          // Use case-insensitive partial match for string filters
+          filters[key] = new RegExp(req.query[key], "i");
+        }
+      }
+    });
+
+    // Search query
+    const searchQuery = req.query.search || req.query.q;
+    if (searchQuery) {
+      filters.$or = [
+        { fullName: new RegExp(searchQuery, "i") },
+        { nationalId: new RegExp(searchQuery, "i") },
+        { phone: new RegExp(searchQuery, "i") },
+        { selfNumber: new RegExp(searchQuery, "i") },
+      ];
+    }
+
+    // Age filter
+    if (req.query.ageMin || req.query.ageMax) {
+      const today = new Date();
+      if (req.query.ageMin) {
+        const maxBirthDate = new Date(
+          today.getFullYear() - parseInt(req.query.ageMin),
+          today.getMonth(),
+          today.getDate()
+        );
+        filters.birthDate = { ...filters.birthDate, $lte: maxBirthDate };
+      }
+      if (req.query.ageMax) {
+        const minBirthDate = new Date(
+          today.getFullYear() - parseInt(req.query.ageMax) - 1,
+          today.getMonth(),
+          today.getDate()
+        );
+        filters.birthDate = { ...filters.birthDate, $gte: minBirthDate };
+      }
+    }
+
+    // Hiring date filter
+    if (req.query.hiringDateFrom || req.query.hiringDateTo) {
+      filters.hiringDate = {};
+      if (req.query.hiringDateFrom) {
+        filters.hiringDate.$gte = new Date(req.query.hiringDateFrom);
+      }
+      if (req.query.hiringDateTo) {
+        filters.hiringDate.$lte = new Date(req.query.hiringDateTo);
+      }
+    }
+
+    const page = Math.max(parseInt(req.query.page || "1", 10), 1);
+    const limit = Math.min(
+      Math.max(parseInt(req.query.limit || "50", 10), 1),
+      500
+    );
+    const skip = (page - 1) * limit;
+
+    const sortByAllowed = new Set([
+      "fullName",
+      "createdAt",
+      "updatedAt",
+      "hiringDate",
+      "level4",
+      "employmentType",
+    ]);
+    const sortBy = sortByAllowed.has(req.query.sortBy)
+      ? req.query.sortBy
+      : "fullName";
+    const sortDir =
+      String(req.query.sortDir || "asc").toLowerCase() === "desc" ? -1 : 1;
+    const sort = { [sortBy]: sortDir };
+
+    // Fetch paginated data for table (if needed)
+    const [total, paginatedEmployees, allEmployees] = await Promise.all([
+      Employee.countDocuments(filters),
+      Employee.find(filters).sort(sort).skip(skip).limit(limit).lean(),
+      Employee.find(filters)
+        .select(
+          "gender level4 employmentType jobCategory birthDate educationLevel maritalStatus"
+        )
+        .lean(),
+    ]);
+
+    // Calculate statistics based on ALL matching employees
+    const statistics = {
+      total: allEmployees.length,
+      byGender: {},
+      byDepartment: {},
+      byEmploymentType: {},
+      byJobCategory: {},
+      byAge: {
+        "20-30": 0,
+        "31-40": 0,
+        "41-50": 0,
+        "51-60": 0,
+        "60+": 0,
+      },
+      byEducation: {},
+      byMaritalStatus: {},
+      averageAge: 0,
+    };
+
+    // Calculate age helper
+    const calculateAge = (birthDate) => {
+      if (!birthDate) return null;
+      const today = new Date();
+      const birth = new Date(birthDate);
+      let age = today.getFullYear() - birth.getFullYear();
+      const monthDiff = today.getMonth() - birth.getMonth();
+      if (
+        monthDiff < 0 ||
+        (monthDiff === 0 && today.getDate() < birth.getDate())
+      ) {
+        age--;
+      }
+      return age;
+    };
+
+    let totalAge = 0;
+    let ageCount = 0;
+
+    allEmployees.forEach((emp) => {
+      // Gender statistics
+      if (emp.gender) {
+        statistics.byGender[emp.gender] =
+          (statistics.byGender[emp.gender] || 0) + 1;
+      }
+
+      // Department statistics
+      if (emp.level4) {
+        statistics.byDepartment[emp.level4] =
+          (statistics.byDepartment[emp.level4] || 0) + 1;
+      }
+
+      // Employment type statistics
+      if (emp.employmentType) {
+        statistics.byEmploymentType[emp.employmentType] =
+          (statistics.byEmploymentType[emp.employmentType] || 0) + 1;
+      }
+
+      // Job category statistics
+      if (emp.jobCategory) {
+        statistics.byJobCategory[emp.jobCategory] =
+          (statistics.byJobCategory[emp.jobCategory] || 0) + 1;
+      }
+
+      // Age statistics
+      const age = calculateAge(emp.birthDate);
+      if (age !== null) {
+        totalAge += age;
+        ageCount++;
+
+        if (age >= 20 && age <= 30) statistics.byAge["20-30"]++;
+        else if (age >= 31 && age <= 40) statistics.byAge["31-40"]++;
+        else if (age >= 41 && age <= 50) statistics.byAge["41-50"]++;
+        else if (age >= 51 && age <= 60) statistics.byAge["51-60"]++;
+        else if (age > 60) statistics.byAge["60+"]++;
+      }
+
+      // Education statistics
+      if (emp.educationLevel) {
+        statistics.byEducation[emp.educationLevel] =
+          (statistics.byEducation[emp.educationLevel] || 0) + 1;
+      }
+
+      // Marital status statistics
+      if (emp.maritalStatus) {
+        statistics.byMaritalStatus[emp.maritalStatus] =
+          (statistics.byMaritalStatus[emp.maritalStatus] || 0) + 1;
+      }
+    });
+
+    statistics.averageAge = ageCount > 0 ? (totalAge / ageCount).toFixed(1) : 0;
+
+    // Transform statistics for frontend charts
+    const formattedStatistics = {
+      ...statistics,
+      genderData: Object.entries(statistics.byGender).map(([name, value]) => ({
+        name,
+        value,
+      })),
+      departmentData: Object.entries(statistics.byDepartment).map(
+        ([name, count]) => ({ name, count })
+      ),
+      employmentTypeData: Object.entries(statistics.byEmploymentType).map(
+        ([name, value]) => ({ name, value })
+      ),
+      jobCategoryData: Object.entries(statistics.byJobCategory).map(
+        ([name, count]) => ({ name, count })
+      ),
+      ageData: Object.entries(statistics.byAge).map(([age, count]) => ({
+        age,
+        count,
+      })),
+      educationData: Object.entries(statistics.byEducation).map(
+        ([name, count]) => ({ name, count })
+      ),
+      maritalStatusData: Object.entries(statistics.byMaritalStatus).map(
+        ([name, value]) => ({ name, value })
+      ),
+    };
+
+    res.json({
+      success: true,
+      data: paginatedEmployees,
+      statistics: formattedStatistics,
+      filters: req.query,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.max(Math.ceil(total / limit), 1),
+        sortBy,
+        sortDir: sortDir === 1 ? "asc" : "desc",
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching report data:", error);
+    res.status(500).json({
+      success: false,
+      message: "فشل في جلب بيانات التقرير",
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * @desc Save report configuration to archive
+ * @route POST /api/reports/archive
+ * @access Private (Admin only)
+ */
+export const saveReportConfig = async (req, res) => {
+  try {
+    const { name, description, filters } = req.body;
+
+    if (!name) {
+      return res.status(400).json({
+        success: false,
+        message: "اسم التقرير مطلوب",
+      });
+    }
+
+    const report = new Report({
+      name,
+      description,
+      filters,
+      createdBy: req.user._id,
+    });
+
+    await report.save();
+
+    // Notify admin if action is performed by non-admin user
+    if (req.user && req.user.role !== "admin") {
+      await notifyAdmin({
+        actionBy: req.user._id,
+        section: "documents", // Reports can be considered documents
+        action: "create",
+        title: "تم حفظ تقرير جديد",
+        message: `تم حفظ تقرير جديد: ${name}`,
+      });
+    }
+
+    res.status(201).json({
+      success: true,
+      message: "تم حفظ التقرير بنجاح",
+      data: report,
+    });
+  } catch (error) {
+    console.error("Error saving report:", error);
+    res.status(500).json({
+      success: false,
+      message: "فشل في حفظ التقرير",
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * @desc Get archived reports
+ * @route GET /api/reports/archive
+ * @access Private (Admin only)
+ */
+export const getArchivedReports = async (req, res) => {
+  try {
+    const reports = await Report.find({ createdBy: req.user._id })
+      .sort({ lastUsed: -1 })
+      .populate("createdBy", "username");
+
+    res.json({
+      success: true,
+      data: reports,
+    });
+  } catch (error) {
+    console.error("Error fetching archived reports:", error);
+    res.status(500).json({
+      success: false,
+      message: "فشل في جلب التقارير المحفوظة",
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * @desc Delete archived report
+ * @route DELETE /api/reports/archive/:id
+ * @access Private (Admin only)
+ */
+export const deleteArchivedReport = async (req, res) => {
+  try {
+    const report = await Report.findById(req.params.id);
+
+    if (!report) {
+      return res.status(404).json({
+        success: false,
+        message: "التقرير غير موجود",
+      });
+    }
+
+    // Check if user owns the report
+    if (report.createdBy.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: "غير مصرح لك بحذف هذا التقرير",
+      });
+    }
+
+    await Report.findByIdAndDelete(req.params.id);
+
+    // Notify admin if action is performed by non-admin user
+    if (req.user && req.user.role !== "admin") {
+      await notifyAdmin({
+        actionBy: req.user._id,
+        section: "documents",
+        action: "delete",
+        title: "تم حذف تقرير",
+        message: `تم حذف التقرير: ${report.name}`,
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "تم حذف التقرير بنجاح",
+    });
+  } catch (error) {
+    console.error("Error deleting report:", error);
+    res.status(500).json({
+      success: false,
+      message: "فشل في حذف التقرير",
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * @desc Update last used timestamp for report
+ * @route PUT /api/reports/archive/:id/use
+ * @access Private (Admin only)
+ */
+export const updateReportLastUsed = async (req, res) => {
+  try {
+    const report = await Report.findByIdAndUpdate(
+      req.params.id,
+      { lastUsed: Date.now() },
+      { new: true }
+    );
+
+    if (!report) {
+      return res.status(404).json({
+        success: false,
+        message: "التقرير غير موجود",
+      });
+    }
+
+    res.json({
+      success: true,
+      data: report,
+    });
+  } catch (error) {
+    console.error("Error updating report:", error);
+    res.status(500).json({
+      success: false,
+      message: "فشل في تحديث التقرير",
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * @desc Export report data to Excel
+ * @route GET /api/reports/export/excel
+ * @access Private (Admin only)
+ */
+export const exportReportExcel = async (req, res) => {
+  try {
+    // Build same filters as getReportData
+    const filters = {};
+    const allowedFilters = [
+      "governorate",
+      "gender",
+      "nationality",
+      "currentJobTitle",
+      "university",
+      "workLocation",
+      "level1",
+      "level2",
+      "level3",
+      "level4",
+      "level5",
+      "level6",
+      "nationalId",
+      "jobCategory",
+      "status",
+      "phone",
+      "employmentType",
+      "selfNumber",
+      "maritalStatus",
+      "educationLevel",
+    ];
+
+    allowedFilters.forEach((key) => {
+      if (req.query[key]) {
+        filters[key] = new RegExp(req.query[key], "i");
+      }
+    });
+
+    const searchQuery = req.query.search || req.query.q;
+    if (searchQuery) {
+      filters.$or = [
+        { fullName: new RegExp(searchQuery, "i") },
+        { nationalId: new RegExp(searchQuery, "i") },
+        { phone: new RegExp(searchQuery, "i") },
+        { selfNumber: new RegExp(searchQuery, "i") },
+      ];
+    }
+
+    // Age filter
+    if (req.query.ageMin || req.query.ageMax) {
+      const today = new Date();
+      if (req.query.ageMin) {
+        const maxBirthDate = new Date(
+          today.getFullYear() - parseInt(req.query.ageMin),
+          today.getMonth(),
+          today.getDate()
+        );
+        filters.birthDate = { ...filters.birthDate, $lte: maxBirthDate };
+      }
+      if (req.query.ageMax) {
+        const minBirthDate = new Date(
+          today.getFullYear() - parseInt(req.query.ageMax) - 1,
+          today.getMonth(),
+          today.getDate()
+        );
+        filters.birthDate = { ...filters.birthDate, $gte: minBirthDate };
+      }
+    }
+
+    const employees = await Employee.find(filters).lean();
+
+    // Format data for Excel
+    const excelData = employees.map((emp) => ({
+      "الرقم الذاتي": emp.selfNumber || "",
+      "الاسم الثلاثي": emp.fullName || "",
+      "اسم الأب": emp.fatherName || "",
+      "الرقم الوطني": emp.nationalId || "",
+      الجنس: emp.gender || "",
+      المحافظة: emp.governorate || "",
+      المدينة: emp.city || "",
+      "رقم الهاتف": emp.phone || "",
+      "الحالة الاجتماعية": emp.maritalStatus || "",
+      القسم: emp.level4 || "",
+      "المسمى الوظيفي": emp.currentJobTitle || "",
+      "نوع التوظيف": emp.employmentType || "",
+      "الفئة الوظيفية": emp.jobCategory || "",
+      الحالة: emp.status || "",
+      "المؤهل العلمي": emp.educationLevel || "",
+      الجامعة: emp.university || "",
+      الاختصاص: emp.specialization || "",
+      "مكان العمل": emp.workLocation || "",
+      "تاريخ التعيين": emp.hiringDate
+        ? new Date(emp.hiringDate).toLocaleDateString("ar-SA")
+        : "",
+      "تاريخ الميلاد": emp.birthDate
+        ? new Date(emp.birthDate).toLocaleDateString("ar-SA")
+        : "",
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "تقرير الموظفين");
+
+    const buffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
+
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="employee_report_${Date.now()}.xlsx"`
+    );
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    res.send(buffer);
+  } catch (error) {
+    console.error("Error exporting Excel:", error);
+    res.status(500).json({
+      success: false,
+      message: "فشل في تصدير التقرير",
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * @desc Export report to Word
+ * @route GET /api/reports/export/word
+ * @access Private (Admin only)
+ */
+export const exportReportToWord = async (req, res) => {
+  try {
+    // 1. Build filters (Same logic as getReportData)
+    const filters = {};
+    const exactMatchFields = [
+      "gender",
+      "status",
+      "maritalStatus",
+      "employmentType",
+      "level1",
+      "level2",
+      "level3",
+      "level4",
+      "level5",
+      "level6",
+    ];
+
+    const allowedFilters = [
+      "governorate",
+      "nationality",
+      "currentJobTitle",
+      "university",
+      "workLocation",
+      "nationalId",
+      "jobCategory",
+      "phone",
+      "selfNumber",
+      "educationLevel",
+      ...exactMatchFields,
+    ];
+
+    allowedFilters.forEach((key) => {
+      if (req.query[key]) {
+        if (exactMatchFields.includes(key)) {
+          filters[key] = req.query[key];
+        } else {
+          filters[key] = new RegExp(req.query[key], "i");
+        }
+      }
+    });
+
+    // Search query
+    const searchQuery = req.query.search || req.query.q;
+    if (searchQuery) {
+      filters.$or = [
+        { fullName: new RegExp(searchQuery, "i") },
+        { nationalId: new RegExp(searchQuery, "i") },
+        { phone: new RegExp(searchQuery, "i") },
+        { selfNumber: new RegExp(searchQuery, "i") },
+      ];
+    }
+
+    // Age filter
+    if (req.query.ageMin || req.query.ageMax) {
+      const today = new Date();
+      if (req.query.ageMin) {
+        const maxBirthDate = new Date(
+          today.getFullYear() - parseInt(req.query.ageMin),
+          today.getMonth(),
+          today.getDate()
+        );
+        filters.birthDate = { ...filters.birthDate, $lte: maxBirthDate };
+      }
+      if (req.query.ageMax) {
+        const minBirthDate = new Date(
+          today.getFullYear() - parseInt(req.query.ageMax) - 1,
+          today.getMonth(),
+          today.getDate()
+        );
+        filters.birthDate = { ...filters.birthDate, $gte: minBirthDate };
+      }
+    }
+
+    // Hiring date filter
+    if (req.query.hiringDateFrom || req.query.hiringDateTo) {
+      filters.hiringDate = {};
+      if (req.query.hiringDateFrom) {
+        filters.hiringDate.$gte = new Date(req.query.hiringDateFrom);
+      }
+      if (req.query.hiringDateTo) {
+        filters.hiringDate.$lte = new Date(req.query.hiringDateTo);
+      }
+    }
+
+    // 2. Fetch Data
+    const employees = await Employee.find(filters).lean();
+
+    // 3. Calculate Statistics
+    const stats = {
+      total: employees.length,
+      byGender: {},
+      byDepartment: {},
+      byEmploymentType: {},
+      byJobCategory: {},
+      byAge: { "20-30": 0, "31-40": 0, "41-50": 0, "51-60": 0, "60+": 0 },
+      byEducation: {},
+    };
+
+    const calculateAge = (birthDate) => {
+      if (!birthDate) return null;
+      const today = new Date();
+      const birth = new Date(birthDate);
+      let age = today.getFullYear() - birth.getFullYear();
+      const monthDiff = today.getMonth() - birth.getMonth();
+      if (
+        monthDiff < 0 ||
+        (monthDiff === 0 && today.getDate() < birth.getDate())
+      ) {
+        age--;
+      }
+      return age;
+    };
+
+    employees.forEach((emp) => {
+      if (emp.gender)
+        stats.byGender[emp.gender] = (stats.byGender[emp.gender] || 0) + 1;
+      if (emp.level4)
+        stats.byDepartment[emp.level4] =
+          (stats.byDepartment[emp.level4] || 0) + 1;
+      if (emp.employmentType)
+        stats.byEmploymentType[emp.employmentType] =
+          (stats.byEmploymentType[emp.employmentType] || 0) + 1;
+      if (emp.jobCategory)
+        stats.byJobCategory[emp.jobCategory] =
+          (stats.byJobCategory[emp.jobCategory] || 0) + 1;
+      if (emp.educationLevel)
+        stats.byEducation[emp.educationLevel] =
+          (stats.byEducation[emp.educationLevel] || 0) + 1;
+
+      const age = calculateAge(emp.birthDate);
+      if (age !== null) {
+        if (age >= 20 && age <= 30) stats.byAge["20-30"]++;
+        else if (age >= 31 && age <= 40) stats.byAge["31-40"]++;
+        else if (age >= 41 && age <= 50) stats.byAge["41-50"]++;
+        else if (age >= 51 && age <= 60) stats.byAge["51-60"]++;
+        else if (age > 60) stats.byAge["60+"]++;
+      }
+    });
+
+    // 4. Generate Word Document
+    const createStatTable = (title, data) => {
+      const rows = [
+        new TableRow({
+          cells: [
+            new TableCell({
+              children: [
+                new Paragraph({
+                  text: "الفئة",
+                  bold: true,
+                  alignment: AlignmentType.CENTER,
+                }),
+              ],
+              shading: { fill: "E7E6E6" },
+            }),
+            new TableCell({
+              children: [
+                new Paragraph({
+                  text: "العدد",
+                  bold: true,
+                  alignment: AlignmentType.CENTER,
+                }),
+              ],
+              shading: { fill: "E7E6E6" },
+            }),
+          ],
+        }),
+        ...Object.entries(data).map(
+          ([key, value]) =>
+            new TableRow({
+              cells: [
+                new TableCell({
+                  children: [
+                    new Paragraph({
+                      text: key,
+                      alignment: AlignmentType.CENTER,
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  children: [
+                    new Paragraph({
+                      text: String(value),
+                      alignment: AlignmentType.CENTER,
+                    }),
+                  ],
+                }),
+              ],
+            })
+        ),
+      ];
+
+      return [
+        new Paragraph({
+          text: title,
+          heading: HeadingLevel.HEADING_2,
+          spacing: { before: 400, after: 200 },
+          alignment: AlignmentType.RIGHT,
+        }),
+        new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows }),
+      ];
+    };
+
+    const doc = new Document({
+      sections: [
+        {
+          properties: {},
+          children: [
+            new Paragraph({
+              text: "تقرير إحصائي للموظفين",
+              heading: HeadingLevel.TITLE,
+              alignment: AlignmentType.CENTER,
+            }),
+            new Paragraph({
+              text: `تاريخ التقرير: ${new Date().toLocaleDateString("ar-EG")}`,
+              alignment: AlignmentType.CENTER,
+              spacing: { after: 400 },
+            }),
+
+            new Paragraph({
+              text: `إجمالي عدد الموظفين: ${stats.total}`,
+              heading: HeadingLevel.HEADING_1,
+              alignment: AlignmentType.RIGHT,
+            }),
+
+            ...createStatTable("توزيع الجنس", stats.byGender),
+            ...createStatTable("توزيع الأقسام", stats.byDepartment),
+            ...createStatTable("توزيع نوع التوظيف", stats.byEmploymentType),
+            ...createStatTable("توزيع فئات الوظائف", stats.byJobCategory),
+            ...createStatTable("توزيع الأعمار", stats.byAge),
+            ...createStatTable("المستوى التعليمي", stats.byEducation),
+          ],
+        },
+      ],
+    });
+
+    const buffer = await Packer.toBuffer(doc);
+
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    );
+    res.setHeader("Content-Disposition", "attachment; filename=report.docx");
+    res.send(buffer);
+  } catch (error) {
+    console.error("Error exporting Word report:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};

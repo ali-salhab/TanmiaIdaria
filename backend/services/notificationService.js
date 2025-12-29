@@ -1,6 +1,13 @@
 import Notification from "../models/Notification.js";
 import User from "../models/User.js";
-import { io } from "../server.js";
+import { onlineUsers } from "../server.js";
+
+const emitToUser = (ioInstance, userId, eventName, payload) => {
+  if (!ioInstance || !userId) return;
+  const socketId = onlineUsers.get(userId.toString());
+  if (!socketId) return;
+  ioInstance.to(socketId).emit(eventName, payload);
+};
 
 /**
  * Create a notification for admin when a normal user performs an action
@@ -13,6 +20,7 @@ export const notifyAdmin = async ({
   message,
   employeeName = null,
   department = null,
+  io,
 }) => {
   try {
     // Find all admin users
@@ -27,6 +35,62 @@ export const notifyAdmin = async ({
     const actionUser = await User.findById(actionBy).select("username profile");
     const actionByUsername = actionUser?.username || "مستخدم";
 
+    // Enhanced title and message with more context
+    const enhancedTitle =
+      title ||
+      (() => {
+        const actionLabels = {
+          create: "إنشاء جديد",
+          update: "تحديث بيانات",
+          edit: "تعديل بيانات",
+          delete: "حذف بيانات",
+        };
+
+        const sectionLabels = {
+          employees: "موظف",
+          incidents: "حادث",
+          vacations: "إجازة",
+          documents: "وثيقة",
+          circulars: "تعميم",
+          users: "مستخدم",
+        };
+
+        const actionLabel = actionLabels[action] || action;
+        const sectionLabel = sectionLabels[section] || section;
+
+        return `${actionLabel} ${sectionLabel}`;
+      })();
+
+    const enhancedMessage =
+      message ||
+      (() => {
+        const actionLabels = {
+          create: "قام بإنشاء",
+          update: "قام بتحديث",
+          edit: "قام بتعديل",
+          delete: "قام بحذف",
+        };
+
+        const sectionLabels = {
+          employees: "بيانات موظف",
+          incidents: "بيانات حادث",
+          vacations: "بيانات إجازة",
+          documents: "وثيقة",
+          circulars: "تعميم",
+          users: "حساب مستخدم",
+        };
+
+        const actionLabel = actionLabels[action] || `قام بـ ${action}`;
+        const sectionLabel = sectionLabels[section] || section;
+
+        let msg = `${actionByUsername} ${actionLabel} ${sectionLabel}`;
+        if (employeeName) {
+          msg += ` للموظف: ${employeeName}`;
+        }
+
+        return msg;
+      })();
+
     // Create notifications for all admins
     const notifications = await Promise.all(
       admins.map((admin) =>
@@ -35,8 +99,8 @@ export const notifyAdmin = async ({
           actionBy: actionBy,
           actionByUsername: actionByUsername,
           type: "user_action",
-          title: title || `إجراء جديد في ${section}`,
-          message: message || `${actionByUsername} قام بـ ${action} في ${section}`,
+          title: enhancedTitle,
+          message: enhancedMessage,
           section: section,
           action: action,
           employeeName: employeeName,
@@ -48,22 +112,33 @@ export const notifyAdmin = async ({
     );
 
     // Emit socket event to notify admins
-    notifications.forEach((notification) => {
-      io.emit("admin_notification", {
-        _id: notification._id,
-        title: notification.title,
-        message: notification.message,
-        section: notification.section,
-        action: notification.action,
-        employeeName: notification.employeeName,
-        department: notification.department,
-        actionByUsername: notification.actionByUsername,
-        createdAt: notification.createdAt,
-        read: notification.read,
-      });
-    });
+    if (io) {
+      notifications.forEach((notification) => {
+        const payload = {
+          _id: notification._id,
+          userId: notification.userId.toString(),
+          title: notification.title,
+          message: notification.message,
+          section: notification.section,
+          action: notification.action,
+          employeeName: notification.employeeName,
+          department: notification.department,
+          actionByUsername: notification.actionByUsername,
+          actionBy: notification.actionBy,
+          createdAt: notification.createdAt,
+          read: notification.read,
+        };
 
-    console.log(`✅ Created ${notifications.length} admin notifications for ${section}/${action}`);
+        emitToUser(io, notification.userId, "admin_notification", payload);
+        emitToUser(io, notification.userId, "notification", payload);
+      });
+    } else {
+      console.warn("Socket.IO instance not provided to notifyAdmin");
+    }
+
+    console.log(
+      `✅ Created ${notifications.length} admin notifications for ${section}/${action}`
+    );
     return notifications;
   } catch (error) {
     console.error("Error creating admin notification:", error);
@@ -80,25 +155,46 @@ export const notifyUser = async ({
   title,
   message,
   permission = null,
+  io,
 }) => {
   try {
+    // Enhanced title and message with emojis and better formatting
+    const enhancedTitle =
+      title ||
+      (() => {
+        const typeLabels = {
+          system: "🔔 إشعار نظام",
+          success: "✅ نجاح العملية",
+          warning: "⚠️ تحذير",
+          error: "❌ خطأ",
+          info: "ℹ️ معلومات",
+        };
+        return typeLabels[type] || "🔔 إشعار";
+      })();
+
+    const enhancedMessage = message || "تم تنفيذ العملية بنجاح";
+
     const notification = await Notification.create({
       userId,
       type,
-      title,
-      message,
+      title: enhancedTitle,
+      message: enhancedMessage,
       permission,
       read: false,
     });
 
-    io.emit("notification", {
-      _id: notification._id,
-      userId: notification.userId,
-      title: notification.title,
-      message: notification.message,
-      type: notification.type,
-      createdAt: notification.createdAt,
-    });
+    if (io) {
+      emitToUser(io, notification.userId, "notification", {
+        _id: notification._id,
+        userId: notification.userId.toString(),
+        title: notification.title,
+        message: notification.message,
+        type: notification.type,
+        createdAt: notification.createdAt,
+      });
+    } else {
+      console.warn("Socket.IO instance not provided to notifyUser");
+    }
 
     return notification;
   } catch (error) {
@@ -106,4 +202,3 @@ export const notifyUser = async ({
     throw error;
   }
 };
-

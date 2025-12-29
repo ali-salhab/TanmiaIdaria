@@ -42,6 +42,15 @@ const appSettingsSchema = new mongoose.Schema(
         volume: { type: Number, default: 0.7, min: 0, max: 1 },
       },
     },
+    backupSettings: {
+      enabled: { type: Boolean, default: false },
+      interval: {
+        type: String,
+        enum: ["daily", "weekly", "monthly"],
+        default: "daily",
+      },
+      retention: { type: Number, default: 7 },
+    },
   },
   { timestamps: true }
 );

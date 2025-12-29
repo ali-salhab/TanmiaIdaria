@@ -56,10 +56,16 @@ const employeeSchema = new mongoose.Schema(
     workLocation: String,
     onStaff: Boolean,
     lastSalary: Number,
+    administrativeLeaveBalance: { type: Number, default: 0 }, // رصيد الإجازات الإدارية
     documents: [
       {
         path: { type: String, required: true },
         description: { type: String, default: "" },
+        fileName: { type: String },
+        mimeType: { type: String },
+        size: { type: Number },
+        uploadedAt: { type: Date, default: Date.now },
+        uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
       },
     ],
     incidents: [

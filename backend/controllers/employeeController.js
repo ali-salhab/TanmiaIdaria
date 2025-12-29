@@ -32,6 +32,19 @@ export const updateEmployeePhoto = async (req, res) => {
     employee.photo = `/uploads/${req.file.filename}`;
     await employee.save();
 
+    // Notify admin if action is performed by non-admin user
+    if (req.user && req.user.role !== "admin") {
+      await notifyAdmin({
+        actionBy: req.user._id,
+        section: "employees",
+        action: "update",
+        title: "تم تحديث صورة موظف",
+        message: `تم تحديث صورة الموظف: ${employee.fullName || "غير محدد"}`,
+        employeeName: employee.fullName,
+        department: employee.level4 || employee.currentJobTitle || null,
+      });
+    }
+
     res.json({
       message: "Profile photo updated successfully",
       photo: employee.photo,
@@ -61,11 +74,31 @@ export const uploadEmployeeDocs = async (req, res) => {
     const newDocs = req.files.map((file, i) => ({
       path: `/uploads/${file.filename}`,
       description: descriptions[i] || "",
+      fileName: file.originalname,
+      mimeType: file.mimetype,
+      size: file.size,
+      uploadedAt: new Date(),
+      uploadedBy: req.user?._id,
     }));
 
     employee.documents.push(...newDocs);
 
     await employee.save();
+
+    // Notify admin if action is performed by non-admin user
+    if (req.user && req.user.role !== "admin") {
+      await notifyAdmin({
+        actionBy: req.user._id,
+        section: "documents",
+        action: "create",
+        title: "تم إضافة وثائق لموظف",
+        message: `تم إضافة ${newDocs.length} وثيقة للموظف: ${
+          employee.fullName || "غير محدد"
+        }`,
+        employeeName: employee.fullName,
+        department: employee.level4 || employee.currentJobTitle || null,
+      });
+    }
 
     res.json({
       message: "Documents uploaded successfully",
@@ -74,6 +107,45 @@ export const uploadEmployeeDocs = async (req, res) => {
   } catch (error) {
     console.error("Upload error:", error);
     res.status(500).json({ message: error.message });
+  }
+};
+
+export const deleteEmployeeDocument = async (req, res) => {
+  try {
+    const { id, docIndex } = req.params;
+    const employee = await Employee.findById(id);
+    if (!employee)
+      return res.status(404).json({ message: "Employee not found" });
+
+    const index = Number(docIndex);
+    if (
+      Number.isNaN(index) ||
+      index < 0 ||
+      index >= employee.documents.length
+    ) {
+      return res.status(400).json({ message: "Invalid document index" });
+    }
+
+    const [removed] = employee.documents.splice(index, 1);
+
+    // Attempt to remove file from disk if it exists
+    if (removed?.path) {
+      const filePath = path.join(
+        process.cwd(),
+        removed.path.startsWith("/") ? removed.path.slice(1) : removed.path
+      );
+      fs.unlink(filePath, () => {});
+    }
+
+    await employee.save();
+
+    res.json({
+      message: "Document deleted successfully",
+      documents: employee.documents,
+    });
+  } catch (error) {
+    console.error("Delete employee document error:", error);
+    res.status(500).json({ message: "Failed to delete document" });
   }
 };
 export const listEmployees = async (req, res) => {
@@ -89,11 +161,51 @@ export const listEmployees = async (req, res) => {
       "currentJobTitle",
       "university",
       "workLocation",
+      "level1",
+      "level2",
+      "level3",
       "level4",
+      "level5",
+      "level6",
+      "nationalId",
+      "jobCategory",
+      "status",
+      "phone",
+      "employmentType",
+      "selfNumber",
+      "maritalStatus",
+      "educationLevel",
+      "specialization",
+      "contractType",
+      "bloodType",
     ];
     allowed.forEach((k) => {
       if (req.query[k]) filters[k] = req.query[k];
     });
+
+    // Age Filter
+    if (req.query.ageMin || req.query.ageMax) {
+      const today = new Date();
+      filters.birthDate = {};
+
+      if (req.query.ageMin) {
+        const maxBirthDate = new Date(
+          today.getFullYear() - parseInt(req.query.ageMin),
+          today.getMonth(),
+          today.getDate()
+        );
+        filters.birthDate.$lte = maxBirthDate;
+      }
+
+      if (req.query.ageMax) {
+        const minBirthDate = new Date(
+          today.getFullYear() - parseInt(req.query.ageMax) - 1,
+          today.getMonth(),
+          today.getDate()
+        );
+        filters.birthDate.$gte = minBirthDate;
+      }
+    }
 
     const searchQuery = req.query.q || req.query.search;
     if (searchQuery) {
@@ -131,7 +243,7 @@ export const createEmployee = async (req, res) => {
   try {
     const emp = new Employee(req.body);
     await emp.save();
-    
+
     // Notify admin if action is performed by non-admin user
     if (req.user && req.user.role !== "admin") {
       await notifyAdmin({
@@ -144,7 +256,7 @@ export const createEmployee = async (req, res) => {
         department: emp.level4 || emp.currentJobTitle || null,
       });
     }
-    
+
     res.status(201).json(emp);
   } catch (err) {
     res.status(500).json({ message: "Server error" });
@@ -156,7 +268,7 @@ export const updateEmployee = async (req, res) => {
       new: true,
     });
     if (!emp) return res.status(404).json({ message: "Not found" });
-    
+
     // Notify admin if action is performed by non-admin user
     if (req.user && req.user.role !== "admin") {
       await notifyAdmin({
@@ -169,7 +281,7 @@ export const updateEmployee = async (req, res) => {
         department: emp.level4 || emp.currentJobTitle || null,
       });
     }
-    
+
     res.json(emp);
   } catch (err) {
     res.status(500).json({ message: "Server error" });
@@ -179,9 +291,9 @@ export const deleteEmployee = async (req, res) => {
   try {
     const emp = await Employee.findById(req.params.id);
     if (!emp) return res.status(404).json({ message: "Not found" });
-    
+
     await Employee.findByIdAndDelete(req.params.id);
-    
+
     // Notify admin if action is performed by non-admin user
     if (req.user && req.user.role !== "admin") {
       await notifyAdmin({
@@ -194,7 +306,7 @@ export const deleteEmployee = async (req, res) => {
         department: emp.level4 || emp.currentJobTitle || null,
       });
     }
-    
+
     res.json({ message: "Deleted" });
   } catch (err) {
     res.status(500).json({ message: "Server error" });
@@ -278,6 +390,24 @@ export const importExcel = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Import failed", error: err.message });
+  }
+};
+
+// Download a ready-to-fill Excel template for employee imports
+export const downloadEmployeeTemplate = async (req, res) => {
+  try {
+    const templatePath = path.join(
+      process.cwd(),
+      "backend",
+      "templatework.xlsx"
+    );
+    if (!fs.existsSync(templatePath)) {
+      return res.status(404).json({ message: "Template file not found" });
+    }
+    res.download(templatePath, "employee-import-template.xlsx");
+  } catch (err) {
+    console.error("Template download error:", err);
+    res.status(500).json({ message: "Failed to download template" });
   }
 };
 

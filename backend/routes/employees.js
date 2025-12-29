@@ -5,11 +5,16 @@ import Incident from "../models/Incident.js";
 import Employee from "../models/Employee.js";
 import { generatePersonalCard } from "../utils/generatePersonalCard.js";
 
-import { protect, authorize } from "../middleware/auth.js";
+import { protect } from "../middleware/auth.js";
+import checkPermission, {
+  hasAnyPermission,
+} from "../middleware/checkPermission.js";
 import * as empCtrl from "../controllers/employeeController.js";
 import {
   uploadEmployeeDocs,
   updateEmployeePhoto,
+  deleteEmployeeDocument,
+  downloadEmployeeTemplate,
 } from "../controllers/employeeController.js";
 
 const router = express.Router();
@@ -24,29 +29,72 @@ const storage = multer.diskStorage({
   },
 });
 const upload = multer({ storage });
-router.post("/:id/upload", upload.array("files"), uploadEmployeeDocs);
+router.post(
+  "/:id/upload",
+  protect,
+  hasAnyPermission(["employees.upload_docs", "documents.upload"]),
+  upload.array("files"),
+  uploadEmployeeDocs
+);
+router.delete(
+  "/:id/documents/:docIndex",
+  protect,
+  hasAnyPermission(["employees.upload_docs", "documents.delete"]),
+  deleteEmployeeDocument
+);
 router.post(
   "/:id/photo",
   protect,
-  authorize(["admin", "user"]),
+  checkPermission("employees.update_photo"),
   upload.single("photo"),
   updateEmployeePhoto
 );
-router.get("/", protect, empCtrl.listEmployees);
-router.get("/export", protect, empCtrl.exportExcel);
-router.get("/:id", protect, empCtrl.getEmployee);
-router.post("/", protect, authorize("admin"), empCtrl.createEmployee);
+router.get(
+  "/",
+  protect,
+  checkPermission("employees.view"),
+  empCtrl.listEmployees
+);
+router.get(
+  "/export",
+  protect,
+  checkPermission("employees.export"),
+  empCtrl.exportExcel
+);
+router.get(
+  "/template",
+  protect,
+  checkPermission("employees.import"),
+  downloadEmployeeTemplate
+);
+router.get(
+  "/:id",
+  protect,
+  checkPermission("employees.view"),
+  empCtrl.getEmployee
+);
+router.post(
+  "/",
+  protect,
+  checkPermission("employees.create"),
+  empCtrl.createEmployee
+);
 router.put(
   "/:id",
   protect,
-  authorize(["admin", "user"]),
+  checkPermission("employees.edit"),
   empCtrl.updateEmployee
 );
-router.delete("/:id", protect, authorize("admin"), empCtrl.deleteEmployee);
+router.delete(
+  "/:id",
+  protect,
+  checkPermission("employees.delete"),
+  empCtrl.deleteEmployee
+);
 router.post(
   "/import",
   protect,
-  authorize("admin"),
+  checkPermission("employees.import"),
   upload.single("file"),
   empCtrl.importExcel
 );
@@ -62,20 +110,26 @@ router.post(
 
 // End of boilerplate
 
-router.get("/:id/personal-card", async (req, res) => {
-  try {
-    const employee = await Employee.findById(req.params.id);
-    const incidents = await Incident.find({ employee: req.params.id });
+router.get(
+  "/:id/personal-card",
+  protect,
+  checkPermission("employees.view_personal_card"),
+  async (req, res) => {
+    try {
+      const employee = await Employee.findById(req.params.id);
+      const incidents = await Incident.find({ employee: req.params.id });
 
-    if (!employee) return res.status(404).json({ message: "الموظف غير موجود" });
+      if (!employee)
+        return res.status(404).json({ message: "الموظف غير موجود" });
 
-    const filePath = await generatePersonalCard(employee, incidents);
+      const filePath = await generatePersonalCard(employee, incidents);
 
-    res.download(filePath, `البطاقة_${employee.full_name}.docx`);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "حدث خطأ أثناء إنشاء البطاقة الذاتية" });
+      res.download(filePath, `البطاقة_${employee.full_name}.docx`);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: "حدث خطأ أثناء إنشاء البطاقة الذاتية" });
+    }
   }
-});
+);
 
 export default router;

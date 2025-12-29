@@ -372,6 +372,13 @@ export const permissionDefinitions = {
     category: "مشاركة الملفات",
     action: "قراءة",
   },
+  "fileshare.delete": {
+    key: "fileshare.delete",
+    label: "حذف الملفات",
+    description: "القدرة على حذف الملفات المشاركة",
+    category: "مشاركة الملفات",
+    action: "حذف",
+  },
 
   // Salary additional permissions
   "salary.upload": {
@@ -458,6 +465,36 @@ export const permissionDefinitions = {
     description: "القدرة على تعديل مظهر الصفحة الرئيسية",
     category: "الصفحة الرئيسية",
     action: "تعديل",
+  },
+
+  // Complaints permissions
+  "complaints.view": {
+    key: "complaints.view",
+    label: "عرض الشكاوى",
+    description: "القدرة على عرض قائمة الشكاوى وتفاصيلها",
+    category: "الشكاوى",
+    action: "عرض",
+  },
+  "complaints.create": {
+    key: "complaints.create",
+    label: "إنشاء شكوى",
+    description: "القدرة على إنشاء شكاوى جديدة",
+    category: "الشكاوى",
+    action: "إنشاء",
+  },
+  "complaints.edit": {
+    key: "complaints.edit",
+    label: "تعديل الشكاوى",
+    description: "القدرة على تعديل الشكاوى",
+    category: "الشكاوى",
+    action: "تعديل",
+  },
+  "complaints.delete": {
+    key: "complaints.delete",
+    label: "حذف الشكاوى",
+    description: "القدرة على حذف الشكاوى",
+    category: "الشكاوى",
+    action: "حذف",
   },
 
   // Permissions management
@@ -556,6 +593,13 @@ export const permissionDefinitions = {
     category: "الإعدادات",
     action: "تحديث",
   },
+  "settings.backup": {
+    key: "settings.backup",
+    label: "النسخ الاحتياطي والاستعادة",
+    description: "القدرة على إنشاء نسخة احتياطية واستعادة قاعدة البيانات",
+    category: "الإعدادات",
+    action: "إدارة",
+  },
 
   // Notifications
   "notifications.view": {
@@ -620,6 +664,13 @@ export const permissionDefinitions = {
     category: "التقارير",
     action: "عرض",
   },
+  "reports.create": {
+    key: "reports.create",
+    label: "إنشاء تقارير",
+    description: "القدرة على حفظ وأرشفة التقارير",
+    category: "التقارير",
+    action: "إنشاء",
+  },
   "reports.export": {
     key: "reports.export",
     label: "تصدير التقارير",
@@ -649,6 +700,66 @@ export const permissionDefinitions = {
     description: "القدرة على عرض سجل الرسائل السابقة",
     category: "الدردشة",
     action: "عرض",
+  },
+
+  // Dywan permissions
+  "dywan.view": {
+    key: "dywan.view",
+    label: "عرض الديوان",
+    description: "القدرة على عرض قسم الديوان",
+    category: "الديوان",
+    action: "عرض",
+  },
+  "dywan.receive_files": {
+    key: "dywan.receive_files",
+    label: "استلام ملفات الديوان",
+    description: "القدرة على استلام ملفات من قسم الديوان",
+    category: "الديوان",
+    action: "استلام",
+  },
+
+  // Legal (القانوني) permissions
+  "legal.access": {
+    key: "legal.access",
+    label: "الوصول للقسم القانوني",
+    description: "القدرة على الوصول لقسم الشؤون القانونية",
+    category: "الشؤون القانونية",
+    action: "الوصول",
+  },
+  "legal.send_files": {
+    key: "legal.send_files",
+    label: "إرسال ملفات للشؤون القانونية",
+    description: "القدرة على إرسال ملفات ونماذج للقسم القانوني",
+    category: "الشؤون القانونية",
+    action: "إرسال",
+  },
+  "legal.reply_files": {
+    key: "legal.reply_files",
+    label: "الرد بملفات للقضايا",
+    description: "القدرة على الرد بالملفات للقضايا والاستشارات القانونية",
+    category: "الشؤون القانونية",
+    action: "رد",
+  },
+  "legal.reply_text": {
+    key: "legal.reply_text",
+    label: "الرد النصي للقضايا",
+    description: "القدرة على الرد بنصائح قانونية وتوضيحات",
+    category: "الشؤون القانونية",
+    action: "رد",
+  },
+  "legal.view_cases": {
+    key: "legal.view_cases",
+    label: "عرض القضايا والملفات القانونية",
+    description: "القدرة على عرض جميع القضايا والملفات القانونية",
+    category: "الشؤون القانونية",
+    action: "عرض",
+  },
+  "legal.manage_cases": {
+    key: "legal.manage_cases",
+    label: "إدارة القضايا القانونية",
+    description: "القدرة على إدارة القضايا والاستشارات (إنشاء، تعديل، إغلاق)",
+    category: "الشؤون القانونية",
+    action: "إدارة",
   },
 };
 

@@ -9,6 +9,7 @@ router.get("/", protect, async (req, res) => {
     const options = await DropdownOption.find();
     res.json(options);
   } catch (error) {
+    console.error("dropdownOptions: list error", error);
     res.status(500).json({ message: error.message });
   }
 });
@@ -18,11 +19,11 @@ router.get("/:dropdownId", protect, async (req, res) => {
     let option = await DropdownOption.findOne({
       dropdownId: req.params.dropdownId,
     });
-    
+
     // If dropdown doesn't exist, create it with default options from query params
     if (!option) {
       const { label, options: defaultOptions } = req.query;
-      
+
       // If no default options provided, return empty dropdown structure
       if (!defaultOptions) {
         return res.json({
@@ -32,7 +33,7 @@ router.get("/:dropdownId", protect, async (req, res) => {
           defaultOptions: [],
         });
       }
-      
+
       // Parse options if provided as JSON string
       let parsedOptions = [];
       try {
@@ -40,7 +41,7 @@ router.get("/:dropdownId", protect, async (req, res) => {
       } catch {
         parsedOptions = Array.isArray(defaultOptions) ? defaultOptions : [];
       }
-      
+
       option = new DropdownOption({
         dropdownId: req.params.dropdownId,
         label: label || req.params.dropdownId,
@@ -50,18 +51,37 @@ router.get("/:dropdownId", protect, async (req, res) => {
           visible: true,
           order: idx,
         })),
-        defaultOptions: parsedOptions.map(opt => ({
+        defaultOptions: parsedOptions.map((opt) => ({
           value: opt.value || opt,
           label: opt.label || opt,
         })),
       });
-      
-      await option.save();
+
+      try {
+        await option.save();
+      } catch (e) {
+        // Handle race condition duplicate creation by re-reading existing doc
+        if (e.code === 11000) {
+          option = await DropdownOption.findOne({
+            dropdownId: req.params.dropdownId,
+          });
+        } else {
+          throw e;
+        }
+      }
     }
-    
+
     res.json(option);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("dropdownOptions: get error", error);
+    // Graceful fallback: return an empty dropdown structure so UI can still render
+    res.status(200).json({
+      dropdownId: req.params.dropdownId,
+      label: req.query.label || req.params.dropdownId,
+      options: [],
+      defaultOptions: [],
+      error: error.message,
+    });
   }
 });
 
@@ -83,6 +103,12 @@ router.post("/", protect, async (req, res) => {
     const newOption = await dropdownOption.save();
     res.status(201).json(newOption);
   } catch (error) {
+    if (error.code === 11000 && dropdownId) {
+      // If already exists, return the existing document instead of failing
+      const existing = await DropdownOption.findOne({ dropdownId });
+      return res.status(200).json(existing);
+    }
+    console.error("dropdownOptions: create error", error);
     res.status(400).json({ message: error.message });
   }
 });
@@ -104,7 +130,8 @@ router.put("/:dropdownId", protect, async (req, res) => {
       }));
     }
     if (req.body.label) option.label = req.body.label;
-    if (req.body.defaultOptions) option.defaultOptions = req.body.defaultOptions;
+    if (req.body.defaultOptions)
+      option.defaultOptions = req.body.defaultOptions;
 
     const updatedOption = await option.save();
     res.json(updatedOption);
@@ -153,7 +180,7 @@ router.post("/:dropdownId/reset", protect, async (req, res) => {
 router.post("/:dropdownId/options", protect, async (req, res) => {
   try {
     const { label, value } = req.body;
-    
+
     if (!label || !value) {
       return res.status(400).json({ message: "Label and value are required" });
     }
@@ -166,9 +193,11 @@ router.post("/:dropdownId/options", protect, async (req, res) => {
       return res.status(404).json({ message: "Dropdown option not found" });
     }
 
-    const optionExists = option.options.some(opt => opt.value === value);
+    const optionExists = option.options.some((opt) => opt.value === value);
     if (optionExists) {
-      return res.status(400).json({ message: "Option with this value already exists" });
+      return res
+        .status(400)
+        .json({ message: "Option with this value already exists" });
     }
 
     const newOpt = {
@@ -180,7 +209,7 @@ router.post("/:dropdownId/options", protect, async (req, res) => {
 
     option.options.push(newOpt);
     option.defaultOptions.push({ label, value });
-    
+
     const updatedOption = await option.save();
     res.status(201).json(updatedOption);
   } catch (error) {
@@ -191,7 +220,7 @@ router.post("/:dropdownId/options", protect, async (req, res) => {
 router.put("/:dropdownId/options/:optionValue", protect, async (req, res) => {
   try {
     const { label } = req.body;
-    
+
     if (!label) {
       return res.status(400).json({ message: "Label is required" });
     }
@@ -204,14 +233,18 @@ router.put("/:dropdownId/options/:optionValue", protect, async (req, res) => {
       return res.status(404).json({ message: "Dropdown option not found" });
     }
 
-    const optIndex = option.options.findIndex(opt => opt.value === req.params.optionValue);
+    const optIndex = option.options.findIndex(
+      (opt) => opt.value === req.params.optionValue
+    );
     if (optIndex === -1) {
       return res.status(404).json({ message: "Option not found" });
     }
 
     option.options[optIndex].label = label;
-    
-    const defaultOptIndex = option.defaultOptions.findIndex(opt => opt.value === req.params.optionValue);
+
+    const defaultOptIndex = option.defaultOptions.findIndex(
+      (opt) => opt.value === req.params.optionValue
+    );
     if (defaultOptIndex !== -1) {
       option.defaultOptions[defaultOptIndex].label = label;
     }
@@ -223,29 +256,37 @@ router.put("/:dropdownId/options/:optionValue", protect, async (req, res) => {
   }
 });
 
-router.delete("/:dropdownId/options/:optionValue", protect, async (req, res) => {
-  try {
-    const option = await DropdownOption.findOne({
-      dropdownId: req.params.dropdownId,
-    });
+router.delete(
+  "/:dropdownId/options/:optionValue",
+  protect,
+  async (req, res) => {
+    try {
+      const option = await DropdownOption.findOne({
+        dropdownId: req.params.dropdownId,
+      });
 
-    if (!option) {
-      return res.status(404).json({ message: "Dropdown option not found" });
+      if (!option) {
+        return res.status(404).json({ message: "Dropdown option not found" });
+      }
+
+      const optIndex = option.options.findIndex(
+        (opt) => opt.value === req.params.optionValue
+      );
+      if (optIndex === -1) {
+        return res.status(404).json({ message: "Option not found" });
+      }
+
+      option.options.splice(optIndex, 1);
+      option.defaultOptions = option.defaultOptions.filter(
+        (opt) => opt.value !== req.params.optionValue
+      );
+
+      const updatedOption = await option.save();
+      res.json(updatedOption);
+    } catch (error) {
+      res.status(400).json({ message: error.message });
     }
-
-    const optIndex = option.options.findIndex(opt => opt.value === req.params.optionValue);
-    if (optIndex === -1) {
-      return res.status(404).json({ message: "Option not found" });
-    }
-
-    option.options.splice(optIndex, 1);
-    option.defaultOptions = option.defaultOptions.filter(opt => opt.value !== req.params.optionValue);
-    
-    const updatedOption = await option.save();
-    res.json(updatedOption);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
   }
-});
+);
 
 export default router;

@@ -1,4 +1,11 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  useNavigate,
+} from "react-router-dom";
+import { useEffect } from "react";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/DashBoard";
@@ -6,8 +13,6 @@ import EmployeeList from "./pages/EmployeeList";
 import EmployeeEdit from "./pages/EmployeeEdit";
 import UploadExcel from "./pages/UploadExcel";
 import PrivateRoute from "./routes/PrivateRoute";
-import ViewerHome from "./pages/ViewerHome";
-import Home from "./pages/Home";
 import Unauthorized from "./pages/Unauthorized";
 import EmployeeVacations from "./pages/EmployeeVacations";
 import EmployeeRewards from "./pages/EmployeeRewards";
@@ -19,23 +24,26 @@ import { SocketProvider } from "./context/SocketContext";
 import { SettingsProvider } from "./context/SettingsContext";
 import PermissionsManager from "./pages/permissions/PermissionsManager";
 import Dywan from "./pages/Dywan";
+import Archieve from "./pages/Archieve";
 import HomepageBuilder from "./pages/HomepageBuilder";
 import Onboarding from "./pages/Onboarding";
-import ViewerEmployeeList from "./pages/ViewerEmployeeList";
-import ViewerDocuments from "./pages/ViewerDocuments";
-import ViewerSalary from "./pages/ViewerSalary";
 import UserProfile from "./pages/UserProfile";
 import DropdownManager from "./pages/DropdownManager";
 import FileSharing from "./pages/FileSharing";
 import UserNotifications from "./pages/UserNotifications";
 import Circulars from "./pages/Circulars";
 import Settings from "./pages/Settings";
+import DbRecovery from "./pages/DbRecovery";
 import EmployeePenalties from "./pages/EmployeePenalties";
-import EmployeeDetailPage from "./pages/EmployeeDetailPage";
 import PermissionGroupsPage from "./pages/permissions/PermissionGroupsPage";
 import PermissionManager from "./pages/permissions/PermissionsManager";
 import PermissionsPage from "./pages/permissions/PermissionsPage";
-import EmployeeUserDetails from "./pages/user/EmployeeDetails";
+import Reports from "./components/Reports";
+import RequirePermission from "./components/RequirePermission";
+import WelcomeMessage from "./components/WelcomeMessage";
+import Complaints from "./pages/Complaints";
+import Legal from "./pages/Legal";
+
 function ProtectedRoute({ children, allowedRoles }) {
   const token = localStorage.getItem("token");
   const role = localStorage.getItem("role");
@@ -53,217 +61,230 @@ function ProtectedRoute({ children, allowedRoles }) {
 function App() {
   const role = localStorage.getItem("role");
 
+  function AuthLogoutListener() {
+    const navigate = useNavigate();
+
+    useEffect(() => {
+      const handler = () => {
+        navigate("/login", { replace: true });
+      };
+      window.addEventListener("auth:logout", handler);
+      return () => window.removeEventListener("auth:logout", handler);
+    }, [navigate]);
+
+    return null;
+  }
+
   return (
     <SettingsProvider>
       <SocketProvider>
         <BrowserRouter>
+          <AuthLogoutListener />
           <Toaster position="top-left" reverseOrder={false} />
-        <Routes>
-          {/* <Route
-            path="/dashboard/employees/:id/vacations"
-            element={<EmployeeVacations />}
-          />
-          <Route
-            path="/dashboard/employees/:id/rewards"
-            element={<EmployeeRewards />}
-          />
-          <Route
-            path="/dashboard/employees/:id/incidents"
-            element={<EmployeeIncidents />}
-          /> */}
+          <Routes>
+            {/* <Route
+              path="/dashboard/employees/:id/vacations"
+              element={<EmployeeVacations />}
+            />
+            <Route
+              path="/dashboard/employees/:id/rewards"
+              element={<EmployeeRewards />}
+            />
+            <Route
+              path="/dashboard/employees/:id/incidents"
+              element={<EmployeeIncidents />}
+            /> */}
 
-          {/* Redirect root to login */}
-          <Route path="/" element={<Navigate to="/login" />} />
+            {/* Redirect root to login */}
+            <Route path="/" element={<Navigate to="/login" />} />
 
-          {/* Auth routes */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route
-            path="/onboarding"
-            element={
-              <ProtectedRoute>
-                <Onboarding />
-              </ProtectedRoute>
-            }
-          />
+            {/* Auth routes */}
+            <Route path="/login" element={<Login />} />
+            {/* <Route path="/register" element={<Register />} /> */}
+            <Route
+              path="/onboarding"
+              element={
+                <ProtectedRoute>
+                  <Onboarding />
+                </ProtectedRoute>
+              }
+            />
 
-          {/* Admin dashboard */}
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute allowedRoles={["admin"]}>
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          >
-            <Route path="notifications" element={<Notifications />} />
-            <Route path="admin-notifications" element={<AdminNotifications />} />
-            <Route path="settings" element={<Settings />} />
-            <Route path="dywan" element={<Dywan />} />
-            <Route path="employees/:id" element={<EmployeeEdit />} />
-            <Route index element={<EmployeeList />} />
-            <Route path="employees" element={<EmployeeList />} />
-            <Route path="upload" element={<UploadExcel />} />
-            <Route path="homepage-builder" element={<HomepageBuilder />} />
-            <Route path="dropdown-manager" element={<DropdownManager />} />
-            <Route path="test" element={<PermissionsManager />} />
-          </Route>
+            {/* Unified Dashboard for Admin and User */}
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute
+                  allowedRoles={[
+                    "admin",
+                    "user",
+                    "employee",
+                    "viewer",
+                    "hr",
+                    "finance",
+                  ]}
+                >
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            >
+              {/* Dashboard Home */}
+              <Route index element={<WelcomeMessage />} />
 
-          <Route
-            path="/home"
-            element={
-              <ProtectedRoute allowedRoles={["user", "admin"]}>
-                <Home />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/user/employee/:id"
-            element={
-              <ProtectedRoute allowedRoles={["user", "admin"]}>
-                <EmployeeUserDetails />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/employee/:id"
-            element={
-              <ProtectedRoute allowedRoles={["user", "admin"]}>
-                <EmployeeDetailPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/employees"
-            element={
-              <ProtectedRoute allowedRoles={["user", "admin"]}>
-                <ViewerEmployeeList />
-              </ProtectedRoute>
-            }
-          />
+              {/* Circulars */}
+              <Route path="circulars" element={<Circulars />} />
 
-          <Route
-            path="/documents"
-            element={
-              <ProtectedRoute allowedRoles={["user", "admin"]}>
-                <ViewerDocuments />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/salary"
-            element={
-              <ProtectedRoute allowedRoles={["user", "admin"]}>
-                <ViewerSalary />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute>
-                <UserProfile />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/file-sharing"
-            element={
-              <ProtectedRoute>
-                <FileSharing />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/notifications"
-            element={
-              <ProtectedRoute>
-                <UserNotifications />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/circulars"
-            element={
-              <ProtectedRoute>
-                <Circulars />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/settings"
-            element={
-              <ProtectedRoute>
-                <Settings />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/incidents"
-            element={
-              <ProtectedRoute allowedRoles={["user", "admin"]}>
-                <EmployeeIncidents />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/vacations"
-            element={
-              <ProtectedRoute allowedRoles={["user", "admin"]}>
-                <EmployeeVacations />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/rewards"
-            element={
-              <ProtectedRoute allowedRoles={["user", "admin"]}>
-                <EmployeeRewards />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/punishments"
-            element={
-              <ProtectedRoute allowedRoles={["user", "admin"]}>
-                <EmployeePenalties />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/users"
-            element={
-              <ProtectedRoute allowedRoles={["admin"]}>
-                <EmployeeList />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route path="/unauthorized" element={<Unauthorized />} />
-
-          <Route
-            path="*"
-            element={
-              <Navigate
-                to={role === "admin" ? "/dashboard" : "/home"}
-                replace
+              {/* Employees */}
+              <Route
+                path="employees"
+                element={
+                  <RequirePermission permission="employees.view">
+                    <EmployeeList />
+                  </RequirePermission>
+                }
               />
-            }
-          />
-        </Routes>
-      </BrowserRouter>
-    </SocketProvider>
+              <Route
+                path="employees/:id"
+                element={
+                  <RequirePermission permission="employees.edit">
+                    <EmployeeEdit />
+                  </RequirePermission>
+                }
+              />
+              {/* Profile under dashboard so layout (sidebar/navbar) stays visible */}
+              <Route path="profile" element={<UserProfile />} />
+
+              {/* Dywan */}
+              <Route
+                path="dywan"
+                element={
+                  <RequirePermission permission="dywan.view">
+                    <Dywan />
+                  </RequirePermission>
+                }
+              />
+
+              {/* Archive / Documents */}
+              <Route
+                path="archive"
+                element={
+                  <RequirePermission permission="documents.view">
+                    <Archieve />
+                  </RequirePermission>
+                }
+              />
+
+              {/* Notifications */}
+              <Route path="notifications" element={<UserNotifications />} />
+              <Route
+                path="operations-notifications"
+                element={
+                  <RequirePermission permission="notifications.view_all">
+                    <Notifications />
+                  </RequirePermission>
+                }
+              />
+              <Route
+                path="admin-notifications"
+                element={<AdminNotifications />}
+              />
+
+              {/* Settings (available to all authenticated users; per-endpoint permissions enforced on backend) */}
+              <Route path="settings" element={<Settings />} />
+
+              {/* Database Recovery / Backup */}
+              <Route
+                path="db-recovery"
+                element={
+                  <RequirePermission permission="settings.backup">
+                    <DbRecovery />
+                  </RequirePermission>
+                }
+              />
+
+              {/* Reports */}
+              <Route
+                path="reports"
+                element={
+                  <RequirePermission permission="reports.view">
+                    <Reports />
+                  </RequirePermission>
+                }
+              />
+
+              {/* Complaints */}
+              <Route
+                path="complaints"
+                element={
+                  <RequirePermission permission="complaints.view">
+                    <Complaints />
+                  </RequirePermission>
+                }
+              />
+
+              {/* Upload / Database */}
+              <Route
+                path="upload"
+                element={
+                  <RequirePermission permission="employees.import">
+                    <UploadExcel />
+                  </RequirePermission>
+                }
+              />
+
+              {/* Homepage Builder */}
+              <Route
+                path="homepage-builder"
+                element={
+                  <RequirePermission permission="homepage.edit_layout">
+                    <HomepageBuilder />
+                  </RequirePermission>
+                }
+              />
+
+              {/* Dropdown Manager */}
+              <Route
+                path="dropdown-manager"
+                element={
+                  <RequirePermission permission="dropdowns.view">
+                    <DropdownManager />
+                  </RequirePermission>
+                }
+              />
+
+              {/* Permissions Manager */}
+              <Route
+                path="test"
+                element={
+                  <RequirePermission permission="permissions.view">
+                    <PermissionsManager />
+                  </RequirePermission>
+                }
+              />
+            </Route>
+
+            {/* Redirect old routes to dashboard */}
+            <Route path="/home" element={<Navigate to="/dashboard" />} />
+            <Route
+              path="/user/dashboard"
+              element={<Navigate to="/dashboard" />}
+            />
+            <Route
+              path="/employees"
+              element={<Navigate to="/dashboard/employees" />}
+            />
+
+            {/* Redirect legacy /profile to dashboard profile */}
+            <Route
+              path="/profile"
+              element={<Navigate to="/dashboard/profile" replace />}
+            />
+
+            <Route path="/unauthorized" element={<Unauthorized />} />
+            <Route path="*" element={<Navigate to="/login" replace />} />
+          </Routes>
+        </BrowserRouter>
+      </SocketProvider>
     </SettingsProvider>
   );
 }

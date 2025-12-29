@@ -10,39 +10,118 @@ import {
   removeUserFromGroup,
   updateUserPermissions,
   getUserPermissions,
+  rebuildPermissions,
+  giveAllPermissionsToUser,
+  removeAllPermissionsFromUser,
 } from "../controllers/permissionController.js";
-import { protect, authorize } from "../middleware/auth.js";
+import { protect } from "../middleware/auth.js";
+import checkPermission from "../middleware/checkPermission.js";
 
 const router = express.Router();
 
+// --- System Actions ---
+router.post(
+  "/rebuild",
+  protect,
+  checkPermission("users.manage_permissions"),
+  rebuildPermissions
+);
+router.post(
+  "/give-all/:userId",
+  protect,
+  checkPermission("users.manage_permissions"),
+  giveAllPermissionsToUser
+);
+router.post(
+  "/remove-all/:userId",
+  protect,
+  checkPermission("users.manage_permissions"),
+  removeAllPermissionsFromUser
+);
+
 // --- Permissions ---
-router.get("/", protect, getAllPermissions);
-router.post("/", protect, authorize("admin"), createPermission);
+router.get(
+  "/",
+  protect,
+  checkPermission("permissions.view"),
+  getAllPermissions
+);
+router.post(
+  "/",
+  protect,
+  checkPermission("permissions.create"),
+  createPermission
+);
 
 // --- Groups ---
-router.get("/groups", protect, getAllGroups);
-router.post("/groups", protect, authorize("admin"), createGroup);
+router.get(
+  "/groups",
+  protect,
+  checkPermission("permissions.view"),
+  getAllGroups
+);
+router.post(
+  "/groups",
+  protect,
+  checkPermission("permissions.manage_groups"),
+  createGroup
+);
 
 // --- Group users (must come before :id routes) ---
-router.post("/groups/add-user", protect, authorize("admin"), addUserToGroup);
+router.post(
+  "/groups/add-user",
+  protect,
+  checkPermission("permissions.manage_groups"),
+  addUserToGroup
+);
 router.post(
   "/groups/remove-user",
   protect,
-  authorize("admin"),
+  checkPermission("permissions.manage_groups"),
   removeUserFromGroup
 );
 
 // --- Groups by ID ---
-router.put("/groups/:id", protect, authorize("admin"), updateGroup);
-router.delete("/groups/:id", protect, authorize("admin"), deleteGroup);
+router.put(
+  "/groups/:id",
+  protect,
+  checkPermission("permissions.manage_groups"),
+  updateGroup
+);
+router.delete(
+  "/groups/:id",
+  protect,
+  checkPermission("permissions.delete"),
+  deleteGroup
+);
 
 // --- Direct user permissions ---
 router.put(
   "/users/:userId/permissions",
   protect,
-  authorize("admin"),
+  checkPermission("permissions.assign"),
   updateUserPermissions
 );
-router.get("/user/:userId/permissions", protect, getUserPermissions);
+
+// Middleware to allow self-access or permission
+const allowSelfOrPermission = (permission) => {
+  return (req, res, next) => {
+    if (
+      req.params.userId &&
+      req.user &&
+      req.user._id.toString() === req.params.userId
+    ) {
+      return next();
+    }
+    return checkPermission(permission)(req, res, next);
+  };
+};
+
+router.get(
+  "/user/:userId/permissions",
+  protect,
+  allowSelfOrPermission("permissions.view"),
+  getUserPermissions
+);
 
 export default router;

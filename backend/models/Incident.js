@@ -25,6 +25,9 @@ const incidentSchema = new mongoose.Schema(
     // 🧾 بيانات التسجيل
     registrar_name: { type: String }, // اسم المسجل
     registrar_signature: { type: String }, // توقيع المسجل (اختياري - نص أو صورة)
+
+    isInternal: { type: Boolean, default: false }, // وقوع داخلي
+    incidentType: { type: String, default: "external" }, // internal, external
   },
   { timestamps: true }
 );

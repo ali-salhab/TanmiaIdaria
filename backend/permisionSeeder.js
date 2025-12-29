@@ -27,6 +27,12 @@ const permissions = [
   "incidents.delete",
   "incidents.export",
 
+  // Complaints
+  "complaints.view",
+  "complaints.create",
+  "complaints.edit",
+  "complaints.delete",
+
   // Vacations
   "vacations.view",
   "vacations.create",
@@ -44,6 +50,9 @@ const permissions = [
   "fileshare.send",
   "fileshare.view_inbox",
   "fileshare.read",
+
+  // Dywan
+  "dywan.receive_files",
 
   // Circulars
   "circulars.view",
@@ -97,6 +106,11 @@ const permissions = [
   "settings.update_dropdowns",
   "settings.update_homepage",
 
+  // Chat & Messaging
+  "chat.view_history",
+  "chat.send",
+  "chat.receive",
+
   // Notifications
   "notifications.view",
   "notifications.mark_read",
@@ -111,6 +125,12 @@ const permissions = [
   "analytics.export",
   "reports.view",
   "reports.export",
+
+  // Legal
+  "legal.view",
+  "legal.create",
+  "legal.edit",
+  "legal.delete",
 ];
 
 async function seed() {
@@ -122,7 +142,7 @@ async function seed() {
       await Permission.create({
         key,
         label: key.split(".").join(" - "),
-        category: key.split(".")[1] || "view",
+        category: key.split(".")[0] || "view",
       });
       console.log("Inserted:", key);
     }

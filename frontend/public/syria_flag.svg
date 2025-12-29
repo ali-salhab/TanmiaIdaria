@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600" preserveAspectRatio="xMidYMid slice">
+  <!-- Top green band -->
+  <rect width="1200" height="200" y="0" fill="#0b6b45" />
+  <!-- Middle white band -->
+  <rect width="1200" height="200" y="200" fill="#fff" />
+  <!-- Bottom black band -->
+  <rect width="1200" height="200" y="400" fill="#000" />
+
+  <!-- Three red stars centered horizontally in middle band -->
+  <g fill="#c8102e" transform="translate(0,0)">
+    <g transform="translate(300,300) scale(1.2)">
+      <polygon points="0,-40 12.6,-12.4 47.6,-12.4 20,6 30.3,42 -0,20 -30.3,42 -20,6 -47.6,-12.4 -12.6,-12.4"/>
+    </g>
+    <g transform="translate(600,300) scale(1.2)">
+      <polygon points="0,-40 12.6,-12.4 47.6,-12.4 20,6 30.3,42 -0,20 -30.3,42 -20,6 -47.6,-12.4 -12.6,-12.4"/>
+    </g>
+    <g transform="translate(900,300) scale(1.2)">
+      <polygon points="0,-40 12.6,-12.4 47.6,-12.4 20,6 30.3,42 -0,20 -30.3,42 -20,6 -47.6,-12.4 -12.6,-12.4"/>
+    </g>
+  </g>
+
+  <!-- subtle texture overlay -->
+  <rect width="1200" height="600" fill="rgba(255,255,255,0)" />
+</svg>

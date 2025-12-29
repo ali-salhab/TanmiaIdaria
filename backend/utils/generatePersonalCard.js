@@ -71,23 +71,61 @@ function createPersonalTable(e) {
     rows: [
       new TableRow({
         children: [
-          cell("الاسم والنسبة", e.full_name),
-          cell("اسم الأب", e.father_name),
-          cell("اسم الأم", e.mother_name),
+          cell("الرقم الذاتي", e.selfNumber),
+          cell("الرقم الوطني", e.nationalId),
         ],
       }),
       new TableRow({
         children: [
-          cell("مكان وتاريخ الولادة", e.birth_place + " - " + e.birth_date),
-          cell("محل ورقم القيد", e.registry_number),
+          cell("الاسم والنسبة", e.fullName),
+          cell("اسم الأب", e.fatherName),
+          cell("اسم الأم", e.motherNameAndLastName),
+        ],
+      }),
+      new TableRow({
+        children: [
+          cell(
+            "مكان وتاريخ الولادة",
+            (e.birthPlace || "") + " - " + formatDate(e.birthDate)
+          ),
+          cell("محل ورقم القيد", e.registrationNumber),
           cell("الجنس", e.gender),
         ],
       }),
       new TableRow({
         children: [
           cell("الجنسية", e.nationality),
-          cell("المؤهل العلمي", e.qualification),
-          cell("مكان الإقامة الحالي", e.address),
+          cell("المؤهل العلمي", e.educationLevel + " - " + e.specialization),
+          cell("الوضع العائلي", e.maritalStatus),
+        ],
+      }),
+      new TableRow({
+        children: [
+          cell("العنوان", e.residenceGovernorate + " - " + e.residenceCity),
+          cell("الهاتف", e.phone),
+          cell("تاريخ المباشرة", formatDate(e.hiringDate)),
+        ],
+      }),
+      new TableRow({
+        children: [
+          cell("الفئة", e.jobCategory),
+          cell("المسمى الوظيفي", e.currentJobTitle),
+          cell("نوع التعيين", e.employmentType),
+        ],
+      }),
+      // Excel Data Levels
+      new TableRow({
+        children: [
+          cell("المستوى 1", e.level1),
+          cell("المستوى 2", e.level2),
+          cell("المستوى 3", e.level3),
+        ],
+      }),
+      new TableRow({
+        children: [
+          cell("المستوى 4", e.level4),
+          cell("المستوى 5", e.level5),
+          cell("المستوى 6", e.level6),
         ],
       }),
     ],

@@ -31,6 +31,7 @@ const notificationSchema = new mongoose.Schema(
         "circular_created",
         "circular_updated",
         "user_action",
+        "file_shared",
       ],
       default: "system",
     },

@@ -329,24 +329,36 @@ export const importExcel = async (req, res) => {
     const sheet = workbook.Sheets[sheetName];
     const raw = XLSX.utils.sheet_to_json(sheet, { defval: "" });
     const mapped = raw.map((row) => ({
-      selfNumber: dashToNull(row["الرقم الذاتي"] || row["selfNumber"]),
+      selfNumber: dashToNull(
+        row["الرقم الذاتي"] ||
+          row["selfNumber"] ||
+          row["selfnumber"] ||
+          row["Self Number"] ||
+          row["SelfNumber"] ||
+          row["الرقم الوظيفي"]
+      ),
       firstName: row["الاسم الأول"] || row["firstName"] || "",
       fatherName: row["اسم الأب"] || row["fatherName"] || "",
       lastName: row["الكنية"] || row["lastName"] || "",
       fullName: row["الاسم الثلاثي"] || row["fullName"] || "",
       motherNameAndLastName: row["اسم الأم والكنية"] || "",
-      nationalId: dashToNull(row["الرقم الوطني"]),
-      nationality: row["الجنسية"] || "",
-      governorate: row["المحافظة"] || "",
-      city: row["المنطقة - المدينة"] || "",
-      district: row["الناحية"] || "",
-      birthPlace: row["محل الولادة"] || "",
-      birthDate: safeDate(row["تاريخ الولادة"]),
-
-      registrationNumber: row["القيد"] || "",
-      gender: row["الجنس"] || "",
-      phone: row["رقم الهاتف"] || "",
-      maritalStatus: row["الوضع العائلي"] || "",
+      nationalId: dashToNull(
+        row["الرقم الوطني"] ||
+          row["nationalId"] ||
+          row["national id"] ||
+          row["National ID"] ||
+          row["NationalId"]
+      ),
+      nationality: row["الجنسية"] || row["nationality"] || "",
+      governorate: row["المحافظة"] || row["governorate"] || "",
+      city: row["المنطقة - المدينة"] || row["city"] || "",
+      district: row["الناحية"] || row["district"] || "",
+      birthPlace: row["محل الولادة"] || row["birthPlace"] || "",
+      birthDate: safeDate(row["تاريخ الولادة"] || row["birthDate"]),
+      registrationNumber: row["القيد"] || row["registrationNumber"] || "",
+      gender: row["الجنس"] || row["gender"] || "",
+      phone: row["رقم الهاتف"] || row["phone"] || "",
+      maritalStatus: row["الوضع العائلي"] || row["maritalStatus"] || "",
       wivesCount: row["عدد الزوجات"] || null,
       childrenCount: row["عدد الأبناء"] || null,
       level1: row["السوية التنظيمية الأولى"] || "",
@@ -355,47 +367,72 @@ export const importExcel = async (req, res) => {
       level4: row["السوية التنظيمية الرابعة"] || "",
       level5: row["السوية التنظيمية الخامسة"] || "",
       level6: row["السوية التنظيمية السادسة"] || "",
-      currentJobTitle: row["المسمى الوظيفي الحالي"] || "",
-      employmentType: row["مثبت-متعاقد"] || "",
-      status: row["الحالة"] || "",
-      hiringDate: safeDate(row["تاريخ التعيين"]),
-      contractType: row["نمط التعيين أو التعاقد"] || "",
-      contractDetails: row["اذكر نمط التعيين أو التعاقد"] || "",
-      jobCategory: row["الفئة الوظيفية الحالية"] || "",
+      currentJobTitle: row["المسمى الوظيفي الحالي"] || row["currentJobTitle"] || "",
+      employmentType: row["مثبت-متعاقد"] || row["employmentType"] || "",
+      status: row["الحالة"] || row["status"] || "",
+      hiringDate: safeDate(row["تاريخ التعيين"] || row["hiringDate"]),
+      contractType: row["نمط التعيين أو التعاقد"] || row["contractType"] || "",
+      contractDetails:
+        row["اذكر نمط التعيين أو التعاقد"] || row["contractDetails"] || "",
+      jobCategory: row["الفئة الوظيفية الحالية"] || row["jobCategory"] || "",
       educationLevel:
-        row["المؤهل العلمي المعيين على أساسه أو المعدل فئته عليه"] || "",
-      specialization: row["الاختصاص"] || "",
-      residenceGovernorate: row["السكن (المحافظة)"] || "",
-      residenceCity: row["السكن (المنطقة - المدينة)"] || "",
-      housingType: row["نوع السكن"] || "",
+        row["المؤهل العلمي المعيين على أساسه أو المعدل فئته عليه"] ||
+        row["educationLevel"] ||
+        "",
+      specialization: row["الاختصاص"] || row["specialization"] || "",
+      residenceGovernorate:
+        row["السكن (المحافظة)"] || row["residenceGovernorate"] || "",
+      residenceCity:
+        row["السكن (المنطقة - المدينة)"] || row["residenceCity"] || "",
+      housingType: row["نوع السكن"] || row["housingType"] || "",
       spouseIsEmployee:
-        row["هل ( الزوج /الزوجة ) موظف في القطاع الحكومي؟"] === "نعم",
+        row["هل ( الزوج /الزوجة ) موظف في القطاع الحكومي؟"] === "نعم" ||
+        row["spouseIsEmployee"] === "نعم" ||
+        row["spouseIsEmployee"] === true,
       spouseFullName:
-        row["الاسم الثلاثي لــ( الزوج/الزوجة ) في حال كان موظف"] || "",
+        row["الاسم الثلاثي لــ( الزوج/الزوجة ) في حال كان موظف"] ||
+        row["spouseFullName"] ||
+        "",
       spouseWorkplace:
-        row["الجهة التي يعمل بها (الزوج/الزوجة) في حال كان موظف"] || "",
-      healthStatus: row["الحالة الصحية"] || "",
-      illnessDetails: row["تفصيل الإصابة أو المرض"] || "",
-      bloodType: row["زمرة الدم"] || "",
-      degreeType: row["نوع الشهادة الحاصل عليها"] || "",
-      documentAvailable: yes(row["وجود الوثيقة"]),
-      university: row["الجامعة"] || "",
-      faculty: row["الكلية-المعهد"] || "",
-      specialization2: row["الاختصاص2"] || "",
-      graduationYear: row["عام الحصول عليها"] || "",
-      managementDegree: row["هل لديك شهادة عليا في الإدارة؟"] === "نعم",
-      notes: row["ملاحظات"] || "",
-      workLocation: row["مكان الدوام"] || "",
-      onStaff: yes(row["ملاك أو خارج الملاك"]),
-      lastSalary: safeNumber(row["آخر راتب مقطوع"]),
+        row["الجهة التي يعمل بها (الزوج/الزوجة) في حال كان موظف"] ||
+        row["spouseWorkplace"] ||
+        "",
+      healthStatus: row["الحالة الصحية"] || row["healthStatus"] || "",
+      illnessDetails:
+        row["تفصيل الإصابة أو المرض"] || row["illnessDetails"] || "",
+      bloodType: row["زمرة الدم"] || row["bloodType"] || "",
+      degreeType: row["نوع الشهادة الحاصل عليها"] || row["degreeType"] || "",
+      documentAvailable:
+        yes(row["وجود الوثيقة"]) ||
+        row["documentAvailable"] === "نعم" ||
+        row["documentAvailable"] === true,
+      university: row["الجامعة"] || row["university"] || "",
+      faculty: row["الكلية-المعهد"] || row["faculty"] || "",
+      specialization2: row["الاختصاص2"] || row["specialization2"] || "",
+      graduationYear: row["عام الحصول عليها"] || row["graduationYear"] || "",
+      managementDegree:
+        row["هل لديك شهادة عليا في الإدارة؟"] === "نعم" ||
+        row["managementDegree"] === "نعم" ||
+        row["managementDegree"] === true,
+      notes: row["ملاحظات"] || row["notes"] || "",
+      workLocation: row["مكان الدوام"] || row["workLocation"] || "",
+      onStaff:
+        yes(row["ملاك أو خارج الملاك"]) ||
+        row["onStaff"] === "نعم" ||
+        row["onStaff"] === true,
+      lastSalary: safeNumber(row["آخر راتب مقطوع"] || row["lastSalary"]),
     }));
 
-    //
+    // Remove only duplicate selfNumbers (keep nulls)
+    const filtered = mapped.filter((emp, index, arr) => 
+      !emp.selfNumber || arr.findIndex(e => e.selfNumber === emp.selfNumber) === index
+    );
+
     try {
-      await Employee.insertMany(mapped, { ordered: false });
+      await Employee.insertMany(filtered, { ordered: false });
     } catch (err) {
       console.error("InsertMany Error Details:");
-      console.error(err.writeErrors); // 👈 THIS IS THE KEY
+      console.error(err.writeErrors);
     }
     console.log("----------------number of inserted emolyees---------");
     const count = await Employee.countDocuments();
@@ -409,7 +446,14 @@ export const importExcel = async (req, res) => {
     res.status(500).json({ message: "Import failed", error: err.message });
   }
 };
-const dashToNull = (v) => (v === "" || v === "-" || v === undefined ? null : v);
+const dashToNull = (v) => {
+  if (v === "" || v === "-" || v === undefined || v === null) return undefined;
+  if (typeof v === "string") {
+    const trimmed = v.trim();
+    return trimmed === "" || trimmed === "-" ? undefined : trimmed;
+  }
+  return v;
+};
 
 // Download a ready-to-fill Excel template for employee imports
 export const downloadEmployeeTemplate = async (req, res) => {

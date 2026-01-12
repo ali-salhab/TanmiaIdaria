@@ -8,7 +8,11 @@ import mongoose from "mongoose";
    Normalizers
 ----------------------- */
 const dashToNull = (v) => {
-  if (v === "-" || v === "" || v === undefined) return null;
+  if (v === "" || v === "-" || v === undefined || v === null) return undefined;
+  if (typeof v === "string") {
+    const trimmed = v.trim();
+    return trimmed === "" || trimmed === "-" ? undefined : trimmed;
+  }
   return v;
 };
 
@@ -41,16 +45,14 @@ const employeeSchema = new mongoose.Schema(
       type: String,
       set: dashToNull,
       unique: true,
-      sparse: true, // allows multiple nulls
-      default: null, // ensure default is null
+      sparse: true, // allows multiple missing values
     },
 
     nationalId: {
       type: String,
       set: dashToNull,
       unique: true,
-      sparse: true, // allows multiple nulls
-      default: null,
+      sparse: true, // allows multiple missing values
     },
 
     firstName: { type: String, set: dashToNull },

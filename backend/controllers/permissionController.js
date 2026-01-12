@@ -836,6 +836,9 @@ export const getUserPermissions = async (req, res) => {
   }
 };
 export const updateUserPermissions = async (req, res) => {
+  console.log(
+    "---------------------------update user permisssions --------------<"
+  );
   try {
     const { userId } = req.params;
     const { directPermissions } = req.body;
@@ -871,6 +874,7 @@ export const updateUserPermissions = async (req, res) => {
       type: "direct_permissions_updated",
       timestamp: new Date(),
     };
+    console.log(permissionUpdateEvent);
 
     io.emit("permission_update", permissionUpdateEvent);
 

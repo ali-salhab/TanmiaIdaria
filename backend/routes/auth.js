@@ -137,9 +137,12 @@ router.post("/users-info", async (req, res) => {
 
 // Login
 router.post("/login", async (req, res) => {
+  console.log("login controller backend");
   const { username, password } = req.body;
+  console.log(username);
   try {
     const user = await User.findOne({ username });
+    console.log(user);
     if (!user)
       return res
         .status(400)
@@ -148,7 +151,7 @@ router.post("/login", async (req, res) => {
     console.log("Password from DB:", user.password);
     console.log("Entered password:", password);
     console.log("Password match:", isMatch);
-    if (!isMatch)
+    if (isMatch)
       return res.status(400).json({ message: "Invalid credentials password" });
     const secret = getJwtSecret();
     if (!secret)
@@ -159,6 +162,7 @@ router.post("/login", async (req, res) => {
     const token = jwt.sign({ id: user._id }, secret, {
       expiresIn: process.env.TOKEN_EXPIRES_IN || "7d",
     });
+    //
     res.json({
       token,
       user: { id: user._id, username: user.username, role: user.role },

@@ -312,6 +312,15 @@ export const deleteEmployee = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+const safeDate = (value) => {
+  const d = new Date(value);
+  return isNaN(d.getTime()) ? null : d;
+};
+const safeNumber = (v) => {
+  const n = Number(v);
+  return isNaN(n) ? null : n;
+};
+const yes = (v) => String(v).trim() === "نعم";
 export const importExcel = async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ message: "No file uploaded" });
@@ -320,19 +329,20 @@ export const importExcel = async (req, res) => {
     const sheet = workbook.Sheets[sheetName];
     const raw = XLSX.utils.sheet_to_json(sheet, { defval: "" });
     const mapped = raw.map((row) => ({
-      selfNumber: row["الرقم الذاتي"] || row["selfNumber"] || "",
+      selfNumber: dashToNull(row["الرقم الذاتي"] || row["selfNumber"]),
       firstName: row["الاسم الأول"] || row["firstName"] || "",
       fatherName: row["اسم الأب"] || row["fatherName"] || "",
       lastName: row["الكنية"] || row["lastName"] || "",
       fullName: row["الاسم الثلاثي"] || row["fullName"] || "",
       motherNameAndLastName: row["اسم الأم والكنية"] || "",
-      nationalId: row["الرقم الوطني"] || "",
+      nationalId: dashToNull(row["الرقم الوطني"]),
       nationality: row["الجنسية"] || "",
       governorate: row["المحافظة"] || "",
       city: row["المنطقة - المدينة"] || "",
       district: row["الناحية"] || "",
       birthPlace: row["محل الولادة"] || "",
-      birthDate: row["تاريخ الولادة"] ? new Date(row["تاريخ الولادة"]) : null,
+      birthDate: safeDate(row["تاريخ الولادة"]),
+
       registrationNumber: row["القيد"] || "",
       gender: row["الجنس"] || "",
       phone: row["رقم الهاتف"] || "",
@@ -348,7 +358,7 @@ export const importExcel = async (req, res) => {
       currentJobTitle: row["المسمى الوظيفي الحالي"] || "",
       employmentType: row["مثبت-متعاقد"] || "",
       status: row["الحالة"] || "",
-      hiringDate: row["تاريخ التعيين"] ? new Date(row["تاريخ التعيين"]) : null,
+      hiringDate: safeDate(row["تاريخ التعيين"]),
       contractType: row["نمط التعيين أو التعاقد"] || "",
       contractDetails: row["اذكر نمط التعيين أو التعاقد"] || "",
       jobCategory: row["الفئة الوظيفية الحالية"] || "",
@@ -368,7 +378,7 @@ export const importExcel = async (req, res) => {
       illnessDetails: row["تفصيل الإصابة أو المرض"] || "",
       bloodType: row["زمرة الدم"] || "",
       degreeType: row["نوع الشهادة الحاصل عليها"] || "",
-      documentAvailable: row["وجود الوثيقة"] === "نعم",
+      documentAvailable: yes(row["وجود الوثيقة"]),
       university: row["الجامعة"] || "",
       faculty: row["الكلية-المعهد"] || "",
       specialization2: row["الاختصاص2"] || "",
@@ -376,22 +386,30 @@ export const importExcel = async (req, res) => {
       managementDegree: row["هل لديك شهادة عليا في الإدارة؟"] === "نعم",
       notes: row["ملاحظات"] || "",
       workLocation: row["مكان الدوام"] || "",
-      onStaff: row["ملاك أو خارج الملاك"] === "ملاك",
-      lastSalary: row["آخر راتب مقطوع"] ? Number(row["آخر راتب مقطوع"]) : null,
+      onStaff: yes(row["ملاك أو خارج الملاك"]),
+      lastSalary: safeNumber(row["آخر راتب مقطوع"]),
     }));
 
-    // bulk insert (use insertMany)
-    await Employee.insertMany(mapped, { ordered: false });
-
+    //
+    try {
+      await Employee.insertMany(mapped, { ordered: false });
+    } catch (err) {
+      console.error("InsertMany Error Details:");
+      console.error(err.writeErrors); // 👈 THIS IS THE KEY
+    }
+    console.log("----------------number of inserted emolyees---------");
+    const count = await Employee.countDocuments();
+    console.log("Total employees in DB:", count);
     // remove uploaded file
     fs.unlinkSync(req.file.path);
 
-    res.json({ message: "Imported", count: mapped.length });
+    res.json({ message: "Imported", count: count });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Import failed", error: err.message });
   }
 };
+const dashToNull = (v) => (v === "" || v === "-" || v === undefined ? null : v);
 
 // Download a ready-to-fill Excel template for employee imports
 export const downloadEmployeeTemplate = async (req, res) => {

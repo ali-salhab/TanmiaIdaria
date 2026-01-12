@@ -444,9 +444,9 @@ export default function DropdownWithSettings({
 
   return (
     <div className="relative">
-      <div className="flex-1">
+      <div className="flex-1  ">
         {label && (
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-sm text-gray-700 mb-2">
             {label}
           </label>
         )}
@@ -454,9 +454,22 @@ export default function DropdownWithSettings({
           <select
             value={value}
             onChange={onChange}
-            className={`w-full border-2 border-gray-300 px-4 py-3 pr-12 rounded-xl bg-slate appearance-none text-gray-800 font-medium shadow-sm hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ${className}`}
+            className={`w-full border-2 border-gray-300 
+    px-2 py-2 pr-12 
+    ${isAdmin ? "pl-10" : "pl-1"} 
+    rounded-lg bg-slate appearance-none 
+    text-gray-800 text-sm shadow-sm 
+    hover:border-blue-400 focus:outline-none 
+    focus:ring-2 focus:ring-blue-500 
+    focus:border-blue-500 transition-all duration-200 
+    ${className}`}
+            // value={value}
+            // onChange={onChange}
+            // className={`w-full border-2 border-gray-300 px-2 py-2 pr-12 rounded-lg bg-slate appearance-none text-gray-800 font-small  text-[8px] shadow-sm hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ${className}`}
           >
-            <option value="">{placeholder}</option>
+            <option value="" className=" text-sm ">
+              {placeholder}
+            </option>
             {visibleOptions.map((opt) => (
               <option key={opt.value} value={opt.value}>
                 {opt.label}
@@ -468,10 +481,10 @@ export default function DropdownWithSettings({
           {isAdmin && (
             <button
               onClick={() => setShowSettings(!showSettings)}
-              className="absolute left-2 top-1/2 -translate-y-1/2 p-2 bg-slate hover:bg-blue-100 text-blue-600 rounded-lg transition-all duration-200 group-hover:scale-110 shadow-sm hover:shadow-md border border-blue-200"
+              className="absolute left-3 top-1/2 -translate-y-1/2 p-2 bg-slate  text-blue-600  transition-all duration-200 group-hover:scale-110 shadow-sm hover:shadow-md "
               title="إعدادات القائمة المنسدلة"
             >
-              <Settings className="w-4 h-4" />
+              <Settings className="w- h-4" />
             </button>
           )}
         </div>
@@ -544,7 +557,7 @@ export default function DropdownWithSettings({
                   </button>
                   <button
                     onClick={() => deleteOption(opt.value)}
-                    className="p-1 hover:bg-white rounded transition text-red-600"
+                    className="p-1 hover:bg-white rounded transition "
                     title="حذف"
                   >
                     <Trash2 className="w-4 h-4" />

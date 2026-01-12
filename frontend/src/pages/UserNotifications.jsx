@@ -18,6 +18,7 @@ export default function UserNotifications() {
   }, []);
 
   useEffect(() => {
+    console.log("notifications page");
     if (!socket) return;
 
     const handleNewNotification = (notification) => {
@@ -46,6 +47,8 @@ export default function UserNotifications() {
     try {
       setLoading(true);
       const res = await API.get("/notifications");
+      console.log("===================notifications ------------>");
+      console.log(res);
       const items = Array.isArray(res.data) ? res.data : [];
       setNotifications(items);
 
@@ -187,6 +190,7 @@ export default function UserNotifications() {
                     <span>
                       {new Date(notif.createdAt).toLocaleTimeString("ar-SA")}
                     </span>
+
                     {notif.type && (
                       <span className="px-2 py-1 bg-slate-700 rounded text-slate-300 border border-slate-600">
                         {notif.type === "permission_granted" && "🔐 صلاحية"}

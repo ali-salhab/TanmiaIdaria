@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 import operationRoutes from "./routes/operations.js";
 import mongoose from "mongoose";
 import vacationRoutes from "./routes/voctionRoutes.js";
-
+import User from "./models/User.js";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
@@ -170,7 +170,7 @@ let adminUserId = null;
 export { onlineUsers };
 
 io.on("connection", (socket) => {
-  console.log("🔌 مستخدم متصل:", socket.id);
+  console.log("🔌علي ابراهيم سلهب مستخدم متصل:", socket.id);
   socket.on("registerAdmin", (data) => {
     adminSocket = socket;
     if (data?.id) {
@@ -379,17 +379,14 @@ mongoose
     // Initialize backup scheduler
     initBackupScheduler();
 
-    const User = (await import("./models/User.js")).default;
-    const bcrypt = (await import("bcryptjs")).default;
-
     const adminExists = await User.findOne({
       username: process.env.ADMIN_USERNAME,
     });
     if (!adminExists) {
-      const hashedPassword = await bcrypt.hash(process.env.ADMIN_PASSWORD, 10);
+      // const hashedPassword = await bcrypt.hash(process.env.ADMIN_PASSWORD, 10);
       const adminUser = new User({
         username: process.env.ADMIN_USERNAME,
-        password: hashedPassword,
+        password: process.env.ADMIN_PASSWORD,
         role: "admin",
         permissions: {
           viewEmployees: true,

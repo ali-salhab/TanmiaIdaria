@@ -84,6 +84,7 @@ export default function ViewerHome() {
 
   // Fetch dashboard statistics
   const fetchDashboardStats = useCallback(async (userData) => {
+    console.log(userData);
     try {
       // Simulate fetching stats - in a real app, you would call actual endpoints
       const canViewEmployees = checkPermission("employees.view", userData);

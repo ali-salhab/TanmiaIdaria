@@ -253,7 +253,7 @@ export default function PermissionManager() {
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-slate-700">
                 <div className="font-semibold mb-2">📊 إحصائيات:</div>
                 <div>
-                  صلاحيات مباشرة:{" "}
+                  صلاحيات مباشرة:
                   <span className="font-bold text-blue-600">
                     {directPermissionIds.length}
                   </span>

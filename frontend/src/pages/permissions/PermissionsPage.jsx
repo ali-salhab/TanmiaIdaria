@@ -32,6 +32,8 @@ export default function PermissionsPage() {
     try {
       const res = await API.get("/permissions");
       setPermissions(res.data || []);
+      console.log("--------- permisipns");
+      console.log(permissions);
     } catch (err) {
       console.error("loadPermissions error:", err);
       toast.error("فشل في جلب الصلاحيات");
@@ -48,7 +50,7 @@ export default function PermissionsPage() {
     try {
       await API.post("/permissions", newPerm);
       toast.success("✅ تم إنشاء الصلاحية");
-      setNewPerm({ key: "", label: "", description: "", category: "view" });
+      // setNewPerm({ key: "", label: "", description: "", category: "view" });
       loadPermissions();
     } catch (err) {
       console.error("createPermission error:", err);
@@ -57,22 +59,22 @@ export default function PermissionsPage() {
     }
   };
 
-  const rebuildPermissions = async () => {
-    if (
-      !window.confirm(
-        "هل أنت متأكد من إعادة بناء جميع الصلاحيات؟ سيتم تحديث المسميات والوصف للغة العربية."
-      )
-    )
-      return;
-    try {
-      const res = await API.post("/permissions/rebuild");
-      toast.success(res.data.message);
-      loadPermissions();
-    } catch (err) {
-      console.error("rebuildPermissions error:", err);
-      toast.error("❌ فشل في إعادة بناء الصلاحيات");
-    }
-  };
+  // const rebuildPermissions = async () => {
+  //   if (
+  //     !window.confirm(
+  //       "هل أنت متأكد من إعادة بناء جميع الصلاحيات؟ سيتم تحديث المسميات والوصف للغة العربية."
+  //     )
+  //   )
+  //     return;
+  //   try {
+  //     const res = await API.post("/permissions/rebuild");
+  //     toast.success(res.data.message);
+  //     loadPermissions();
+  //   } catch (err) {
+  //     console.error("rebuildPermissions error:", err);
+  //     toast.error("❌ فشل في إعادة بناء الصلاحيات");
+  //   }
+  // };
 
   return (
     <div

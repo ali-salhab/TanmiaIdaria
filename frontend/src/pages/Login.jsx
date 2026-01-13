@@ -136,7 +136,7 @@ export default function Login() {
       {/* Top-right text */}
       <div
         dir="rtl"
-        className="fixed top-6 right-6 z-20 text-right animate-headerFade"
+        className="fixed top-3 right-3  z-20 text-right animate-headerFade"
       >
         <p className="text-lg md:text-xl lg:text-2xl font-bold tracking-wide text-[#d4af37] drop-shadow-lg font-['Tajawal'] mb-1">
           الجمهورية العربية السورية
@@ -153,25 +153,22 @@ export default function Login() {
       </div>
 
       {/* Centered Login Card */}
-      <div className="relative z-10 w-full max-w-md px-6 md:px-8">
+      <div className="relative z-10 w-full max-w-md px-1 md:px-2 mt-10">
         <form
           ref={cardRef}
           dir="rtl"
           onSubmit={handleSubmit}
           className="relative z-10 backdrop-blur-3xl bg-white/10 border border-white/20 text-white login-card shadow-[0_30px_80px_rgba(0,0,0,0.4)] p-10 w-full rounded-2xl animate-cardPop font-['Tajawal'] flex flex-col items-center gap-5"
         >
-          <div className="flex flex-col items-center gap-4">
+          <div className="flex flex-col items-center gap-2">
             <img
               src={syriaLogo}
               alt="Syria emblem"
-              className="w-32 h-32 md:w-36 md:h-36 object-contain drop-shadow-[0_0_20px_rgba(212,175,55,0.5)] opacity-100 animate-logo-glow"
+              className="w-32 h-24 md:w-36 md:h-36 object-contain drop-shadow-[0_0_20px_rgba(212,175,55,0.5)] opacity-100 animate-logo-glow"
             />
             <h2 className="text-xl md:text-2xl font-bold text-center tracking-tight text-[#d4af37] login-title">
               نظام إدارة الموارد البشرية
             </h2>
-            <p className="text-lg md:text-xl font-semibold text-center text-[#d4af37]/70">
-              تسجيل الدخول
-            </p>
           </div>
 
           <div className="w-full flex flex-col gap-4 text-right">
@@ -224,12 +221,12 @@ export default function Login() {
                   if (!password) setPasswordError("حقل كلمة المرور مطلوب");
                   else setPasswordError("");
                 }}
-                className="w-full p-3 pr-10 rounded-xl bg-white/10 border border-white/20 placeholder-white/50 text-white text-base focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white/15 transition-all duration-300"
+                className="w-full p-3 pr-10 rounded-xl bg-white/10 border border-white/20 placeholder-white/50 text-[#d4af37] text-base focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white/15 transition-all duration-300"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-white/60 hover:text-white transition-colors"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-black hover:text-black/20 transition-colors"
               >
                 {showPassword ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
               </button>
@@ -294,7 +291,8 @@ export default function Login() {
           @keyframes logo-glow {
             0%, 100% { 
               filter: drop-shadow(0 0 20px rgba(212, 175, 55, 0.5));
-              transform: scale(1);
+              transform: scale(1.1);
+
             }
             50% { 
               filter: drop-shadow(0 0 35px rgba(212, 175, 55, 0.8));

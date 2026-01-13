@@ -201,7 +201,7 @@ export default function DropdownManager() {
       </div>
 
       {showEditModal && editingDropdown && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4">
+        <div className="fixed  inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4">
           <div className="bg-slate-800 rounded-2xl shadow-2xl p-6 w-full max-w-2xl border border-slate-700 max-h-[90vh] flex flex-col">
             <div className="flex justify-between items-center mb-6">
               <div>

@@ -276,7 +276,7 @@ export default function PermissionGroupsPage() {
       dir="rtl"
     >
       <h2 className="text-2xl font-semibold mb-4 text-slate-100">
-        🔐 إدارة مجموعات الصلاحيات
+        🔐 إدارة الصلاحيات
       </h2>
 
       {/* Users list: view & manage groups/permissions */}
@@ -287,7 +287,7 @@ export default function PermissionGroupsPage() {
             <input
               value={userSearch}
               onChange={(e) => setUserSearch(e.target.value)}
-              className="w-full border border-slate-600 bg-slate-700 text-slate-100 px-3 py-2 rounded mb-2 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-slate-600 bg-slate-700 text-slate-100 px-3 py-2 rounded-lg mb-4 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="ابحث باسم المستخدم أو الدور..."
             />
             <div className="border border-slate-600 rounded max-h-72 overflow-auto bg-slate-700/50">

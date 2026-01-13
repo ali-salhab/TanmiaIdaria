@@ -151,7 +151,7 @@ router.post("/login", async (req, res) => {
     console.log("Password from DB:", user.password);
     console.log("Entered password:", password);
     console.log("Password match:", isMatch);
-    if (isMatch)
+    if (!isMatch)
       return res.status(400).json({ message: "Invalid credentials password" });
     const secret = getJwtSecret();
     if (!secret)

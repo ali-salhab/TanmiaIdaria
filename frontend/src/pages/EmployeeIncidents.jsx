@@ -20,11 +20,18 @@ export default function EmployeeIncidents() {
   const [activeTab, setActiveTab] = useState("general"); // general | internal
   const [user, setUser] = useState(null);
   const [dropdownSettings, setDropdownSettings] = useState({
+    ali: [1, 2, 2, 2, 2, 2],
     category: ["أولى", "تانية", "تالتة", "رابعة", "خامسة"],
     reason: ["زيادة أجر", "تجديد عقد", "تثبيت", "ترفيع"],
     document_type: ["مرسوم", "قرار"],
+    document_typre: ["مرسوم", "قرار"],
+    incidentType: ["aaaaaaaaa", "aaaaaaaaaaaaaaa,"],
     incidentType: ["داخلي", "خارجي"],
   });
+  console.log(
+    "--------------------------- data for inciedents type options ----------------"
+  );
+  console.log(dropdownSettings);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -53,6 +60,7 @@ export default function EmployeeIncidents() {
       console.log("drop down setting /app-settings/dropdowns");
       console.log(res.data);
       if (res.data) {
+        console.log(res.data);
         setDropdownSettings(res.data);
       }
     } catch (error) {
@@ -153,6 +161,7 @@ export default function EmployeeIncidents() {
       registrar_signature: "",
       employee: id,
     });
+    console.log("add new inciedents");
     setModalOpen(true);
   };
   const handleEditSubmit = async (e) => {
@@ -364,7 +373,9 @@ export default function EmployeeIncidents() {
       )}
       {/* مودال إضافة/تعديل الوقوع */}
       {modalOpen && selectedIncident && (
+        // <div>ali</div>
         <div
+          c
           onClick={(e) => {
             // Close modal only if user clicks on the background (overlay)
             if (e.target === e.currentTarget) {
@@ -388,10 +399,13 @@ export default function EmployeeIncidents() {
                       target: { name: "incidentType", value: e.target.value },
                     })
                   }
-                  options={dropdownSettings.incidentType.map((opt) => ({
-                    value: opt,
-                    label: opt,
-                  }))}
+                  options={["sdsd", "خارجي"].map((opt) => {
+                    console.log("------00000000000000000", dropdownSettings);
+                    return {
+                      value: opt,
+                      label: opt,
+                    };
+                  })}
                   isAdmin={user?.role === "admin"}
                   placeholder="اختر نوع الوقوع"
                   className="!bg-slate-900 !text-slate-100 !border-slate-700"

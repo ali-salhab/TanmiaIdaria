@@ -29,7 +29,7 @@ export default function Notifications() {
 
     const handleNewOperation = (log) => {
       setLogs((prev) => [log, ...prev]);
-      toast.success(`📢 ${log.details}`);
+      toast.success(`📢ppppppp ${log.details}`);
     };
 
     socket.on("new_operation", handleNewOperation);

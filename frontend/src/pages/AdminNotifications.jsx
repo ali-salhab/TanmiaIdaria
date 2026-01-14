@@ -118,7 +118,9 @@ export default function AdminNotifications() {
   const handleMarkAllAsRead = async () => {
     try {
       await API.put("/notifications/admin/read-all");
-      setNotifications((prev) => prev.map((notif) => ({ ...notif, read: true })));
+      setNotifications((prev) =>
+        prev.map((notif) => ({ ...notif, read: true }))
+      );
       toast.success("✅ تم تحديد جميع الإشعارات كمقروءة");
     } catch (error) {
       console.error("Error marking all as read:", error);
@@ -172,13 +174,13 @@ export default function AdminNotifications() {
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   return (
-    <div dir="rtl" className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-4 md:p-8">
+    <div dir="rtl" className="min-h-screen 50 p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
+        <div className="bg-slate-700 rounded-2xl shadow-lg p-6 mb-6">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-3">
+              <h1 className="text-3xl font-bold text-white flex items-center gap-3">
                 <Bell className="w-8 h-8 text-blue-600" />
                 إشعارات الإدارة
               </h1>
@@ -213,7 +215,7 @@ export default function AdminNotifications() {
         </div>
 
         {/* Search and Filters */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
+        <div className="bg-slate-700 rounded-2xl shadow-lg p-6 mb-6">
           {/* Search Bar */}
           <div className="relative mb-4">
             <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -222,7 +224,7 @@ export default function AdminNotifications() {
               placeholder="ابحث في الإشعارات..."
               value={filters.search}
               onChange={(e) => handleFilterChange("search", e.target.value)}
-              className="w-full pr-10 pl-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full pr-10 pl-4 py-3 border bg-slate-600 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
@@ -247,7 +249,9 @@ export default function AdminNotifications() {
                 <input
                   type="text"
                   value={filters.employeeName}
-                  onChange={(e) => handleFilterChange("employeeName", e.target.value)}
+                  onChange={(e) =>
+                    handleFilterChange("employeeName", e.target.value)
+                  }
                   placeholder="ابحث بالاسم..."
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
@@ -262,7 +266,9 @@ export default function AdminNotifications() {
                 <input
                   type="text"
                   value={filters.department}
-                  onChange={(e) => handleFilterChange("department", e.target.value)}
+                  onChange={(e) =>
+                    handleFilterChange("department", e.target.value)
+                  }
                   placeholder="ابحث بالقسم..."
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
@@ -275,7 +281,9 @@ export default function AdminNotifications() {
                 </label>
                 <select
                   value={filters.section}
-                  onChange={(e) => handleFilterChange("section", e.target.value)}
+                  onChange={(e) =>
+                    handleFilterChange("section", e.target.value)
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">الكل</option>
@@ -315,7 +323,9 @@ export default function AdminNotifications() {
                 <input
                   type="date"
                   value={filters.startDate}
-                  onChange={(e) => handleFilterChange("startDate", e.target.value)}
+                  onChange={(e) =>
+                    handleFilterChange("startDate", e.target.value)
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -328,7 +338,9 @@ export default function AdminNotifications() {
                 <input
                   type="date"
                   value={filters.endDate}
-                  onChange={(e) => handleFilterChange("endDate", e.target.value)}
+                  onChange={(e) =>
+                    handleFilterChange("endDate", e.target.value)
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -364,7 +376,7 @@ export default function AdminNotifications() {
         </div>
 
         {/* Notifications List */}
-        <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+        <div className="bg-slate-800 rounded-2xl shadow-lg overflow-hidden">
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -380,8 +392,10 @@ export default function AdminNotifications() {
                 {notifications.map((notification) => (
                   <div
                     key={notification._id}
-                    className={`p-4 hover:bg-gray-50 transition ${
-                      !notification.read ? "bg-blue-50 border-r-4 border-blue-500" : ""
+                    className={`p-4 m-2 hover:bg-slate-900 transition ${
+                      !notification.read
+                        ? "bg-slate-700 border-r-4 border-slate-500"
+                        : ""
                     }`}
                   >
                     <div className="flex items-start gap-4">
@@ -395,8 +409,8 @@ export default function AdminNotifications() {
                             size="md"
                           />
                         ) : (
-                          <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
-                            <User className="w-5 h-5 text-gray-400" />
+                          <div className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center">
+                            <User className="w-5 h-5 text-white" />
                           </div>
                         )}
                       </div>
@@ -406,14 +420,14 @@ export default function AdminNotifications() {
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
-                              <h3 className="font-semibold text-gray-800">
+                              <h3 className="font-semibold text-white">
                                 {notification.title}
                               </h3>
                               {!notification.read && (
                                 <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
                               )}
                             </div>
-                            <p className="text-gray-600 text-sm mb-2">
+                            <p className="text-white-600 text-sm mb-2">
                               {notification.message}
                             </p>
                             <div className="flex flex-wrap items-center gap-2 text-xs">
@@ -433,7 +447,7 @@ export default function AdminNotifications() {
                                 </span>
                               )}
                               {notification.employeeName && (
-                                <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded-full">
+                                <span className="px-2 py-1 bg-purple-200 text-purple-700 rounded-full">
                                   👤 {notification.employeeName}
                                 </span>
                               )}
@@ -449,13 +463,16 @@ export default function AdminNotifications() {
                               )}
                             </div>
                             <p className="text-xs text-gray-400 mt-2">
-                              {new Date(notification.createdAt).toLocaleString("ar-EG", {
-                                year: "numeric",
-                                month: "long",
-                                day: "numeric",
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
+                              {new Date(notification.createdAt).toLocaleString(
+                                "ar-EG",
+                                {
+                                  year: "numeric",
+                                  month: "long",
+                                  day: "numeric",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                }
+                              )}
                             </p>
                           </div>
 
@@ -463,7 +480,9 @@ export default function AdminNotifications() {
                           <div className="flex items-center gap-2">
                             {!notification.read && (
                               <button
-                                onClick={() => handleMarkAsRead(notification._id)}
+                                onClick={() =>
+                                  handleMarkAsRead(notification._id)
+                                }
                                 className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
                                 title="تحديد كمقروء"
                               >
@@ -525,4 +544,3 @@ export default function AdminNotifications() {
     </div>
   );
 }
-

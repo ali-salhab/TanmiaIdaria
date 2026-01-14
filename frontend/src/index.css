@@ -143,13 +143,13 @@ body {
 .login-flag-bg {
   position: absolute;
   inset: 0;
-  background-image: url("/syria_flag.svg");
+  background-image: url("/backgrounf.jpg");
   background-size: cover;
   background-position: center center;
-  filter: blur(20px) saturate(1.1) contrast(1) brightness(0.6);
+  filter: blur(10px) saturate(1) contrast(1) brightness(0.5);
   transform-origin: center center;
   will-change: transform, filter, opacity;
-  z-index: 0;
+  z-index: 1;
   pointer-events: none;
   animation: flag3d 14s ease-in-out infinite alternate;
 }

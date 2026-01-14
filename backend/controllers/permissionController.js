@@ -874,13 +874,14 @@ export const updateUserPermissions = async (req, res) => {
       type: "direct_permissions_updated",
       timestamp: new Date(),
     };
+    console.log("permissionUpdateEvent------------------> 🔔🔔🔔🔔");
     console.log(permissionUpdateEvent);
 
     io.emit("permission_update", permissionUpdateEvent);
 
     const notificationEvent = {
       type: "permission_change",
-      message: `تم تحديث صلاحياتك المباشرة`,
+      message: `تم تحديث  ggggggggggggصلاحياتك المباشرة`,
       userId,
       time: new Date(),
     };
@@ -889,7 +890,10 @@ export const updateUserPermissions = async (req, res) => {
 
     // Send personal notification to the user
     const userSocketId = req.onlineUsers?.get(userId);
+    console.log("connected user socket id ------------");
+    console.log(userSocketId);
     if (userSocketId) {
+      console.log("--------------here the 🔔🔔🔔🔔😉😉😉");
       io.to(userSocketId).emit("personal_notification", notificationEvent);
     }
 

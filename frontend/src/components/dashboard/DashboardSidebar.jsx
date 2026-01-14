@@ -8,6 +8,7 @@ import Copyright from "../Copyright";
 
 export default function DashboardSidebar({
   isOpen,
+  isMinimized,
   onClose,
   onLogout,
   userInfo,
@@ -125,53 +126,58 @@ export default function DashboardSidebar({
       {/* Sidebar */}
       <aside
         className={`
-          fixed lg:relative
-          left-0 top-0
+          fixed
+          right-0 top-0
           h-screen
-          w-64
+          ${isMinimized ? "w-20" : "w-64"}
           bg-slate-900/95 backdrop-blur-md
-          border-r border-slate-800
+          border-l border-slate-800
           flex flex-col
           shadow-[0_0_30px_rgba(0,0,0,0.55)]
           z-50
-          transition-transform duration-300 ease-in-out
+          transition-all duration-300 ease-in-out
           ${
             isOpen
               ? "translate-x-0"
-              : "-translate-x-full lg:translate-x-0 lg:block"
+              : "translate-x-full lg:translate-x-0"
           }
         `}
         dir="rtl"
       >
         {/* Header */}
-        <div className="p-6 border-b border-slate-800 bg-slate-900/90 text-center flex flex-col items-center relative overflow-hidden">
+        <div className={`p-4 border-b border-slate-800 bg-slate-900/90 text-center flex flex-col items-center relative overflow-hidden transition-all duration-300 ${isMinimized ? 'p-2' : 'p-6'}`}>
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-400 to-amber-600" />
           <div className="flex items-center gap-2 mb-2">
             <img
               src={syriaLogo}
               alt="Syria Logo"
-              className="w-16 h-10 object-contain mr-1 drop-shadow-lg"
+              className={`${isMinimized ? 'w-10 h-8' : 'w-16 h-10'} object-contain transition-all duration-300 drop-shadow-lg`}
             />
           </div>
-          <h1 className="text-lg font-semibold text-amber-400 drop-shadow-md">
-            نظام إدارة الموارد البشرية
-          </h1>
-          <p className="text-xs text-slate-300 mt-1">
-            الأمانة العامة لمحافظة طرطوس
-          </p>
+          {!isMinimized && (
+            <>
+              <h1 className="text-lg font-semibold text-amber-400 drop-shadow-md whitespace-nowrap">
+                نظام إدارة الموارد البشرية
+              </h1>
+              <p className="text-xs text-slate-300 mt-1">
+                الأمانة العامة لمحافظة طرطوس
+              </p>
+            </>
+          )}
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-2 overflow-y-auto bg-gradient-to-b from-slate-900 via-slate-900/80 to-slate-900">
+        <nav className="flex-1 p-2 space-y-2 overflow-y-auto bg-gradient-to-b from-slate-900 via-slate-900/80 to-slate-900 scrollbar-hide">
           {menuItems.map((item, idx) => (
             <Link
               key={idx}
               to={item.to}
               onClick={handleLinkClick}
+              title={isMinimized ? item.label : ""}
               className={`
                 block py-3 px-4 rounded-lg
                 transition-all duration-200
-                transform hover:translate-x-1 hover:scale-[1.02]
+                transform hover:scale-[1.02]
                 font-medium text-sm
                 border border-transparent
                 ${
@@ -179,31 +185,34 @@ export default function DashboardSidebar({
                     ? "bg-amber-500/15 text-amber-300 shadow-lg shadow-amber-500/10 border-amber-500/40"
                     : "text-slate-200 hover:bg-slate-800 hover:text-amber-300 hover:border-slate-700"
                 }
+                ${isMinimized ? 'px-0 flex justify-center' : ''}
               `}
             >
-              <span className="flex items-center gap-2">
-                <span className="text-lg">{item.icon}</span>
-                <span>{item.label}</span>
+              <span className={`flex items-center gap-2 ${isMinimized ? 'justify-center' : ''}`}>
+                <span className="text-xl">{item.icon}</span>
+                {!isMinimized && <span>{item.label}</span>}
               </span>
             </Link>
           ))}
         </nav>
 
         {/* Footer - Logout & Copyright */}
-        <div className="border-t border-slate-800 p-4 space-y-2 bg-slate-900/90">
+        <div className={`border-t border-slate-800 p-4 space-y-2 bg-slate-900/90 transition-all duration-300 ${isMinimized ? 'p-2' : 'p-4'}`}>
           <button
             onClick={() => setShowCopyright(true)}
             className="w-full flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-amber-300 py-2 rounded-lg transition-all font-medium text-xs border border-slate-700"
+            title="حقوق التطوير"
           >
             <Code className="w-3 h-3" />
-            <span>حقوق التطوير</span>
+            {!isMinimized && <span>حقوق التطوير</span>}
           </button>
           <button
             onClick={onLogout}
             className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-red-700 to-red-600 hover:from-red-600 hover:to-red-500 text-white py-3 rounded-lg transition-all transform hover:scale-105 font-medium text-sm shadow-lg shadow-red-700/30"
+            title="تسجيل الخروج"
           >
             <LogOut className="w-4 h-4" />
-            <span>تسجيل الخروج</span>
+            {!isMinimized && <span>تسجيل الخروج</span>}
           </button>
         </div>
       </aside>

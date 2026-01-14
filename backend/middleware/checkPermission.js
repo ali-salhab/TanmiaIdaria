@@ -8,6 +8,9 @@ import PermissionGroup from "../models/PermissionGroup.js";
  */
 
 const checkPermission = (permissionKey) => {
+  //
+  console.log("check permission middle ware called --------------> ");
+
   return async (req, res, next) => {
     try {
       // Ensure user is authenticated
@@ -27,7 +30,16 @@ const checkPermission = (permissionKey) => {
           },
         })
         .populate("directPermissions", "key label category");
-
+      console.log(
+        "user object in check permisssion middleware after populate permissionGroups and permissions"
+      );
+      console.log(
+        "-------------user in check permissions middleware after populating--------------"
+      );
+      console.log(user);
+      console.log(
+        "🔻🔻🔻----------------------------------------------🍄‍🟫🍄‍🟫🍄‍🟫"
+      );
       if (!user) {
         return res.status(401).json({
           message: "المستخدم غير موجود",

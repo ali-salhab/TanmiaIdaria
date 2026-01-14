@@ -223,7 +223,7 @@ io.on("connection", (socket) => {
       if (
         !from ||
         !to ||
-        !mongoose.Types.ObjectId.isValid(from) ||
+        // !mongoose.Types.Object Id.isValid(from) ||
         !mongoose.Types.ObjectId.isValid(to)
       ) {
         const warnTarget = from ? onlineUsers.get(from) : socket.id;

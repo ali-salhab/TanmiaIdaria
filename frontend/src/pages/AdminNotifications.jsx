@@ -162,11 +162,11 @@ export default function AdminNotifications() {
 
   const getActionColor = (action) => {
     const colors = {
-      create: "bg-green-100 text-green-700",
-      update: "bg-blue-100 text-blue-700",
-      delete: "bg-red-100 text-red-700",
-      edit: "bg-yellow-100 text-yellow-700",
-      default: "bg-gray-100 text-gray-700",
+      create: "bg-green-500/20 text-green-400 border border-green-500/30",
+      update: "bg-blue-500/20 text-blue-400 border border-blue-500/30",
+      delete: "bg-red-500/20 text-red-400 border border-red-500/30",
+      edit: "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30",
+      default: "bg-slate-500/20 text-slate-300 border border-slate-500/30",
     };
     return colors[action] || colors.default;
   };
@@ -174,23 +174,23 @@ export default function AdminNotifications() {
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   return (
-    <div dir="rtl" className="min-h-screen 50 p-4 md:p-8">
+    <div dir="rtl" className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="bg-slate-700 rounded-2xl shadow-lg p-6 mb-6">
+        <div className="bg-slate-800/80 backdrop-blur-md rounded-2xl shadow-lg border border-slate-700/50 p-6 mb-6">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-white flex items-center gap-3">
-                <Bell className="w-8 h-8 text-blue-600" />
+              <h1 className="text-3xl font-bold text-slate-100 flex items-center gap-3">
+                <Bell className="w-8 h-8 text-blue-400" />
                 إشعارات الإدارة
               </h1>
-              <p className="text-gray-600 mt-2">
+              <p className="text-slate-400 mt-2">
                 {unreadCount > 0 ? (
-                  <span className="text-red-600 font-semibold">
+                  <span className="text-red-400 font-semibold">
                     {unreadCount} إشعار غير مقروء
                   </span>
                 ) : (
-                  "جميع الإشعارات مقروءة"
+                  <span className="text-green-400">جميع الإشعارات مقروءة</span>
                 )}
               </p>
             </div>
@@ -205,7 +205,7 @@ export default function AdminNotifications() {
               </button>
               <button
                 onClick={fetchNotifications}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition flex items-center gap-2"
+                className="px-4 py-2 bg-slate-700 text-slate-200 rounded-lg hover:bg-slate-600 transition flex items-center gap-2"
               >
                 <RefreshCw className="w-4 h-4" />
                 تحديث
@@ -215,23 +215,23 @@ export default function AdminNotifications() {
         </div>
 
         {/* Search and Filters */}
-        <div className="bg-slate-700 rounded-2xl shadow-lg p-6 mb-6">
+        <div className="bg-slate-800/80 backdrop-blur-md rounded-2xl shadow-lg border border-slate-700/50 p-6 mb-6">
           {/* Search Bar */}
           <div className="relative mb-4">
-            <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
             <input
               type="text"
               placeholder="ابحث في الإشعارات..."
               value={filters.search}
               onChange={(e) => handleFilterChange("search", e.target.value)}
-              className="w-full pr-10 pl-4 py-3 border bg-slate-600 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full pr-10 pl-4 py-3 border bg-slate-700/50 border-slate-600 text-slate-100 placeholder-slate-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
 
           {/* Filter Toggle */}
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
+            className="flex items-center gap-2 text-blue-400 hover:text-blue-300 font-medium transition-colors"
           >
             <Filter className="w-4 h-4" />
             {showFilters ? "إخفاء الفلاتر" : "عرض الفلاتر"}
@@ -239,10 +239,10 @@ export default function AdminNotifications() {
 
           {/* Advanced Filters */}
           {showFilters && (
-            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4 bg-gray-50 rounded-lg">
+            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4 bg-slate-700/50 rounded-lg border border-slate-600/50">
               {/* Employee Name */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                <label className="block text-sm font-medium text-slate-300 mb-2 flex items-center gap-2">
                   <User className="w-4 h-4" />
                   اسم الموظف
                 </label>
@@ -253,13 +253,13 @@ export default function AdminNotifications() {
                     handleFilterChange("employeeName", e.target.value)
                   }
                   placeholder="ابحث بالاسم..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border bg-slate-800/50 border-slate-600 text-slate-100 placeholder-slate-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
 
               {/* Department */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                <label className="block text-sm font-medium text-slate-300 mb-2 flex items-center gap-2">
                   <Building2 className="w-4 h-4" />
                   القسم
                 </label>
@@ -270,13 +270,13 @@ export default function AdminNotifications() {
                     handleFilterChange("department", e.target.value)
                   }
                   placeholder="ابحث بالقسم..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border bg-slate-800/50 border-slate-600 text-slate-100 placeholder-slate-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
 
               {/* Section */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-slate-300 mb-2">
                   القسم
                 </label>
                 <select
@@ -284,7 +284,7 @@ export default function AdminNotifications() {
                   onChange={(e) =>
                     handleFilterChange("section", e.target.value)
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border bg-slate-800/50 border-slate-600 text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="">الكل</option>
                   <option value="employees">الموظفين</option>
@@ -298,13 +298,13 @@ export default function AdminNotifications() {
 
               {/* Action */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-slate-300 mb-2">
                   الإجراء
                 </label>
                 <select
                   value={filters.action}
                   onChange={(e) => handleFilterChange("action", e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border bg-slate-800/50 border-slate-600 text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="">الكل</option>
                   <option value="create">إنشاء</option>
@@ -316,7 +316,7 @@ export default function AdminNotifications() {
 
               {/* Date Range */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                <label className="block text-sm font-medium text-slate-300 mb-2 flex items-center gap-2">
                   <Calendar className="w-4 h-4" />
                   من تاريخ
                 </label>
@@ -326,12 +326,12 @@ export default function AdminNotifications() {
                   onChange={(e) =>
                     handleFilterChange("startDate", e.target.value)
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border bg-slate-800/50 border-slate-600 text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                <label className="block text-sm font-medium text-slate-300 mb-2 flex items-center gap-2">
                   <Calendar className="w-4 h-4" />
                   إلى تاريخ
                 </label>
@@ -341,19 +341,19 @@ export default function AdminNotifications() {
                   onChange={(e) =>
                     handleFilterChange("endDate", e.target.value)
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border bg-slate-800/50 border-slate-600 text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
 
               {/* Read Status */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-slate-300 mb-2">
                   الحالة
                 </label>
                 <select
                   value={filters.read}
                   onChange={(e) => handleFilterChange("read", e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border bg-slate-800/50 border-slate-600 text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="">الكل</option>
                   <option value="false">غير مقروء</option>
@@ -365,7 +365,7 @@ export default function AdminNotifications() {
               <div className="flex items-end">
                 <button
                   onClick={clearFilters}
-                  className="w-full px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition flex items-center justify-center gap-2"
+                  className="w-full px-4 py-2 bg-slate-700 text-slate-200 rounded-lg hover:bg-slate-600 transition flex items-center justify-center gap-2"
                 >
                   <X className="w-4 h-4" />
                   مسح الفلاتر
@@ -376,26 +376,26 @@ export default function AdminNotifications() {
         </div>
 
         {/* Notifications List */}
-        <div className="bg-slate-800 rounded-2xl shadow-lg overflow-hidden">
+        <div className="bg-slate-800/80 backdrop-blur-md rounded-2xl shadow-lg border border-slate-700/50 overflow-hidden">
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
             </div>
           ) : notifications.length === 0 ? (
             <div className="text-center py-12">
-              <Bell className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500 text-lg">لا توجد إشعارات</p>
+              <Bell className="w-16 h-16 text-slate-400 mx-auto mb-4" />
+              <p className="text-slate-400 text-lg">لا توجد إشعارات</p>
             </div>
           ) : (
             <>
-              <div className="divide-y divide-gray-200">
+              <div className="divide-y divide-slate-700/50">
                 {notifications.map((notification) => (
                   <div
                     key={notification._id}
-                    className={`p-4 m-2 hover:bg-slate-900 transition ${
+                    className={`p-4 m-2 hover:bg-slate-700/50 transition rounded-lg ${
                       !notification.read
-                        ? "bg-slate-700 border-r-4 border-slate-500"
-                        : ""
+                        ? "bg-slate-700/30 border-r-4 border-blue-500"
+                        : "bg-slate-800/30"
                     }`}
                   >
                     <div className="flex items-start gap-4">
@@ -427,12 +427,12 @@ export default function AdminNotifications() {
                                 <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
                               )}
                             </div>
-                            <p className="text-white-600 text-sm mb-2">
+                            <p className="text-slate-300 text-sm mb-2">
                               {notification.message}
                             </p>
                             <div className="flex flex-wrap items-center gap-2 text-xs">
                               {notification.section && (
-                                <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded-full flex items-center gap-1">
+                                <span className="px-2 py-1 bg-slate-600/50 text-slate-200 rounded-full flex items-center gap-1 border border-slate-500/30">
                                   {getSectionIcon(notification.section)}{" "}
                                   {notification.section}
                                 </span>
@@ -447,17 +447,17 @@ export default function AdminNotifications() {
                                 </span>
                               )}
                               {notification.employeeName && (
-                                <span className="px-2 py-1 bg-purple-200 text-purple-700 rounded-full">
+                                <span className="px-2 py-1 bg-purple-500/20 text-purple-300 rounded-full border border-purple-500/30">
                                   👤 {notification.employeeName}
                                 </span>
                               )}
                               {notification.department && (
-                                <span className="px-2 py-1 bg-indigo-100 text-indigo-700 rounded-full">
+                                <span className="px-2 py-1 bg-indigo-500/20 text-indigo-300 rounded-full border border-indigo-500/30">
                                   🏢 {notification.department}
                                 </span>
                               )}
                               {notification.actionByUsername && (
-                                <span className="px-2 py-1 bg-teal-100 text-teal-700 rounded-full">
+                                <span className="px-2 py-1 bg-teal-500/20 text-teal-300 rounded-full border border-teal-500/30">
                                   من: {notification.actionByUsername}
                                 </span>
                               )}
@@ -483,14 +483,14 @@ export default function AdminNotifications() {
                                 onClick={() =>
                                   handleMarkAsRead(notification._id)
                                 }
-                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                                className="p-2 text-blue-400 hover:bg-blue-500/20 rounded-lg transition"
                                 title="تحديد كمقروء"
                               >
                                 <Circle className="w-5 h-5" />
                               </button>
                             )}
                             {notification.read && (
-                              <CheckCircle2 className="w-5 h-5 text-green-500" />
+                              <CheckCircle2 className="w-5 h-5 text-green-400" />
                             )}
                           </div>
                         </div>
@@ -502,8 +502,8 @@ export default function AdminNotifications() {
 
               {/* Pagination */}
               {pagination.totalPages > 1 && (
-                <div className="p-4 border-t border-gray-200 flex items-center justify-between">
-                  <p className="text-sm text-gray-600">
+                <div className="p-4 border-t border-slate-700/50 flex items-center justify-between">
+                  <p className="text-sm text-slate-400">
                     عرض {notifications.length} من {pagination.total} إشعار
                   </p>
                   <div className="flex gap-2">
@@ -515,11 +515,11 @@ export default function AdminNotifications() {
                         }))
                       }
                       disabled={pagination.page === 1}
-                      className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-4 py-2 bg-slate-700 text-slate-200 rounded-lg hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed transition"
                     >
                       السابق
                     </button>
-                    <span className="px-4 py-2 text-gray-700">
+                    <span className="px-4 py-2 text-slate-300">
                       صفحة {pagination.page} من {pagination.totalPages}
                     </span>
                     <button
@@ -530,7 +530,7 @@ export default function AdminNotifications() {
                         }))
                       }
                       disabled={pagination.page === pagination.totalPages}
-                      className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-4 py-2 bg-slate-700 text-slate-200 rounded-lg hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed transition"
                     >
                       التالي
                     </button>

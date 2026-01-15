@@ -99,7 +99,9 @@ export default function PermissionGroupsPage() {
     }
   };
 
-  const toggleUserDirectPermission = async (permId) => {
+  const toggleUserDirectPermission = async (permId, label) => {
+    console.log("----------------------> selected user ");
+    console.log(selectedUser);
     if (!selectedUser?._id) {
       toast.error("اختر مستخدماً أولاً");
       return;
@@ -108,12 +110,16 @@ export default function PermissionGroupsPage() {
     const updated = has
       ? selectedUserDirectIds.filter((id) => id !== permId)
       : [...selectedUserDirectIds, permId];
+
     try {
       await API.put(`/permissions/users/${selectedUser._id}/permissions`, {
         directPermissions: updated,
       });
       setSelectedUserDirectIds(updated);
-      toast.success("✅ تم تحديث الصلاحيات المباشرة");
+      toast.success(
+        `تم منح المستخدم   {${selectedUser.username} } الصلاحيات المباشرة   ${label}  `
+      );
+      console.log(selectUser);
     } catch (err) {
       console.error("toggleUserDirectPermission error:", err);
       toast.error("فشل في تحديث الصلاحيات المباشرة");
@@ -453,9 +459,13 @@ export default function PermissionGroupsPage() {
                                   <input
                                     type="checkbox"
                                     checked={checked}
-                                    onChange={() =>
-                                      toggleUserDirectPermission(p._id)
-                                    }
+                                    onChange={() => {
+                                      console.log("---------------------->");
+                                      toggleUserDirectPermission(
+                                        p._id,
+                                        p.label
+                                      );
+                                    }}
                                     className="mt-1 rounded border-slate-500 bg-slate-600 text-blue-600 focus:ring-blue-500"
                                   />
                                   <div>

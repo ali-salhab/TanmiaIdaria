@@ -10,6 +10,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [showChat, setShowChat] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarMinimized, setSidebarMinimized] = useState(false);
   const [userInfo, setUserInfo] = useState(null);
   const [unreadChatCount, setUnreadChatCount] = useState(0);
 
@@ -110,33 +111,43 @@ export default function Dashboard() {
     setSidebarOpen(false);
   };
 
+  const toggleMinimize = () => {
+    setSidebarMinimized((prev) => !prev);
+  };
+
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 font-custom text-white relative overflow-hidden">
+    <div className="flex h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 font-custom text-white relative overflow-hidden" dir="rtl">
       <div className="absolute inset-0 backdrop-blur-3xl bg-black/20"></div>
 
       {/* Sidebar Component */}
       <DashboardSidebar
         isOpen={sidebarOpen}
+        isMinimized={sidebarMinimized}
         onClose={closeSidebar}
         onLogout={handleLogout}
         userInfo={userInfo}
       />
 
       {/* Main Content */}
-      <div className="relative z-10 flex-1 flex flex-col animate-fadeSlide min-w-0 lg:ml-0">
+      <div className={`relative z-10 flex-1 flex flex-col min-w-0 transition-all duration-300 ${sidebarMinimized ? 'lg:mr-20' : 'lg:mr-64'}`}>
         <Navbar
           userInfo={userInfo}
           sidebarOpen={sidebarOpen}
+          sidebarMinimized={sidebarMinimized}
           onToggleSidebar={toggleSidebar}
+          onToggleMinimize={toggleMinimize}
           onOpenChat={() => {
             setShowChat(true);
             setUnreadChatCount(0);
           }}
           unreadChatCount={unreadChatCount}
         />
-
-        <main className="flex-1  sm:p-4 md:p-6 overflow-y-auto mt-14">
-          <div className="bg-slate-800/80 backdrop-blur-md rounded-lg md:rounded-xl shadow-md p-1 md:p-4 text-gray-100 overflow-x-auto border">
+        <main className="flex-1 overflow-y-auto mt-16 p-2 md:p-6 z-10">
+          <div
+            className="bg-slate-800/80 backdrop-blur-md rounded-lg md:rounded-xl
+                  shadow-md p-1 md:p-4 text-gray-100
+                  border border-slate-700/50"
+          >
             <Outlet context={{ userInfo }} />
           </div>
         </main>

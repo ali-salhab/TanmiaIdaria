@@ -3,6 +3,9 @@ import User from "../models/User.js";
 
 export const protect = async (req, res, next) => {
   try {
+    console.log(
+      "😉😉😉😉😉😉  ---> protect middleware to check if user has token then verify the token by jwt "
+    );
     let token;
 
     // Check for "Bearer <token>" in the header

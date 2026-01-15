@@ -6,6 +6,10 @@ import {
 // this function checks if the user has a specific permission
 
 export const checkPermission = (permissionKey, user) => {
+  console.log("check permissions function---------------->");
+
+  console.log(permissionKey);
+  console.log(user.permissions);
   // Input validation
   if (!user || !permissionKey) return false;
 

@@ -22,11 +22,13 @@ export default function UserNotifications() {
     if (!socket) return;
 
     const handleNewNotification = (notification) => {
+      console.log("incomming notification ----------> 🔔🔔🔔🔔📎");
+      console.log(notification);
       if (userId && notification?.userId && notification.userId !== userId) {
         return;
       }
       setNotifications((prev) => [notification, ...prev]);
-      toast.success(`📢 ${notification.title}`);
+      toast.success(`📢 ${notification.message}`);
     };
 
     socket.on("notification", handleNewNotification);

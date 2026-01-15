@@ -146,7 +146,7 @@ function App() {
               <Route
                 path="employees/:id"
                 element={
-                  <RequirePermission permission="employees.edit">
+                  <RequirePermission permission="employee.view">
                     <EmployeeEdit />
                   </RequirePermission>
                 }

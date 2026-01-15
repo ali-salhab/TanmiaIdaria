@@ -292,6 +292,7 @@ export default function EmployeeList() {
   const [limit, setLimit] = useState(50);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [totalEmployees, setTotalEmployees] = useState(0);
   const [employmentType, setemploymentType] = useState("");
 
   // New Filters
@@ -344,6 +345,7 @@ export default function EmployeeList() {
         },
       });
       setEmployees(res.data.data);
+      setTotalEmployees(res.data.total);
       setTotalPages(Math.ceil(res.data.total / res.data.limit));
     } catch (err) {
       console.error(err);
@@ -430,58 +432,7 @@ export default function EmployeeList() {
     "bg-slate-800/70 border border-slate-700 text-slate-100 rounded-xl shadow-sm focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400/50 transition-all duration-300";
 
   return (
-    <div
-      className="p-6 font-custom relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900"
-      dir="rtl"
-    >
-      {/* Animated Background */}
-      <div className="absolute inset-0 -z-10">
-        {[...Array(20)].map((_, i) => (
-          <div
-            key={i}
-            className={`absolute rounded-full`}
-            style={{
-              width: Math.random() * 6 + 3 + "px",
-              height: Math.random() * 6 + 3 + "px",
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              background: i % 3 === 0 ? "#d4af37" : "rgba(255,255,255,0.15)",
-              opacity: i % 3 === 0 ? 0.4 : 0.2,
-              animationDelay: `${Math.random() * 5}s`,
-              animationDuration: `${5 + Math.random() * 5}s`,
-              boxShadow: i % 3 === 0 ? "0 0 10px #d4af37" : "none",
-              animation: `floatRandom ${
-                5 + Math.random() * 5
-              }s ease-in-out infinite`,
-            }}
-          />
-        ))}
-        {[...Array(15)].map((_, i) => (
-          <div
-            key={`circle-${i}`}
-            className={`absolute w-1 h-1 rounded-full opacity-30 animate-float`}
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              background: i % 4 === 0 ? "#d4af37" : "rgba(255,255,255,0.2)",
-              animationDelay: `${Math.random() * 3}s`,
-              animationDuration: `${3 + Math.random() * 3}s`,
-            }}
-          />
-        ))}
-        {[...Array(10)].map((_, i) => (
-          <div
-            key={`square-${i}`}
-            className={`absolute w-1.5 h-1.5 rotate-45 opacity-25 animate-pulseGentle`}
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              background: i % 2 === 0 ? "#d4af37" : "rgba(255,255,255,0.15)",
-              animationDelay: `${Math.random() * 2}s`,
-            }}
-          />
-        ))}
-      </div>
+    <div className="font-custom" dir="rtl">
       <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <h2
           className="text-3xl font-extrabold bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-200 bg-clip-text text-transparent drop-shadow-lg"
@@ -521,6 +472,12 @@ export default function EmployeeList() {
 
       {/* Filters */}
       <div className="bg-white/10 backdrop-blur-xl p-6 rounded-2xl shadow-2xl mb-4 border border-white/20">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-bold text-amber-400">الفلاتر</h3>
+          <div className="bg-amber-500/20 text-amber-300 px-4 py-1 rounded-full border border-amber-500/30 text-sm font-bold">
+            إجمالي الموظفين: {totalEmployees}
+          </div>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
           <input
             type="text"

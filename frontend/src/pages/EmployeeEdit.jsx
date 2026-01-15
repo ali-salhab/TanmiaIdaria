@@ -14,6 +14,7 @@ import EmployeeCourses from "../pages/EmployeeCourses";
 import DropdownWithSettings from "../components/DropdownWithSettings";
 
 export default function EmployeeEdit() {
+  console.log("emloyee edit page ------------->");
   const { id } = useParams();
   const navigate = useNavigate();
   const fileInputRef = useRef(null);

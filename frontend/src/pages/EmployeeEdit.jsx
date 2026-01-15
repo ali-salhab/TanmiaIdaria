@@ -81,6 +81,7 @@ export default function EmployeeEdit() {
 
   // 🔹 تحميل بيانات الموظف
   const fetchEmployee = async () => {
+    console.log("fetch employee called ------------>");
     if (isNew) {
       setLoading(false);
       return;
@@ -88,6 +89,8 @@ export default function EmployeeEdit() {
     try {
       const res = await API.get(`/employees/${id}`);
       setEmployee(res.data || {});
+      console.log("the current employee data ----------------->");
+      console.log(res.data);
     } catch {
       toast.error("فشل تحميل بيانات الموظف");
     } finally {
@@ -137,6 +140,7 @@ export default function EmployeeEdit() {
 
   // 🔹 تحميل صورة شخصية
   const handlePhotoChange = async (e) => {
+    console.log("handle change function called the current employeee");
     const file = e.target.files[0];
     if (!file) return;
     setPhotoPreview(URL.createObjectURL(file));
@@ -147,7 +151,10 @@ export default function EmployeeEdit() {
       const res = await API.post(`/employees/${id}/photo`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
+      console.log("here is the res from change image function");
+      console.log(res);
       setEmployee({ ...employee, photo: res.data.photo });
+      console.log(employee.photo);
       toast.success("تم تحديث الصورة الشخصية");
     } catch {
       toast.error("فشل تحميل الصورة");
@@ -239,7 +246,10 @@ export default function EmployeeEdit() {
     status: ["قائم على رأس عمله", "مجاز", "مكفوف اليد", "مستقيل", "متقاعد"],
     bloodType: ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"],
   };
+  console.log("the current employee data is ------------>");
 
+  // setEmployee({ ...employee, photo: "ali" });
+  console.log(employee);
   return (
     <div
       className="p-6 max-w-7xl mx-auto font-custom text-right bg-slate-900 min-h-screen text-slate-100"
@@ -253,7 +263,7 @@ export default function EmployeeEdit() {
               src={
                 photoPreview ||
                 (employee.photo
-                  ? `${VITE_API_URL}${employee.photo}`
+                  ? `http://localhost:5001${employee.photo}`
                   : "https://cdn-icons-png.flaticon.com/512/3135/3135715.png")
               }
               alt="صورة الموظف"
@@ -263,7 +273,10 @@ export default function EmployeeEdit() {
               {employee.fullName}
             </h3>
             <button
-              onClick={() => fileInputRef.current?.click()}
+              onClick={() => {
+                fileInputRef.current?.click();
+                console.log(`http://localhost:5001/${employee.photo}`);
+              }}
               disabled={uploading}
               className="mt-2 bg-amber-600 text-slate-950 px-4 py-1 rounded-lg hover:bg-amber-500 transition disabled:opacity-60 disabled:cursor-not-allowed"
             >

@@ -68,6 +68,7 @@ export default function ViewerEmployeeList() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [totalEmployees, setTotalEmployees] = useState(0);
 
   const fetchEmployees = async () => {
     try {
@@ -87,6 +88,7 @@ export default function ViewerEmployeeList() {
       console.log(employees);
       // Adjust according to your API structure
       setEmployees(res.data.data);
+      setTotalEmployees(res.data.total);
       setTotalPages(Math.ceil(res.data.total / res.data.limit));
     } catch (err) {
       console.error(err);
@@ -124,17 +126,22 @@ export default function ViewerEmployeeList() {
     return age;
   };
   return (
-    <div className="p-6 font-custom" dir="rtl">
+    <div className="font-custom" dir="rtl">
       <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <h2 className="text-3xl text-gray-800 font-extrabold">
+        <h2 className="text-3xl text-gray-100 font-extrabold">
           قائمة الموظفين
         </h2>
-        <button
-          onClick={() => navigate("/employees/add")}
-          className="bg-gray-700 text-white px-4 py-2 ml-5 font-extrabold rounded hover:bg-gray-800 transition"
-        >
-          + إضافة موظف جديد
-        </button>
+        <div className="flex items-center gap-4">
+          <div className="bg-amber-500/20 text-amber-300 px-4 py-1 rounded-full border border-amber-500/30 text-sm font-bold">
+            إجمالي الموظفين: {totalEmployees}
+          </div>
+          <button
+            onClick={() => navigate("/employees/add")}
+            className="bg-amber-600 text-white px-4 py-2 ml-5 font-extrabold rounded hover:bg-amber-700 transition"
+          >
+            + إضافة موظف جديد
+          </button>
+        </div>
       </div>
       <div className="mb-4 flex justify-between items-center">
         <input

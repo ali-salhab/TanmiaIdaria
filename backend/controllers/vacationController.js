@@ -1115,15 +1115,18 @@ export const generateVacationStatementPDF = async (req, res) => {
     }
 
     // Title
-    doc.moveDown(4);
+    // doc.moveDown(;
     doc
       .font(fontBoldPath)
       .fontSize(24)
-      .text("بيان وضع إجازات", 0, 160, { align: "center", features: ["rtla"] });
+      .text("بيان وضع إجازات", 10, 160, {
+        align: "center",
+        features: ["rtla"],
+      });
 
     // Info Box
     const boxY = 200;
-    doc.rect(50, boxY, 495, 100).stroke();
+    // doc.rect(50, boxY, 495, 100).stroke();
 
     doc.fontSize(14);
 
@@ -1144,7 +1147,7 @@ export const generateVacationStatementPDF = async (req, res) => {
     });
 
     // Table
-    const tableY = 330;
+    const tableY = 355;
     const rowHeight = 40; // Increased height for better padding
 
     // Header Row
@@ -1157,7 +1160,7 @@ export const generateVacationStatementPDF = async (req, res) => {
     };
 
     drawCell("نوع الإجازة", 400, tableY, 145);
-    drawCell("المدة (أيام)", 300, tableY, 100);
+    drawCell("المدة", 300, tableY, 100);
     drawCell("تاريخ البدء", 200, tableY, 100);
     drawCell("ملاحظات", 50, tableY, 150);
 

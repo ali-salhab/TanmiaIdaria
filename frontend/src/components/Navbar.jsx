@@ -25,7 +25,9 @@ const navbarMessages = [
 export default function Navbar({
   userInfo,
   sidebarOpen,
+  sidebarMinimized,
   onToggleSidebar,
+  onToggleMinimize,
   onOpenChat,
   unreadChatCount = 0,
 }) {
@@ -140,20 +142,28 @@ export default function Navbar({
 
   return (
     <>
-      <nav className="fixed top-0 right-0 left-0 h-16 bg-slate-900/80 backdrop-blur-lg border-b border-slate-800 flex items-center justify-between px-4 md:px-6 z-30 shadow-lg shadow-black/30">
+      <nav 
+        className={`fixed top-0 left-0 h-16 bg-slate-900/80 backdrop-blur-lg border-b border-slate-800 flex items-center justify-between px-4 md:px-6 z-30 shadow-lg shadow-black/30 transition-all duration-300 ${sidebarMinimized ? 'lg:right-20' : 'lg:right-64'} right-0`}
+        dir="rtl"
+      >
         <div className="flex items-center gap-2 md:gap-4 flex-1">
           <button
-            onClick={onToggleSidebar}
-            className="p-2 hover:bg-slate-700/50 rounded-lg transition-all transform hover:scale-110 lg:hidden text-slate-300"
+            onClick={() => {
+              if (window.innerWidth < 1024) {
+                onToggleSidebar();
+              } else {
+                onToggleMinimize();
+              }
+            }}
+            className="p-2 hover:bg-slate-700/50 rounded-lg transition-all transform hover:scale-110 text-slate-300"
             title={
               sidebarOpen ? "إغلاق القائمة الجانبية" : "فتح القائمة الجانبية"
             }
           >
-            {sidebarOpen ? (
-              <X className="w-5 h-5" />
-            ) : (
-              <Menu className="w-5 h-5" />
-            )}
+            <Menu className="w-5 h-5 lg:block hidden" />
+            <div className="lg:hidden">
+              {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </div>
           </button>
 
           {/* search container */}

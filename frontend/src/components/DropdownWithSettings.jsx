@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import {
   Settings,
   ChevronUp,
@@ -463,9 +464,9 @@ export default function DropdownWithSettings({
     focus:ring-2 focus:ring-blue-500 
     focus:border-blue-500 transition-all duration-200 
     ${className}`}
-            // value={value}
-            // onChange={onChange}
-            // className={`w-full border-2 border-gray-300 px-2 py-2 pr-12 rounded-lg bg-slate appearance-none text-gray-800 font-small  text-[8px] shadow-sm hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ${className}`}
+          // value={value}
+          // onChange={onChange}
+          // className={`w-full border-2 border-gray-300 px-2 py-2 pr-12 rounded-lg bg-slate appearance-none text-gray-800 font-small  text-[8px] shadow-sm hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ${className}`}
           >
             <option value="" className=" text-sm ">
               {placeholder}
@@ -506,11 +507,10 @@ export default function DropdownWithSettings({
             {allOptions.map((opt, idx) => (
               <div
                 key={opt.value}
-                className={`flex items-center justify-between p-3 rounded-lg border ${
-                  optionSettings[opt.value]
+                className={`flex items-center justify-between p-3 rounded-lg border ${optionSettings[opt.value]
                     ? "bg-blue-50 border-blue-200"
                     : "bg-gray-50 border-gray-200"
-                }`}
+                  }`}
               >
                 <span className="text-sm font-medium text-gray-700 flex-1">
                   {opt.label}
@@ -590,11 +590,11 @@ export default function DropdownWithSettings({
         </div>
       )}
 
-      {showAddModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-slate-900 rounded-lg shadow-xl p-6 w-full max-w-md">
+      {showAddModal && createPortal(
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4">
+          <div className="bg-slate-900 rounded-lg shadow-xl p-6 w-full max-w-md border border-slate-700">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-white-800">
+              <h3 className="text-lg font-semibold text-white">
                 إضافة خيار جديد
               </h3>
               <button
@@ -602,21 +602,21 @@ export default function DropdownWithSettings({
                   setShowAddModal(false);
                   setError("");
                 }}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-gray-400 hover:text-white transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {error && (
-              <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
+              <div className="mb-4 p-3 bg-red-100/10 border border-red-500/50 text-red-500 rounded-lg text-sm">
                 {error}
               </div>
             )}
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-white-700 mb-1">
+                <label className="block text-sm font-medium text-slate-300 mb-1">
                   الاسم (الظاهر)
                 </label>
                 <input
@@ -624,11 +624,11 @@ export default function DropdownWithSettings({
                   value={newOptionLabel}
                   onChange={(e) => setNewOptionLabel(e.target.value)}
                   placeholder="أدخل اسم الخيار"
-                  className="w-full text-gray-800 border border-gray-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full text-slate-100 bg-slate-800 border border-slate-600 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-white-700 mb-1">
+                <label className="block text-sm font-medium text-slate-300 mb-1">
                   القيمة (بدون مسافات)
                 </label>
                 <input
@@ -638,7 +638,7 @@ export default function DropdownWithSettings({
                     setNewOptionValue(e.target.value.replace(/\s+/g, "_"))
                   }
                   placeholder="أدخل قيمة الخيار"
-                  className="w-full border text-gray-900 border-gray-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full text-slate-100 bg-slate-800 border border-slate-600 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>
@@ -647,7 +647,7 @@ export default function DropdownWithSettings({
               <button
                 onClick={addNewOption}
                 disabled={loading}
-                className="flex-1 px-4 py-2 bg-green-500 hover:bg-green-600 disabled:bg-gray-400 text-white rounded-lg transition font-medium"
+                className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white rounded-lg transition font-medium"
               >
                 {loading ? "جاري الإضافة..." : "إضافة"}
               </button>
@@ -656,20 +656,21 @@ export default function DropdownWithSettings({
                   setShowAddModal(false);
                   setError("");
                 }}
-                className="flex-1 px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg transition font-medium"
+                className="flex-1 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg transition font-medium"
               >
                 إلغاء
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
-      {showEditModal && editingOption && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+      {showEditModal && editingOption && createPortal(
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4">
+          <div className="bg-slate-900 rounded-lg shadow-xl p-6 w-full max-w-md border border-slate-700">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-800">
+              <h3 className="text-lg font-semibold text-white">
                 تعديل الخيار
               </h3>
               <button
@@ -678,21 +679,21 @@ export default function DropdownWithSettings({
                   setEditingOption(null);
                   setError("");
                 }}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-gray-400 hover:text-white transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {error && (
-              <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
+              <div className="mb-4 p-3 bg-red-100/10 border border-red-500/50 text-red-500 rounded-lg text-sm">
                 {error}
               </div>
             )}
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-slate-300 mb-1">
                   الاسم (الظاهر)
                 </label>
                 <input
@@ -700,18 +701,18 @@ export default function DropdownWithSettings({
                   value={newOptionLabel}
                   onChange={(e) => setNewOptionLabel(e.target.value)}
                   placeholder="أدخل اسم الخيار"
-                  className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full text-slate-100 bg-slate-800 border border-slate-600 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-slate-300 mb-1">
                   القيمة (ثابتة)
                 </label>
                 <input
                   type="text"
                   value={editingOption.value}
                   disabled
-                  className="w-full border border-gray-300 px-3 py-2 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
+                  className="w-full border border-slate-600 px-3 py-2 rounded-lg bg-slate-800 text-slate-400 cursor-not-allowed"
                 />
               </div>
             </div>
@@ -720,7 +721,7 @@ export default function DropdownWithSettings({
               <button
                 onClick={editOption}
                 disabled={loading}
-                className="flex-1 px-4 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white rounded-lg transition font-medium"
+                className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white rounded-lg transition font-medium"
               >
                 {loading ? "جاري التعديل..." : "تعديل"}
               </button>
@@ -730,14 +731,16 @@ export default function DropdownWithSettings({
                   setEditingOption(null);
                   setError("");
                 }}
-                className="flex-1 px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg transition font-medium"
+                className="flex-1 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg transition font-medium"
               >
                 إلغاء
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
 }
+

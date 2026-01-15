@@ -9,9 +9,8 @@ export const checkPermission = (permissionKey, user) => {
   console.log("check permissions function---------------->");
 
   console.log(permissionKey);
-  // console.log(user.permissions);
   // Input validation
-  if (!user || !permissionKey) return false;
+  if (!user || user === null || !permissionKey) return false;
 
   // Admin users have all permissions
   if (user.role === "admin") return true;

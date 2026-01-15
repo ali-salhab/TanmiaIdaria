@@ -159,8 +159,7 @@ export default function DropdownManager() {
       {/* ================= MODAL ================= */}
       {showEditModal && editingDropdown && createPortal(
         <div
-          className="fixed top-0 left-0 right-0 bottom-0 z-[9999] bg-black/80 flex items-center justify-center p-4"
-          style={{ position: 'fixed' }}
+          className="fixed inset-0 z-[9999] bg-black/80 flex items-center justify-center p-4 overflow-y-auto"
           onClick={() => setShowEditModal(false)}
         >
           <div 
@@ -236,7 +235,8 @@ export default function DropdownManager() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

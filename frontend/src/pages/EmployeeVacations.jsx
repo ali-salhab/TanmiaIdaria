@@ -197,6 +197,45 @@ export default function EmployeeVacations() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // 🛑 التحقق من البيانات
+    if (!formData.type) {
+      toast.error("يرجى اختيار نوع الإجازة");
+      return;
+    }
+
+    if (!formData.days || parseFloat(formData.days) <= 0) {
+      if (formData.type !== "إجازة ساعية" || !formData.hours || parseFloat(formData.hours) <= 0) {
+        toast.error("يرجى إدخال عدد أيام أو ساعات صحيح");
+        return;
+      }
+    }
+
+    // التحقق من نوع الإجازة والجنس
+    if (formData.type === "إجازة أمومة" && employee?.gender === "ذكر") {
+      toast.error("عذراً، إجازة الأمومة مخصصة للإناث فقط");
+      return;
+    }
+
+    // التحقق من الرصيد المتبقي
+    const balance = getRemainingDays();
+    if (formData.type === "إجازة إدارية") {
+      const requestedDays = parseFloat(formData.days);
+      const currentDaysInEdit = selectedVacation?.type === "إجازة إدارية" ? parseFloat(selectedVacation.days) : 0;
+      if (requestedDays > (balance.admin + currentDaysInEdit)) {
+        toast.error(`عذراً، الرصيد الإداري المتبقي (${balance.admin + currentDaysInEdit}) يوم فقط`);
+        return;
+      }
+    }
+
+    if (formData.type === "إجازة صحية") {
+      const requestedDays = parseFloat(formData.days);
+      const currentDaysInEdit = selectedVacation?.type === "إجازة صحية" ? parseFloat(selectedVacation.days) : 0;
+      if (requestedDays > (balance.health + currentDaysInEdit)) {
+        toast.error(`عذراً، الرصيد الصحي المتبقي (${balance.health + currentDaysInEdit}) يوم فقط`);
+        return;
+      }
+    }
+
     try {
       if (selectedVacation) {
         // تحديث
@@ -411,18 +450,15 @@ export default function EmployeeVacations() {
 
           <div class="content">
             <p>
-              الاسم: ....................${
-                employee?.fullName || ""
-              }.................... العامل لدى ....................${
-      employee?.workLocation || "المحافظة"
-    }....................
+              الاسم: ....................${employee?.fullName || ""
+      }.................... العامل لدى ....................${employee?.workLocation || "المحافظة"
+      }....................
             </p>
             <p>
-              أرجو الموافقة على منحي إجازة إدارية لمدة ..........${
-                vacation.days || ""
-              }.......... اعتباراً من يوم ..........${new Date(
-      vacation.startDate
-    ).toLocaleDateString("ar-SY")}..........
+              أرجو الموافقة على منحي إجازة إدارية لمدة ..........${vacation.days || ""
+      }.......... اعتباراً من يوم ..........${new Date(
+        vacation.startDate
+      ).toLocaleDateString("ar-SY")}..........
             </p>
             <p>
               على أن تحسب من إجازاتي الإدارية السنوية لعام ${new Date().getFullYear()}.
@@ -504,8 +540,8 @@ export default function EmployeeVacations() {
             </thead>
             <tbody>
               ${vacations
-                .map(
-                  (v, idx) => `
+        .map(
+          (v, idx) => `
                 <tr>
                   <td>${idx + 1}</td>
                   <td>${v.type}</td>
@@ -513,8 +549,8 @@ export default function EmployeeVacations() {
                   <td>${v.startDate}</td>
                 </tr>
               `
-                )
-                .join("")}
+        )
+        .join("")}
             </tbody>
           </table>
         </body>

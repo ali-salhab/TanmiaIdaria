@@ -17,6 +17,32 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  // Check if user is already logged in
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const role = localStorage.getItem("role");
+    if (token && role) {
+      // Verify token is still valid by checking with API
+      API.get("/auth/me")
+        .then(() => {
+          // Token is valid, redirect to dashboard
+          if (role === "admin") {
+            navigate("/dashboard", { replace: true });
+          } else {
+            navigate("/dashboard", { replace: true });
+          }
+        })
+        .catch(() => {
+          // Token is invalid, clear storage
+          localStorage.removeItem("token");
+          localStorage.removeItem("role");
+          localStorage.removeItem("userId");
+          localStorage.removeItem("username");
+          localStorage.removeItem("permissions");
+        });
+    }
+  }, [navigate]);
+
   const rootRef = useRef(null);
   const flagRef = useRef(null);
   const cardRef = useRef(null);

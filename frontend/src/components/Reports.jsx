@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
   BarChart,
   Bar,
@@ -16,6 +16,8 @@ import toast from "react-hot-toast";
 import Pagination from "./Pagination";
 import { useAuth } from "../hooks/useAuth";
 import { checkPermission } from "../utils/permissionHelper";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"];
 
@@ -30,9 +32,28 @@ function StatCard({ title, value, sub }) {
 }
 
 function normalizeLabel(v) {
-  if (v === "male") return "ذكر";
-  if (v === "female") return "أنثى";
-  return v || "غير محدد";
+  if (!v) return "غير محدد";
+  const normalized = String(v).trim();
+  const lower = normalized.toLowerCase();
+  
+  // Handle male variations
+  if (normalized === "ذكر" || lower === "male" || lower === "m") {
+    return "ذكر";
+  }
+  
+  // Handle female variations (with and without hamza)
+  if (
+    normalized === "أنثى" || 
+    normalized === "انثى" || 
+    normalized === "أنثي" ||
+    normalized === "انثي" ||
+    lower === "female" || 
+    lower === "f"
+  ) {
+    return "أنثى";
+  }
+  
+  return normalized;
 }
 
 function topN(data, n = 10, valueKey = "count") {
@@ -117,9 +138,17 @@ function Reports() {
       const lower = raw.toLowerCase();
       const numericValue = Number(value) || 0;
 
-      if (raw === "ذكر" || lower === "male") {
+      // Normalize gender values - handle both "أنثى" and "انثى" (with/without hamza)
+      if (raw === "ذكر" || lower === "male" || lower === "m") {
         totals.male += numericValue;
-      } else if (raw === "أنثى" || lower === "female") {
+      } else if (
+        raw === "أنثى" || 
+        raw === "انثى" || 
+        raw === "أنثي" ||
+        raw === "انثي" ||
+        lower === "female" || 
+        lower === "f"
+      ) {
         totals.female += numericValue;
       } else {
         totals.other += numericValue;
@@ -143,10 +172,23 @@ function Reports() {
     [statistics?.educationData]
   );
 
-  const genderChartData = useMemo(
-    () => topNWithOther(statistics?.genderData || [], 6, "value"),
-    [statistics?.genderData]
-  );
+  const genderChartData = useMemo(() => {
+    const rawData = statistics?.genderData || [];
+    // Normalize and merge duplicate gender entries
+    const genderMap = new Map();
+    rawData.forEach((item) => {
+      const normalizedName = normalizeLabel(item.name || "غير محدد");
+      const currentValue = genderMap.get(normalizedName) || 0;
+      genderMap.set(normalizedName, currentValue + (Number(item.value) || 0));
+    });
+    
+    // Convert map to array and sort
+    const normalizedData = Array.from(genderMap.entries())
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => (b.value || 0) - (a.value || 0));
+    
+    return topNWithOther(normalizedData, 6, "value");
+  }, [statistics?.genderData]);
 
   const employmentTypeChartData = useMemo(
     () => topNWithOther(statistics?.employmentTypeData || [], 6, "value"),
@@ -202,6 +244,17 @@ function Reports() {
   useEffect(() => {
     fetchData();
   }, [page, limit, sortBy, sortDir]);
+
+  // Apply filters when they change (debounced)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (showFilters) {
+        // Only auto-apply if filters panel is visible
+        return;
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [filters, showFilters]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -352,10 +405,13 @@ function Reports() {
     }
 
     try {
+      toast.loading("جاري تصدير التقرير...");
       const queryParams = new URLSearchParams();
       Object.entries(filters).forEach(([key, value]) => {
         if (value) queryParams.append(key, value);
       });
+      queryParams.set("page", String(page));
+      queryParams.set("limit", String(limit));
 
       const response = await fetch(
         `${apiUrl}/reports/export/word?${queryParams}`,
@@ -371,44 +427,212 @@ function Reports() {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = "report.docx";
+        const dateStr = new Date().toISOString().split("T")[0];
+        a.download = `report_${dateStr}.docx`;
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
+        toast.dismiss();
         toast.success("تم تصدير التقرير بنجاح");
       } else {
+        toast.dismiss();
         toast.error("فشل في تصدير التقرير");
       }
     } catch (error) {
       console.error("Error exporting report:", error);
+      toast.dismiss();
       toast.error("خطأ في الاتصال");
+    }
+  };
+
+  const exportToPDF = async () => {
+    if (!checkPermission("reports.export", user)) {
+      toast.error("ليس لديك صلاحية لتصدير التقارير");
+      return;
+    }
+
+    try {
+      toast.loading("جاري تصدير التقرير إلى PDF...");
+      
+      const pdf = new jsPDF("p", "mm", "a4");
+      
+      // Add title
+      pdf.setFontSize(18);
+      pdf.text("تقرير إحصائي للموظفين", 105, 15, { align: "center" });
+      
+      // Add date
+      pdf.setFontSize(12);
+      const dateStr = new Date().toLocaleDateString("ar-EG");
+      pdf.text(`تاريخ التقرير: ${dateStr}`, 105, 25, { align: "center" });
+      
+      let yPos = 35;
+      
+      // Add statistics summary
+      pdf.setFontSize(14);
+      pdf.text("ملخص الإحصائيات", 20, yPos);
+      yPos += 10;
+      
+      pdf.setFontSize(11);
+      const statsData = [
+        ["المؤشر", "القيمة"],
+        ["إجمالي الموظفين", String(total)],
+        ["متوسط العمر", Number(statistics?.averageAge || 0).toFixed(1)],
+        ["عدد الذكور", String(genderSummary.male)],
+        ["عدد الإناث", String(genderSummary.female)],
+        ["عدد الأقسام", String(departmentCount)],
+      ];
+      
+      autoTable(pdf, {
+        startY: yPos,
+        head: [statsData[0]],
+        body: statsData.slice(1),
+        theme: "striped",
+        headStyles: { fillColor: [30, 41, 59], textColor: 255 },
+        styles: { font: "Arial", fontSize: 10, halign: "right" },
+        margin: { left: 20, right: 20 },
+      });
+      
+      yPos = pdf.lastAutoTable.finalY + 15;
+      
+      // Check if we need a new page
+      if (yPos > 250) {
+        pdf.addPage();
+        yPos = 20;
+      }
+      
+      // Add department distribution
+      if (departmentChartData.length > 0) {
+        pdf.setFontSize(14);
+        pdf.text("توزيع الأقسام", 20, yPos);
+        yPos += 10;
+        
+        const deptData = departmentChartData.slice(0, 10).map((item) => [
+          item.name || "غير محدد",
+          String(item.count || 0),
+        ]);
+        
+        autoTable(pdf, {
+          startY: yPos,
+          head: [["القسم", "العدد"]],
+          body: deptData,
+          theme: "striped",
+          headStyles: { fillColor: [30, 41, 59], textColor: 255 },
+          styles: { font: "Arial", fontSize: 9, halign: "right" },
+          margin: { left: 20, right: 20 },
+        });
+        
+        yPos = pdf.lastAutoTable.finalY + 15;
+        
+        if (yPos > 250) {
+          pdf.addPage();
+          yPos = 20;
+        }
+      }
+      
+      // Add gender distribution
+      if (genderChartData.length > 0) {
+        // Normalize and merge duplicate gender entries
+        const genderMap = new Map();
+        genderChartData.forEach((item) => {
+          const normalizedName = normalizeLabel(item.name || "غير محدد");
+          const currentValue = genderMap.get(normalizedName) || 0;
+          genderMap.set(normalizedName, currentValue + (Number(item.value) || 0));
+        });
+        
+        const genderData = Array.from(genderMap.entries()).map(([name, value]) => [
+          name,
+          String(value),
+        ]);
+        
+        if (genderData.length > 0) {
+          pdf.setFontSize(14);
+          pdf.text("توزيع الجنس", 20, yPos);
+          yPos += 10;
+        
+          autoTable(pdf, {
+            startY: yPos,
+            head: [["الجنس", "العدد"]],
+            body: genderData,
+            theme: "striped",
+            headStyles: { fillColor: [30, 41, 59], textColor: 255 },
+            styles: { font: "Arial", fontSize: 10, halign: "right" },
+            margin: { left: 20, right: 20 },
+          });
+          
+          yPos = pdf.lastAutoTable.finalY + 15;
+          
+          if (yPos > 250) {
+            pdf.addPage();
+            yPos = 20;
+          }
+        }
+      }
+      
+      // Add employment type distribution
+      if (statistics?.employmentTypeData?.length > 0) {
+        pdf.setFontSize(14);
+        pdf.text("توزيع نوع التوظيف", 20, yPos);
+        yPos += 10;
+        
+        const empData = statistics.employmentTypeData.map((item) => [
+          item.name || "غير محدد",
+          String(item.value || 0),
+        ]);
+        
+        autoTable(pdf, {
+          startY: yPos,
+          head: [["نوع التوظيف", "العدد"]],
+          body: empData,
+          theme: "striped",
+          headStyles: { fillColor: [30, 41, 59], textColor: 255 },
+          styles: { font: "Arial", fontSize: 10, halign: "right" },
+          margin: { left: 20, right: 20 },
+        });
+      }
+      
+      // Save PDF
+      const dateStr2 = new Date().toISOString().split("T")[0];
+      pdf.save(`report_${dateStr2}.pdf`);
+      
+      toast.dismiss();
+      toast.success("تم تصدير التقرير إلى PDF بنجاح");
+    } catch (error) {
+      console.error("Error exporting PDF:", error);
+      toast.dismiss();
+      toast.error(`فشل في تصدير PDF: ${error.message || "خطأ غير معروف"}`);
     }
   };
 
   return (
     <div
-      className="p-4 md:p-6 bg-slate-900 min-h-screen text-slate-100"
+      className="p-2 sm:p-4 md:p-6 bg-slate-900 min-h-screen text-slate-100"
       dir="rtl"
     >
-      <div className="max-w-7xl mx-auto space-y-6">
-        <div className="flex items-center justify-between gap-4 flex-wrap">
+      <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-slate-100">التقارير</h1>
-            <p className="text-sm text-slate-400 mt-1">
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-100">التقارير</h1>
+            <p className="text-xs sm:text-sm text-slate-400 mt-1">
               استعراض بيانات الموظفين مع إحصائيات ورسوم بيانية.
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2 w-full sm:w-auto">
             <button
               onClick={() => setShowFilters((v) => !v)}
-              className="px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 hover:bg-slate-700 text-slate-200"
+              className="flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 hover:bg-slate-700 text-slate-200 text-sm sm:text-base"
             >
               {showFilters ? "إخفاء الفلاتر" : "عرض الفلاتر"}
             </button>
             <button
+              onClick={exportToPDF}
+              className="flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm sm:text-base"
+            >
+              تصدير PDF
+            </button>
+            <button
               onClick={exportToWord}
-              className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white"
+              className="flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm sm:text-base"
             >
               تصدير Word
             </button>
@@ -732,312 +956,459 @@ function Reports() {
         </div>
 
         {/* Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6">
           {/* Gender Distribution */}
-          <div className="bg-slate-800 p-4 rounded-lg shadow border border-slate-700">
-            <h3 className="text-xl font-semibold mb-4 text-slate-200">
+          <div className="bg-slate-800 p-3 sm:p-4 rounded-lg shadow border border-slate-700 overflow-hidden">
+            <h3 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-5 text-white">
               توزيع الجنس
             </h3>
-            <ResponsiveContainer width="100%" height={350}>
-              <PieChart>
-                <Pie
-                  data={genderChartData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={buildPieLabel(normalizeLabel)}
-                  outerRadius={90}
-                  fill="#8884d8"
-                  dataKey="value"
-                  paddingAngle={2}
-                >
-                  {genderChartData.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={COLORS[index % COLORS.length]}
-                    />
-                  ))}
-                </Pie>
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "#1e293b",
-                    borderColor: "#334155",
-                    color: "#f1f5f9",
-                  }}
-                  itemStyle={{ color: "#f1f5f9" }}
-                />
-                <Legend
-                  wrapperStyle={{ color: "#94a3b8" }}
-                  formatter={(value) => normalizeLabel(value)}
-                />
-              </PieChart>
-            </ResponsiveContainer>
+            <div className="w-full" style={{ minHeight: "300px", maxHeight: "380px", paddingBottom: "20px" }}>
+              <ResponsiveContainer width="100%" height="100%" minHeight={300}>
+                <PieChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+                  <Pie
+                    data={genderChartData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={false}
+                    outerRadius={window.innerWidth < 640 ? 65 : 85}
+                    fill="#8884d8"
+                    dataKey="value"
+                    paddingAngle={3}
+                  >
+                    {genderChartData.map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "#1e293b",
+                      borderColor: "#334155",
+                      color: "#ffffff",
+                      fontSize: "13px",
+                      padding: "8px",
+                    }}
+                    itemStyle={{ color: "#ffffff", fontSize: "13px" }}
+                    formatter={(value, name) => [
+                      `${normalizeLabel(name)}: ${value}`,
+                      "العدد"
+                    ]}
+                    labelStyle={{ color: "#ffffff", fontSize: "13px", fontWeight: "bold" }}
+                  />
+                  <Legend
+                    verticalAlign="bottom"
+                    height={60}
+                    wrapperStyle={{ 
+                      color: "#ffffff", 
+                      fontSize: "13px",
+                      paddingTop: "20px"
+                    }}
+                    formatter={(value) => normalizeLabel(value)}
+                    iconSize={12}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
           </div>
 
           {/* Age Distribution */}
-          <div className="bg-slate-800 p-4 rounded-lg shadow border border-slate-700">
-            <h3 className="text-xl font-semibold mb-4 text-slate-200">
+          <div className="bg-slate-800 p-3 sm:p-4 rounded-lg shadow border border-slate-700 overflow-hidden">
+            <h3 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-5 text-white">
               توزيع الأعمار
             </h3>
-            <ResponsiveContainer width="100%" height={380}>
-              <BarChart
-                data={statistics.ageData || []}
-                margin={{ bottom: 100 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
-                <XAxis
-                  dataKey="age"
-                  stroke="#94a3b8"
-                  angle={-45}
-                  textAnchor="end"
-                  height={100}
-                  interval={0}
-                  tick={{ fontSize: 12, fontWeight: 600 }}
-                />
-                <YAxis stroke="#94a3b8" />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "#1e293b",
-                    borderColor: "#334155",
-                    color: "#f1f5f9",
+            <div className="w-full" style={{ minHeight: "320px", maxHeight: "420px", paddingBottom: "20px" }}>
+              <ResponsiveContainer width="100%" height="100%" minHeight={320}>
+                <BarChart
+                  data={statistics.ageData || []}
+                  margin={{ 
+                    top: 20, 
+                    right: 20, 
+                    left: 20, 
+                    bottom: window.innerWidth < 640 ? 70 : 90 
                   }}
-                  itemStyle={{ color: "#f1f5f9" }}
-                />
-                <Legend wrapperStyle={{ color: "#94a3b8" }} />
-                <Bar dataKey="count" fill="#82ca9d" />
-              </BarChart>
-            </ResponsiveContainer>
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
+                  <XAxis
+                    dataKey="age"
+                    stroke="#ffffff"
+                    angle={window.innerWidth < 640 ? -60 : -45}
+                    textAnchor="end"
+                    height={window.innerWidth < 640 ? 80 : 110}
+                    interval={0}
+                    tick={{ 
+                      fontSize: window.innerWidth < 640 ? 11 : 13, 
+                      fontWeight: 600,
+                      fill: "#ffffff"
+                    }}
+                  />
+                  <YAxis 
+                    stroke="#ffffff" 
+                    tick={{ 
+                      fontSize: window.innerWidth < 640 ? 11 : 13,
+                      fill: "#ffffff"
+                    }} 
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "#1e293b",
+                      borderColor: "#334155",
+                      color: "#ffffff",
+                      fontSize: "13px",
+                      padding: "8px",
+                    }}
+                    itemStyle={{ color: "#ffffff", fontSize: "13px" }}
+                    labelStyle={{ color: "#ffffff", fontSize: "13px", fontWeight: "bold" }}
+                  />
+                  <Legend wrapperStyle={{ color: "#ffffff", fontSize: "13px" }} />
+                  <Bar dataKey="count" fill="#82ca9d" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </div>
 
           {/* Employment Type Distribution */}
-          <div className="bg-slate-800 p-4 rounded-lg shadow border border-slate-700">
-            <h3 className="text-xl font-semibold mb-4 text-slate-200">
+          <div className="bg-slate-800 p-3 sm:p-4 rounded-lg shadow border border-slate-700 overflow-hidden">
+            <h3 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-5 text-white">
               توزيع نوع التوظيف
             </h3>
-            <ResponsiveContainer width="100%" height={350}>
-              <PieChart>
-                <Pie
-                  data={statistics.employmentTypeData || []}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={true}
-                  label={({ name, percent }) =>
-                    `${name}: ${(percent * 100).toFixed(0)}%`
-                  }
-                  outerRadius={150}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {(statistics.employmentTypeData || []).map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={COLORS[index % COLORS.length]}
-                    />
-                  ))}
-                </Pie>
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "#1e293b",
-                    borderColor: "#334155",
-                    color: "#f1f5f9",
-                  }}
-                  itemStyle={{ color: "#f1f5f9" }}
-                />
-                <Legend wrapperStyle={{ color: "#94a3b8" }} />
-              </PieChart>
-            </ResponsiveContainer>
+            <div className="w-full" style={{ minHeight: "300px", maxHeight: "380px", paddingBottom: "20px" }}>
+              <ResponsiveContainer width="100%" height="100%" minHeight={300}>
+                <PieChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+                  <Pie
+                    data={statistics.employmentTypeData || []}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={false}
+                    outerRadius={window.innerWidth < 640 ? 65 : 85}
+                    fill="#8884d8"
+                    dataKey="value"
+                    paddingAngle={3}
+                  >
+                    {(statistics.employmentTypeData || []).map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "#1e293b",
+                      borderColor: "#334155",
+                      color: "#ffffff",
+                      fontSize: "13px",
+                      padding: "8px",
+                    }}
+                    itemStyle={{ color: "#ffffff", fontSize: "13px" }}
+                    formatter={(value, name) => [
+                      `${name}: ${value}`,
+                      "العدد"
+                    ]}
+                    labelStyle={{ color: "#ffffff", fontSize: "13px", fontWeight: "bold" }}
+                  />
+                  <Legend
+                    verticalAlign="bottom"
+                    height={60}
+                    wrapperStyle={{ 
+                      color: "#ffffff", 
+                      fontSize: "13px",
+                      paddingTop: "20px"
+                    }}
+                    iconSize={12}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
           </div>
 
           {/* Job Category Distribution */}
-          <div className="bg-slate-800 p-4 rounded-lg shadow border border-slate-700">
-            <h3 className="text-xl font-semibold mb-4 text-slate-200">
+          <div className="bg-slate-800 p-3 sm:p-4 rounded-lg shadow border border-slate-700 overflow-hidden">
+            <h3 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-5 text-white">
               توزيع فئات الوظائف
             </h3>
-            <ResponsiveContainer width="100%" height={420}>
-              <BarChart
-                data={jobCategoryChartData}
-                layout="vertical"
-                margin={{ top: 6, bottom: 2, left: 32, right: 32 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
-                <XAxis type="number" stroke="#fff" />
-                <YAxis
-                  type="category"
-                  dataKey="name"
-                  stroke="#fff"
-                  interval={0}
-                  tickMargin={60}
-                  tick={{ fontSize: 12, wordWrap: "break-word" }}
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "#1e293b",
-                    borderColor: "#334155",
-                    color: "#f1f5f9",
+            <div className="w-full" style={{ minHeight: "320px", maxHeight: "470px", paddingBottom: "20px" }}>
+              <ResponsiveContainer width="100%" height="100%" minHeight={320}>
+                <BarChart
+                  data={jobCategoryChartData}
+                  layout="vertical"
+                  margin={{ 
+                    top: 20, 
+                    bottom: 20, 
+                    left: window.innerWidth < 640 ? 80 : 100, 
+                    right: 30 
                   }}
-                  itemStyle={{ color: "#f1f5f9" }}
-                />
-                <Legend wrapperStyle={{ color: "#fff" }} />
-                <Bar
-                  stopOpacity={0.1}
-                  dataKey="count"
-                  fill="#ffc658"
-                  barSize={"20"}
-                />
-              </BarChart>
-            </ResponsiveContainer>
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
+                  <XAxis 
+                    type="number" 
+                    stroke="#ffffff" 
+                    tick={{ 
+                      fontSize: window.innerWidth < 640 ? 11 : 13,
+                      fill: "#ffffff"
+                    }}
+                  />
+                  <YAxis
+                    type="category"
+                    dataKey="name"
+                    stroke="#ffffff"
+                    interval={0}
+                    width={window.innerWidth < 640 ? 130 : 160}
+                    tick={{ 
+                      fontSize: window.innerWidth < 640 ? 10 : 12, 
+                      fill: "#ffffff"
+                    }}
+                    tickLine={false}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "#1e293b",
+                      borderColor: "#334155",
+                      color: "#ffffff",
+                      fontSize: "13px",
+                      padding: "8px",
+                    }}
+                    itemStyle={{ color: "#ffffff", fontSize: "13px" }}
+                    labelStyle={{ color: "#ffffff", fontSize: "13px", fontWeight: "bold" }}
+                  />
+                  <Legend wrapperStyle={{ color: "#ffffff", fontSize: "13px" }} />
+                  <Bar
+                    dataKey="count"
+                    fill="#ffc658"
+                    radius={[0, 4, 4, 0]}
+                    barSize={window.innerWidth < 640 ? 15 : 20}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </div>
 
           {/* Department Distribution */}
-          <div className="bg-slate-800 p-4 rounded-lg shadow border border-slate-700 md:col-span-2 lg:col-span-3">
-            <h3 className="text-xl font-semibold mb-4 text-slate-200">
+          <div className="bg-slate-800 p-3 sm:p-4 rounded-lg shadow border border-slate-700 lg:col-span-2 overflow-hidden">
+            <h3 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-5 text-white">
               توزيع الأقسام
             </h3>
-            <ResponsiveContainer width="100%" height={500}>
-              <BarChart
-                data={departmentChartData}
-                layout="vertical"
-                margin={{ top: 24, bottom: 24, left: 32, right: 32 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
-                <XAxis type="number" stroke="#94a3b8" />
-                <YAxis
-                  type="category"
-                  dataKey="name"
-                  width={220}
-                  stroke="#94a3b8"
-                  tickMargin={200}
-                  interval={0}
-                  tick={{ fontSize: 12, wordWrap: "break-word" }}
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "#1e293b",
-                    borderColor: "#334155",
-                    color: "#f1f5f9",
+            <div className="w-full" style={{ minHeight: "420px", maxHeight: "570px", paddingBottom: "20px" }}>
+              <ResponsiveContainer width="100%" height="100%" minHeight={420}>
+                <BarChart
+                  data={departmentChartData}
+                  layout="vertical"
+                  margin={{ 
+                    top: 20, 
+                    bottom: 20, 
+                    left: window.innerWidth < 640 ? 100 : 140, 
+                    right: 30 
                   }}
-                  itemStyle={{ color: "#f1f5f9" }}
-                />
-                <Legend wrapperStyle={{ color: "#94a3b8" }} />
-                <Bar dataKey="count" fill="#8884d8" barSize={20} />
-              </BarChart>
-            </ResponsiveContainer>
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
+                  <XAxis 
+                    type="number" 
+                    stroke="#ffffff" 
+                    tick={{ 
+                      fontSize: window.innerWidth < 640 ? 11 : 13,
+                      fill: "#ffffff"
+                    }}
+                  />
+                  <YAxis
+                    type="category"
+                    dataKey="name"
+                    width={window.innerWidth < 640 ? 160 : 210}
+                    stroke="#ffffff"
+                    interval={0}
+                    tick={{ 
+                      fontSize: window.innerWidth < 640 ? 10 : 12, 
+                      fill: "#ffffff"
+                    }}
+                    tickLine={false}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "#1e293b",
+                      borderColor: "#334155",
+                      color: "#ffffff",
+                      fontSize: "13px",
+                      padding: "8px",
+                    }}
+                    itemStyle={{ color: "#ffffff", fontSize: "13px" }}
+                    labelStyle={{ color: "#ffffff", fontSize: "13px", fontWeight: "bold" }}
+                  />
+                  <Legend wrapperStyle={{ color: "#ffffff", fontSize: "13px" }} />
+                  <Bar 
+                    dataKey="count" 
+                    fill="#8884d8" 
+                    radius={[0, 4, 4, 0]}
+                    barSize={window.innerWidth < 640 ? 15 : 20} 
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </div>
 
           {/* Education Level Distribution */}
-          <div className="bg-slate-800 p-4 rounded-lg shadow border border-slate-700">
-            <h3 className="text-xl font-semibold mb-4 text-slate-200">
+          <div className="bg-slate-800 p-3 sm:p-4 rounded-lg shadow border border-slate-700 overflow-hidden">
+            <h3 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-5 text-white">
               المستوى التعليمي
             </h3>
-            <ResponsiveContainer width="100%" height={400}>
-              <BarChart
-                data={educationChartData}
-                layout="vertical"
-                margin={{ top: 24, bottom: 24, left: 32, right: 32 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
-                <XAxis type="number" stroke="#94a3b8" />
-                <YAxis
-                  tickMargin={100}
-                  dataKey="name"
-                  type="category"
-                  width={220}
-                  stroke="#94a3b8"
-                  interval={0}
-                  tick={{ fontSize: 12, width: 200, wordWrap: "break-word" }}
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "#1e293b",
-                    borderColor: "#334155",
-                    color: "#f1f5f9",
+            <div className="w-full" style={{ minHeight: "320px", maxHeight: "470px", paddingBottom: "20px" }}>
+              <ResponsiveContainer width="100%" height="100%" minHeight={320}>
+                <BarChart
+                  data={educationChartData}
+                  layout="vertical"
+                  margin={{ 
+                    top: 20, 
+                    bottom: 20, 
+                    left: window.innerWidth < 640 ? 90 : 130, 
+                    right: 30 
                   }}
-                  itemStyle={{ color: "#f1f5f9" }}
-                />
-                <Legend wrapperStyle={{ color: "#94a3b8" }} />
-                <Bar dataKey="count" fill="#00C49F" barSize={18} />
-              </BarChart>
-            </ResponsiveContainer>
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
+                  <XAxis 
+                    type="number" 
+                    stroke="#ffffff" 
+                    tick={{ 
+                      fontSize: window.innerWidth < 640 ? 11 : 13,
+                      fill: "#ffffff"
+                    }}
+                  />
+                  <YAxis
+                    dataKey="name"
+                    type="category"
+                    width={window.innerWidth < 640 ? 160 : 210}
+                    stroke="#ffffff"
+                    interval={0}
+                    tick={{ 
+                      fontSize: window.innerWidth < 640 ? 10 : 12, 
+                      fill: "#ffffff"
+                    }}
+                    tickLine={false}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "#1e293b",
+                      borderColor: "#334155",
+                      color: "#ffffff",
+                      fontSize: "13px",
+                      padding: "8px",
+                    }}
+                    itemStyle={{ color: "#ffffff", fontSize: "13px" }}
+                    labelStyle={{ color: "#ffffff", fontSize: "13px", fontWeight: "bold" }}
+                  />
+                  <Legend wrapperStyle={{ color: "#ffffff", fontSize: "13px" }} />
+                  <Bar 
+                    dataKey="count" 
+                    fill="#00C49F" 
+                    radius={[0, 4, 4, 0]}
+                    barSize={window.innerWidth < 640 ? 15 : 18} 
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </div>
 
           {/* Marital Status Distribution */}
-          <div className="bg-slate-800 p-4 rounded-lg shadow border border-slate-700">
-            <h3 className="text-xl font-semibold mb-4 text-slate-200">
+          <div className="bg-slate-800 p-3 sm:p-4 rounded-lg shadow border border-slate-700 overflow-hidden">
+            <h3 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-5 text-white">
               الحالة الاجتماعية
             </h3>
-            <ResponsiveContainer width="100%" height={350}>
-              <PieChart>
-                <Pie
-                  data={statistics.maritalStatusData || []}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={true}
-                  label={({ name, percent }) =>
-                    `${name}: ${(percent * 100).toFixed(0)}%`
-                  }
-                  outerRadius={100}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {(statistics.maritalStatusData || []).map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={COLORS[index % COLORS.length]}
-                    />
-                  ))}
-                </Pie>
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "#1e293b",
-                    borderColor: "#334155",
-                    color: "#f1f5f9",
-                  }}
-                  itemStyle={{ color: "#f1f5f9" }}
-                />
-                <Legend wrapperStyle={{ color: "#94a3b8" }} />
-              </PieChart>
-            </ResponsiveContainer>
+            <div className="w-full" style={{ minHeight: "300px", maxHeight: "380px", paddingBottom: "20px" }}>
+              <ResponsiveContainer width="100%" height="100%" minHeight={300}>
+                <PieChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+                  <Pie
+                    data={statistics.maritalStatusData || []}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={false}
+                    outerRadius={window.innerWidth < 640 ? 65 : 85}
+                    fill="#8884d8"
+                    dataKey="value"
+                    paddingAngle={3}
+                  >
+                    {(statistics.maritalStatusData || []).map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "#1e293b",
+                      borderColor: "#334155",
+                      color: "#ffffff",
+                      fontSize: "13px",
+                      padding: "8px",
+                    }}
+                    itemStyle={{ color: "#ffffff", fontSize: "13px" }}
+                    formatter={(value, name) => [
+                      `${name}: ${value}`,
+                      "العدد"
+                    ]}
+                    labelStyle={{ color: "#ffffff", fontSize: "13px", fontWeight: "bold" }}
+                  />
+                  <Legend
+                    verticalAlign="bottom"
+                    height={60}
+                    wrapperStyle={{ 
+                      color: "#ffffff", 
+                      fontSize: "13px",
+                      paddingTop: "20px"
+                    }}
+                    iconSize={12}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         </div>
 
         {/* Actions & Archive */}
-        <div className="bg-slate-800 p-4 rounded-lg shadow mb-6 border border-slate-700">
-          <h3 className="text-xl font-semibold mb-4 text-slate-200">
+        <div className="bg-slate-800 p-3 sm:p-4 rounded-lg shadow mb-6 border border-slate-700">
+          <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-slate-200">
             الإجراءات
           </h3>
-          <div className="flex gap-4 mb-4">
+          <div className="flex flex-wrap gap-2 sm:gap-4 mb-4">
+            <button
+              onClick={exportToPDF}
+              className="bg-red-600 text-white px-3 sm:px-4 py-2 rounded hover:bg-red-700 text-sm sm:text-base"
+            >
+              تصدير PDF
+            </button>
             <button
               onClick={exportToWord}
-              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+              className="bg-blue-600 text-white px-3 sm:px-4 py-2 rounded hover:bg-blue-700 text-sm sm:text-base"
             >
-              تصدير إلى Word
+              تصدير Word
             </button>
             <button
               onClick={() => setShowArchive(!showArchive)}
-              className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700"
+              className="bg-purple-600 text-white px-3 sm:px-4 py-2 rounded hover:bg-purple-700 text-sm sm:text-base"
             >
               {showArchive ? "إخفاء الأرشيف" : "عرض الأرشيف"}
             </button>
           </div>
 
-          <div className="mb-4 flex flex-wrap gap-2">
+          <div className="mb-4 flex flex-col sm:flex-row flex-wrap gap-2">
             <input
               type="text"
               placeholder="اسم التقرير"
               value={reportName}
               onChange={(e) => setReportName(e.target.value)}
-              className="p-2 border border-slate-600 bg-slate-700 text-slate-100 rounded placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 min-w-[200px] p-2 border border-slate-600 bg-slate-700 text-slate-100 rounded placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
             />
             <input
               type="text"
               placeholder="وصف التقرير"
               value={reportDescription}
               onChange={(e) => setReportDescription(e.target.value)}
-              className="p-2 border border-slate-600 bg-slate-700 text-slate-100 rounded placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 min-w-[200px] p-2 border border-slate-600 bg-slate-700 text-slate-100 rounded placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
             />
             <button
               onClick={saveReport}
-              className="bg-slate-600 text-white px-4 py-2 rounded hover:bg-slate-500"
+              className="bg-slate-600 text-white px-3 sm:px-4 py-2 rounded hover:bg-slate-500 text-sm sm:text-base whitespace-nowrap"
             >
               حفظ التقرير
             </button>

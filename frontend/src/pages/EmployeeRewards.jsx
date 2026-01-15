@@ -216,17 +216,20 @@ export default function EmployeeRewards() {
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-800 rounded-xl p-6 w-full max-w-md border border-slate-700 shadow-2xl">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-bold">إضافة مكافأة جديدة</h3>
-              <button onClick={() => setShowModal(false)}>
-                <X className="text-gray-500" />
+              <h3 className="text-xl font-bold text-slate-100">إضافة مكافأة جديدة</h3>
+              <button 
+                onClick={() => setShowModal(false)}
+                className="text-slate-400 hover:text-slate-100 transition-colors"
+              >
+                <X className="w-5 h-5" />
               </button>
             </div>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-1">
+                <label className="block text-sm font-medium mb-1 text-slate-300">
                   رقم القرار / المستند
                 </label>
                 <input
@@ -238,18 +241,18 @@ export default function EmployeeRewards() {
                       decisionNumber: e.target.value,
                     })
                   }
-                  className="w-full border rounded p-2"
+                  className="w-full border border-slate-600 bg-slate-700/50 text-slate-100 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 placeholder-slate-400"
                   placeholder="أدخل رقم القرار"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">النوع</label>
+                <label className="block text-sm font-medium mb-1 text-slate-300">النوع</label>
                 <select
                   value={formData.type}
                   onChange={(e) =>
                     setFormData({ ...formData, type: e.target.value })
                   }
-                  className="w-full border rounded p-2"
+                  className="w-full border border-slate-600 bg-slate-700/50 text-slate-100 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
                 >
                   <option value="material">مادية</option>
                   <option value="thank_you_card">بطاقة شكر</option>
@@ -257,7 +260,7 @@ export default function EmployeeRewards() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">
+                <label className="block text-sm font-medium mb-1 text-slate-300">
                   التاريخ
                 </label>
                 <input
@@ -266,12 +269,12 @@ export default function EmployeeRewards() {
                   onChange={(e) =>
                     setFormData({ ...formData, date: e.target.value })
                   }
-                  className="w-full border rounded p-2"
+                  className="w-full border border-slate-600 bg-slate-700/50 text-slate-100 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">
+                <label className="block text-sm font-medium mb-1 text-slate-300">
                   التفاصيل
                 </label>
                 <textarea
@@ -279,32 +282,32 @@ export default function EmployeeRewards() {
                   onChange={(e) =>
                     setFormData({ ...formData, description: e.target.value })
                   }
-                  className="w-full border rounded p-2"
+                  className="w-full border border-slate-600 bg-slate-700/50 text-slate-100 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 placeholder-slate-400"
                   rows="3"
                 ></textarea>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">
+                <label className="block text-sm font-medium mb-1 text-slate-300">
                   المرفقات (سكنر أو ملف)
                 </label>
                 <input
                   type="file"
                   ref={fileInputRef}
                   onChange={(e) => setFile(e.target.files[0])}
-                  className="w-full border rounded p-2"
+                  className="w-full border border-slate-600 bg-slate-700/50 text-slate-100 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-green-600 file:text-white hover:file:bg-green-700"
                 />
               </div>
               <div className="flex justify-end gap-2 mt-4">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded"
+                  className="px-4 py-2 text-slate-300 bg-slate-700 hover:bg-slate-600 rounded-lg transition"
                 >
                   إلغاء
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
                 >
                   حفظ
                 </button>

@@ -22,7 +22,10 @@ export const updateEmployeePhoto = async (req, res) => {
 
     // if employee already has a photo, remove old file
     if (employee.photo) {
-      const oldPath = path.join("uploads", path.basename(employee.photo));
+      const oldPath = path.join(
+        process.cwd(),
+        employee.photo.startsWith("/") ? employee.photo.slice(1) : employee.photo
+      );
       if (fs.existsSync(oldPath)) {
         fs.unlinkSync(oldPath);
       }

@@ -4,6 +4,7 @@ import API from "../api/api";
 import toast from "react-hot-toast";
 import { checkPermission } from "../utils/permissionHelper";
 const VITE_API_URL = import.meta.env.VITE_API_URL;
+const IMAGE_BASE_URL = VITE_API_URL ? VITE_API_URL.replace("/api", "") : "http://localhost:5001";
 // مكونات فرعية
 import EmployeeDocuments from "../components/EmployeeDocuments";
 import EmployeeIncidents from "../pages/EmployeeIncidents";
@@ -105,7 +106,7 @@ export default function EmployeeEdit() {
   // 🔹 تحديث البيانات
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setEmployee({ ...employee, [name]: value });
+    setEmployee((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSave = async () => {
@@ -153,8 +154,8 @@ export default function EmployeeEdit() {
       });
       console.log("here is the res from change image function");
       console.log(res);
-      setEmployee({ ...employee, photo: res.data.photo });
-      console.log(employee.photo);
+      setEmployee((prev) => ({ ...prev, photo: res.data.photo }));
+      setPhotoPreview(""); // Clear preview to show server image
       toast.success("تم تحديث الصورة الشخصية");
     } catch {
       toast.error("فشل تحميل الصورة");
@@ -263,7 +264,7 @@ export default function EmployeeEdit() {
               src={
                 photoPreview ||
                 (employee.photo
-                  ? `http://localhost:5001${employee.photo}`
+                  ? `${IMAGE_BASE_URL}${employee.photo}`
                   : "https://cdn-icons-png.flaticon.com/512/3135/3135715.png")
               }
               alt="صورة الموظف"
@@ -275,7 +276,7 @@ export default function EmployeeEdit() {
             <button
               onClick={() => {
                 fileInputRef.current?.click();
-                console.log(`http://localhost:5001/${employee.photo}`);
+                console.log(`${IMAGE_BASE_URL}${employee.photo}`);
               }}
               disabled={uploading}
               className="mt-2 bg-amber-600 text-slate-950 px-4 py-1 rounded-lg hover:bg-amber-500 transition disabled:opacity-60 disabled:cursor-not-allowed"

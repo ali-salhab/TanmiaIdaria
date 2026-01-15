@@ -131,6 +131,8 @@ const employeeSchema = new mongoose.Schema(
 
     lastSalary: { type: Number, set: dashToNumber },
 
+    photo: { type: String, set: dashToNull },
+
     administrativeLeaveBalance: { type: Number, default: 0 },
 
     /* ---------- Documents ---------- */

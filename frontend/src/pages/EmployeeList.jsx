@@ -835,7 +835,7 @@ export default function EmployeeList() {
                 setPage(1);
               }}
               options={[]}
-              placeholder="Level 5"
+              placeholder="المستوى الإداري ألرابع"
               className={dropdownClass}
               isAdmin={userInfo?.role === "admin"}
             />
@@ -847,7 +847,7 @@ export default function EmployeeList() {
                 setPage(1);
               }}
               options={[]}
-              placeholder="Level 6"
+              placeholder="المستوى الإداري الخامس"
               className={dropdownClass}
               isAdmin={userInfo?.role === "admin"}
             />

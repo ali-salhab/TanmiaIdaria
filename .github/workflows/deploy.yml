@@ -3,11 +3,11 @@ name: CI/CD — Build & Deploy
 on:
   push:
     branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build-and-deploy:
-    # run this job on a self-hosted runner you register with labels 'self-hosted' and 'local-deploy'
-    runs-on: [self-hosted, local-deploy]
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -17,35 +17,46 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install & build frontend (optional local build)
+      - name: Install & build frontend
         run: |
           cd frontend
           npm ci
           npm run build
 
-      - name: Deploy locally on self-hosted runner
-        shell: bash
-        run: |
-          set -e
+      - name: Upload frontend build to server (SCP)
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          port: ${{ secrets.SERVER_PORT }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "frontend/dist/*"
+          target: "${{ secrets.SERVER_PATH }}/frontend/dist"
 
-          # Install backend dependencies
-          echo "Installing backend dependencies"
-          cd backend
-          npm ci --production
-          cd ..
-
-          # Build frontend
-          echo "Building frontend"
-          cd frontend
-          npm ci
-          npm run build
-          cd ..
-
-          # Restart with PM2
-          echo "Restarting app with PM2"
-          export NODE_ENV=production
-          # Run PM2 from the backend directory where server.js is located
-          cd backend
-          pm2 describe tanmia || pm2 start server.js --name tanmia --update-env
-          pm2 reload tanmia || true
-          pm2 save
+      - name: Deploy backend and restart (SSH)
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          port: ${{ secrets.SERVER_PORT }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+            cd ${{ secrets.SERVER_PATH }}
+            echo "Pulling latest from origin/main"
+            git fetch --all
+            git reset --hard origin/main
+            echo "Install backend dependencies (production)"
+            npm ci --production || true
+            echo "Ensure frontend dist exists"
+            if [ -d frontend/dist ]; then
+              echo "frontend/dist present"
+            else
+              echo "frontend/dist missing; creating directory"
+              mkdir -p frontend/dist
+            fi
+            echo "Restarting app with PM2"
+            export NODE_ENV=production
+            pm2 describe tanmia || pm2 start server.js --name tanmia --update-env
+            pm2 reload tanmia || true
+            pm2 save

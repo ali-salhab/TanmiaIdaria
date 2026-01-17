@@ -152,6 +152,17 @@ app.use(
     },
   })
 );
+
+  // Serve frontend static files (production build)
+  const frontendDistPath = path.join(__dirname, "..", "frontend", "dist");
+  app.use(express.static(frontendDistPath));
+
+  // SPA fallback: for any non-API request, serve the frontend index.html
+  app.get("*", (req, res, next) => {
+    
+    if (req.path.startsWith("/api") || req.path.startsWith("/uploads")) return next();
+    res.sendFile(path.join(frontendDistPath, "index.html"));
+  });
 // error handler
 app.use((err, req, res, next) => {
   console.log("====================================");

@@ -231,7 +231,7 @@ export default function EmployeeIncidents() {
           }`}
           onClick={() => setActiveTab("general")}
         >
-          الوقوعات العامة
+          الوقوعات الخارجية
         </button>
         <button
           className={`py-2 px-4 font-medium transition ${

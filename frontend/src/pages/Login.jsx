@@ -179,12 +179,12 @@ export default function Login() {
       </div>
 
       {/* Centered Login Card */}
-      <div className="relative z-10 w-full max-w-md px-1 md:px-2 mt-10">
+      <div className="relative  z-10 w-full max-w-md px-1 md:px-2 mt-10">
         <form
           ref={cardRef}
           dir="rtl"
           onSubmit={handleSubmit}
-          className="relative z-10 backdrop-blur-3xl bg-white/10 border border-white/20 text-white login-card shadow-[0_30px_80px_rgba(0,0,0,0.4)] p-10 w-full rounded-2xl animate-cardPop font-['Tajawal'] flex flex-col items-center gap-5"
+          className="relative z-10 backdrop-blur-3xl bg-[#110014]/10 border border-white/20 text-white login-card shadow-[0_30px_80px_rgba(0,0,0,0.4)] p-10 w-full rounded-2xl animate-cardPop font-['Tajawal'] flex flex-col items-center gap-5"
         >
           <div className="flex flex-col items-center gap-2">
             <img
@@ -274,7 +274,7 @@ export default function Login() {
             className={`w-full py-3.5 text-base rounded-xl font-bold transition-all duration-300 flex items-center justify-center gap-2 shadow-lg ${
               !isFormValid || loading
                 ? "bg-gray-600 cursor-not-allowed opacity-60 text-white/70"
-                : "bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white cursor-pointer transform hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-500/30"
+                : "bg-gradient-to-r from-[#101047] to-[#0F0011] hover:from-[#0F0011] hover:to-[#0F0011] text-white cursor-pointer transform hover:-translate-y-1 hover:shadow-xl hover:shadow-[#0A2144]"
             }`}
           >
             {loading ? (
@@ -302,10 +302,10 @@ export default function Login() {
       )}
 
       <style>{`
-          @keyframes headerFade {
-            from { opacity: 0; transform: translateY(-30px); }
-            to { opacity: 1; transform: translateY(0); }
-          }
+          // @keyframes headerFade {
+          //   from { opacity: 0; transform: translateY(-30px); }
+          //   to { opacity: 1; transform: translateY(0); }
+          // }
           @keyframes cardPop {
             from { opacity: 0; transform: scale(0.9) translateY(40px); }
             to { opacity: 1; transform: scale(1) translateY(0); }
@@ -316,8 +316,8 @@ export default function Login() {
           }
           @keyframes logo-glow {
             0%, 100% { 
-              filter: drop-shadow(0 0 20px rgba(212, 175, 55, 0.5));
-              transform: scale(1.1);
+              filter: drop-shadow(10 10 40px rgba(22, 75, 5, 5));
+              transform: scale(1.);
 
             }
             50% { 
@@ -327,8 +327,8 @@ export default function Login() {
           }
           .animate-headerFade { animation: headerFade 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
           .animate-cardPop { animation: cardPop 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both; }
-          .animate-pulse-slow { animation: pulse-slow 3s ease-in-out infinite; }
-          .animate-logo-glow { animation: logo-glow 3s ease-in-out infinite; }
+          .animate-pulse-slow { animation: pulse-slow 1s ease-in-out infinite; }
+          .animate-logo-glow { animation: logo-glow 2s ease-in-out infinite; }
         `}</style>
     </div>
   );

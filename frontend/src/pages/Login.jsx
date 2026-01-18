@@ -169,6 +169,7 @@ export default function Login() {
         </p>
         <p className="text-base md:text-lg lg:text-xl font-semibold tracking-wide text-[#d4af37] drop-shadow-lg font-['Tajawal']">
           الأمانة العامة لمحافظة طرطوس
+          {/* sssssss */}
         </p>
         <p className="text-base md:text-lg lg:text-xl font-semibold tracking-wide text-[#d4af37] drop-shadow-lg font-['Tajawal']">
           وزارة الادارة المحلية والبيئة

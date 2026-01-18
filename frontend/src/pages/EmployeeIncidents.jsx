@@ -25,7 +25,7 @@ export default function EmployeeIncidents() {
     reason: ["زيادة أجر", "تجديد عقد", "تثبيت", "ترفيع"],
     document_type: ["مرسوم", "قرار"],
     document_typre: ["مرسوم", "قرار"],
-    incidentType: ["aaaaaaaaa", "aaaaaaaaaaaaaaa,"],
+    // incidentType: ["aaaaaaaaa", "aaaaaaaaaaaaaaa,"],
     incidentType: ["داخلي", "خارجي"],
   });
   console.log(

@@ -6,7 +6,7 @@ import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
+// new feature
 dotenv.config({ path: path.join(__dirname, "../.env") });
 
 async function listPermissions() {

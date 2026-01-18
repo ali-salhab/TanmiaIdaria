@@ -24,29 +24,28 @@ jobs:
           npm run build
 
       - name: Deploy locally on self-hosted runner
-        # ensure this step runs with a bash-compatible shell on your runner
         shell: bash
         run: |
           set -e
-          # If your repo is checked out to a particular path on the runner, cd there
-          # (Actions runner already runs in the workspace root)
 
-          # Install backend production deps
+          # Install backend dependencies
           echo "Installing backend dependencies"
+          cd backend
           npm ci --production
+          cd ..
 
-          # Build frontend (if present)
-          echo "Building frontend (if present)"
-          if [ -d frontend ]; then
-            cd frontend
-            npm ci
-            npm run build
-            cd ..
-          fi
+          # Build frontend
+          echo "Building frontend"
+          cd frontend
+          npm ci
+          npm run build
+          cd ..
 
           # Restart with PM2
           echo "Restarting app with PM2"
           export NODE_ENV=production
+          # Run PM2 from the backend directory where server.js is located
+          cd backend
           pm2 describe tanmia || pm2 start server.js --name tanmia --update-env
           pm2 reload tanmia || true
           pm2 save

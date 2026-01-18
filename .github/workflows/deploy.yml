@@ -35,22 +35,20 @@ jobs:
           npm run build
           cd ..
 
+          # Ensure frontend dist exists
+          Write-Host "Ensure frontend dist exists"
+          if (Test-Path frontend/dist) {
+            Write-Host "frontend/dist present"
+          } else {
+            Write-Host "frontend/dist missing; creating directory"
+            New-Item -ItemType Directory -Force -Path frontend/dist
+          }
+
           # Restart with PM2
           Write-Host "Restarting app with PM2"
           $env:NODE_ENV = "production"
           cd backend
-          try { pm2 describe tanmia } catch { pm2 start server.js --name tanmia --update-env }
-          try { pm2 reload tanmia } catch { }
+          pm2 describe tanmia 2>$null
+          if ($LASTEXITCODE -ne 0) { pm2 start server.js --name tanmia --update-env }
+          pm2 reload tanmia 2>$null
           pm2 save
-            echo "Ensure frontend dist exists"
-            if [ -d frontend/dist ]; then
-              echo "frontend/dist present"
-            else
-              echo "frontend/dist missing; creating directory"
-              mkdir -p frontend/dist
-            fi
-            echo "Restarting app with PM2"
-            export NODE_ENV=production
-            pm2 describe tanmia || pm2 start server.js --name tanmia --update-env
-            pm2 reload tanmia || true
-            pm2 save

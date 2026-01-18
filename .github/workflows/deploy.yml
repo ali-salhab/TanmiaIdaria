@@ -18,30 +18,29 @@ jobs:
           node-version: 20
 
       - name: Deploy locally on self-hosted runner
-        shell: bash
+        shell: pwsh
         run: |
-          set -e
+          $ErrorActionPreference = "Stop"
 
           # Install backend dependencies
-          echo "Installing backend dependencies"
+          Write-Host "Installing backend dependencies"
           cd backend
           npm ci --production
           cd ..
 
           # Build frontend
-          echo "Building frontend"
+          Write-Host "Building frontend"
           cd frontend
           npm ci
           npm run build
           cd ..
 
           # Restart with PM2
-          echo "Restarting app with PM2"
-          export NODE_ENV=production
-          # Run PM2 from the backend directory where server.js is located
+          Write-Host "Restarting app with PM2"
+          $env:NODE_ENV = "production"
           cd backend
-          pm2 describe tanmia || pm2 start server.js --name tanmia --update-env
-          pm2 reload tanmia || true
+          try { pm2 describe tanmia } catch { pm2 start server.js --name tanmia --update-env }
+          try { pm2 reload tanmia } catch { }
           pm2 save
             echo "Ensure frontend dist exists"
             if [ -d frontend/dist ]; then

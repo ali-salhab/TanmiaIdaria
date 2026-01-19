@@ -11,7 +11,7 @@ export default defineConfig({
       // Proxy `/api` to backend during development to avoid CORS.
       // Adjust the target port if your backend uses a different port.
       "/api": {
-        target: "http://localhost:5001",
+        target: "http://12.0.0.10:5001",
         changeOrigin: true,
         secure: false,
       },

@@ -263,9 +263,8 @@ export const addVacation = async (req, res) => {
         section: "vacations",
         action: "create",
         title: "تم إنشاء إجازة جديدة",
-        message: `تم إنشاء إجازة جديدة للموظف: ${
-          employee?.fullName || "غير محدد"
-        }`,
+        message: `تم إنشاء إجازة جديدة للموظف: ${employee?.fullName || "غير محدد"
+          }`,
         employeeName: employee?.fullName,
         department: employee?.level4 || employee?.currentJobTitle || null,
         io: req.io,
@@ -305,9 +304,8 @@ export const updateVacation = async (req, res) => {
         section: "vacations",
         action: "update",
         title: "تم تحديث بيانات إجازة",
-        message: `تم تحديث بيانات الإجازة للموظف: ${
-          employee?.fullName || "غير محدد"
-        }`,
+        message: `تم تحديث بيانات الإجازة للموظف: ${employee?.fullName || "غير محدد"
+          }`,
         employeeName: employee?.fullName,
         department: employee?.level4 || employee?.currentJobTitle || null,
         io: req.io,
@@ -890,18 +888,18 @@ export const generateVacationPDF = async (req, res) => {
 
     // Title
     doc.moveDown(2);
+    const title = vacation.type === "تأخير" ? "ضبط تأخير" : "طلب إجازة";
     doc
       .font(fontBoldPath)
       .fontSize(24)
-      .text("طلب إجازة", 100, 150, { align: "center", features: ["rtla"] });
+      .text(title, 100, 150, { align: "center", features: ["rtla"] });
 
     // QR Code Generation
     try {
-      const qrData = `الاسم: ${employee.fullName}\nنوع الإجازة: ${
-        vacation.type
-      }\nتاريخ البدء: ${new Date(vacation.startDate).toLocaleDateString(
-        "en-GB"
-      )}\nالمدة: ${vacation.days} يوم`;
+      const qrData = `الاسم: ${employee.fullName}\nنوع الإجازة: ${vacation.type
+        }\nتاريخ البدء: ${new Date(vacation.startDate).toLocaleDateString(
+          "en-GB"
+        )}\nالمدة: ${vacation.days} يوم`;
       const qrBuffer = await QRCode.toBuffer(qrData);
       doc.image(qrBuffer, 50, 650, { width: 80 }); // Bottom left
     } catch (qrError) {
@@ -948,21 +946,17 @@ export const generateVacationPDF = async (req, res) => {
       startY + 120
     );
 
-    // Vacation Info Section
-    const vacY = startY + 180;
-
-    // Section Title
     doc
       .font(fontBoldPath)
       .fontSize(16)
-      .text("تفاصيل الإجازة", 0, vacY, { align: "center", features: ["rtla"] });
+      .text(vacation.type === "تأخير" ? "تفاصيل التأخير" : "تفاصيل الإجازة", 0, vacY, { align: "center", features: ["rtla"] });
 
-    drawField("نوع الإجازة:", vacation.type, vacY + 50);
+    drawField("نوع الإجراء:", vacation.type === "تأخير" ? "تأخير حضور" : vacation.type, vacY + 50);
 
     if (vacation.type === "إجازة ساعية") {
-      drawField("عدد الساعات:", `${vacation.hours} ساعة`, vacY + 90);
-    } else {
-      drawField("عدد الأيام:", `${vacation.days} يوم`, vacY + 90);
+      drawField("عدد الساعات:", `\u200E${vacation.hours}\u200E ساعة`, vacY + 90);
+    } else if (vacation.type !== "تأخير") {
+      drawField("عدد الأيام:", `\u200E${vacation.days}\u200E يوم`, vacY + 90);
     }
 
     // Format dates as DD/MM/YYYY
@@ -1057,7 +1051,11 @@ export const generateVacationStatementPDF = async (req, res) => {
       .reduce((acc, curr) => acc + (curr.hours || 0), 0);
 
     const hourlyDays = Math.floor(hourlyTotal / 8);
-    const totalAdminUsed = adminTotal + hourlyDays;
+
+    const delayTotal = vacations.filter((v) => v.type === "تأخير").length;
+    const delayDays = Math.floor(delayTotal / 3);
+
+    const totalAdminUsed = adminTotal + hourlyDays + delayDays;
     const remainingAdmin = Math.max(0, entitlement - totalAdminUsed);
 
     const healthTotal = vacations
@@ -1110,7 +1108,7 @@ export const generateVacationStatementPDF = async (req, res) => {
         try {
           doc.image(logoPath, 60, 40, { width: 100 });
           logoLoaded = true;
-        } catch (e) {}
+        } catch (e) { }
       }
     }
 
@@ -1135,12 +1133,12 @@ export const generateVacationStatementPDF = async (req, res) => {
       width: 470,
       features: ["rtla"],
     });
-    doc.text(`الرصيد الإداري المتبقي: ${remainingAdmin} يوم`, 50, boxY + 50, {
+    doc.text(`الرصيد الإداري المتبقي: \u202D${remainingAdmin}\u202C يوم`, 50, boxY + 50, {
       align: "right",
       width: 470,
       features: ["rtla"],
     });
-    doc.text(`الرصيد الصحي المتبقي: ${remainingHealth} يوم`, 50, boxY + 80, {
+    doc.text(`الرصيد الصحي المتبقي: \u202D${remainingHealth}\u202C يوم`, 50, boxY + 80, {
       align: "right",
       width: 470,
       features: ["rtla"],
@@ -1181,9 +1179,14 @@ export const generateVacationStatementPDF = async (req, res) => {
     vacations.forEach((v) => {
       doc.rect(50, currentY, 495, rowHeight).stroke();
 
-      drawCell(v.type, 400, currentY, 145);
       drawCell(
-        v.days ? v.days.toString() : v.hours ? `${v.hours} ساعة` : "-",
+        v.type === "تأخير" ? "تأخير حضور" : v.type,
+        400,
+        currentY,
+        145
+      );
+      drawCell(
+        v.type === "تأخير" ? "-" : v.days ? `\u202D${v.days}\u202C` : v.hours ? `\u202D${v.hours}\u202C ساعة` : "-",
         300,
         currentY,
         100

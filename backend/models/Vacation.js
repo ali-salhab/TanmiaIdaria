@@ -17,6 +17,7 @@ const vacationSchema = new mongoose.Schema(
         "إجازة خاصة بلا أجر",
         "إجازة زواج",
         "إجازة حج",
+        "تأخير",
       ],
       required: true,
     },

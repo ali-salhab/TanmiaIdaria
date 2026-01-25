@@ -172,23 +172,10 @@ function Reports() {
     [statistics?.educationData]
   );
 
-  const genderChartData = useMemo(() => {
-    const rawData = statistics?.genderData || [];
-    // Normalize and merge duplicate gender entries
-    const genderMap = new Map();
-    rawData.forEach((item) => {
-      const normalizedName = normalizeLabel(item.name || "غير محدد");
-      const currentValue = genderMap.get(normalizedName) || 0;
-      genderMap.set(normalizedName, currentValue + (Number(item.value) || 0));
-    });
-    
-    // Convert map to array and sort
-    const normalizedData = Array.from(genderMap.entries())
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => (b.value || 0) - (a.value || 0));
-    
-    return topNWithOther(normalizedData, 6, "value");
-  }, [statistics?.genderData]);
+  const genderChartData = useMemo(
+    () => topNWithOther(statistics?.genderData || [], 6, "value"),
+    [statistics?.genderData]
+  );
 
   const employmentTypeChartData = useMemo(
     () => topNWithOther(statistics?.employmentTypeData || [], 6, "value"),
@@ -532,40 +519,30 @@ function Reports() {
       
       // Add gender distribution
       if (genderChartData.length > 0) {
-        // Normalize and merge duplicate gender entries
-        const genderMap = new Map();
-        genderChartData.forEach((item) => {
-          const normalizedName = normalizeLabel(item.name || "غير محدد");
-          const currentValue = genderMap.get(normalizedName) || 0;
-          genderMap.set(normalizedName, currentValue + (Number(item.value) || 0));
-        });
+        pdf.setFontSize(14);
+        pdf.text("توزيع الجنس", 20, yPos);
+        yPos += 10;
         
-        const genderData = Array.from(genderMap.entries()).map(([name, value]) => [
-          name,
-          String(value),
+        const genderData = genderChartData.map((item) => [
+          normalizeLabel(item.name || "غير محدد"),
+          String(item.value || 0),
         ]);
         
-        if (genderData.length > 0) {
-          pdf.setFontSize(14);
-          pdf.text("توزيع الجنس", 20, yPos);
-          yPos += 10;
+        autoTable(pdf, {
+          startY: yPos,
+          head: [["الجنس", "العدد"]],
+          body: genderData,
+          theme: "striped",
+          headStyles: { fillColor: [30, 41, 59], textColor: 255 },
+          styles: { font: "Arial", fontSize: 10, halign: "right" },
+          margin: { left: 20, right: 20 },
+        });
         
-          autoTable(pdf, {
-            startY: yPos,
-            head: [["الجنس", "العدد"]],
-            body: genderData,
-            theme: "striped",
-            headStyles: { fillColor: [30, 41, 59], textColor: 255 },
-            styles: { font: "Arial", fontSize: 10, halign: "right" },
-            margin: { left: 20, right: 20 },
-          });
-          
-          yPos = pdf.lastAutoTable.finalY + 15;
-          
-          if (yPos > 250) {
-            pdf.addPage();
-            yPos = 20;
-          }
+        yPos = pdf.lastAutoTable.finalY + 15;
+        
+        if (yPos > 250) {
+          pdf.addPage();
+          yPos = 20;
         }
       }
       
@@ -959,22 +936,25 @@ function Reports() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6">
           {/* Gender Distribution */}
           <div className="bg-slate-800 p-3 sm:p-4 rounded-lg shadow border border-slate-700 overflow-hidden">
-            <h3 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-5 text-white">
+            <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-slate-200">
               توزيع الجنس
             </h3>
-            <div className="w-full" style={{ minHeight: "300px", maxHeight: "380px", paddingBottom: "20px" }}>
-              <ResponsiveContainer width="100%" height="100%" minHeight={300}>
-                <PieChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+            <div className="w-full" style={{ minHeight: "280px", maxHeight: "350px" }}>
+              <ResponsiveContainer width="100%" height="100%" minHeight={280}>
+                <PieChart>
                   <Pie
                     data={genderChartData}
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={false}
-                    outerRadius={window.innerWidth < 640 ? 65 : 85}
+                    label={({ name, percent }) => {
+                      if (percent < 0.05) return "";
+                      return `${normalizeLabel(name)}: ${(percent * 100).toFixed(0)}%`;
+                    }}
+                    outerRadius={window.innerWidth < 640 ? 70 : 90}
                     fill="#8884d8"
                     dataKey="value"
-                    paddingAngle={3}
+                    paddingAngle={2}
                   >
                     {genderChartData.map((entry, index) => (
                       <Cell
@@ -987,27 +967,16 @@ function Reports() {
                     contentStyle={{
                       backgroundColor: "#1e293b",
                       borderColor: "#334155",
-                      color: "#ffffff",
-                      fontSize: "13px",
-                      padding: "8px",
+                      color: "#f1f5f9",
+                      fontSize: "12px",
                     }}
-                    itemStyle={{ color: "#ffffff", fontSize: "13px" }}
-                    formatter={(value, name) => [
-                      `${normalizeLabel(name)}: ${value}`,
-                      "العدد"
-                    ]}
-                    labelStyle={{ color: "#ffffff", fontSize: "13px", fontWeight: "bold" }}
+                    itemStyle={{ color: "#f1f5f9", fontSize: "12px" }}
+                    formatter={(value) => [value, "العدد"]}
                   />
                   <Legend
-                    verticalAlign="bottom"
-                    height={60}
-                    wrapperStyle={{ 
-                      color: "#ffffff", 
-                      fontSize: "13px",
-                      paddingTop: "20px"
-                    }}
+                    wrapperStyle={{ color: "#94a3b8", fontSize: "12px" }}
                     formatter={(value) => normalizeLabel(value)}
-                    iconSize={12}
+                    iconSize={10}
                   />
                 </PieChart>
               </ResponsiveContainer>
@@ -1016,53 +985,41 @@ function Reports() {
 
           {/* Age Distribution */}
           <div className="bg-slate-800 p-3 sm:p-4 rounded-lg shadow border border-slate-700 overflow-hidden">
-            <h3 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-5 text-white">
+            <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-slate-200">
               توزيع الأعمار
             </h3>
-            <div className="w-full" style={{ minHeight: "320px", maxHeight: "420px", paddingBottom: "20px" }}>
-              <ResponsiveContainer width="100%" height="100%" minHeight={320}>
+            <div className="w-full" style={{ minHeight: "300px", maxHeight: "400px" }}>
+              <ResponsiveContainer width="100%" height="100%" minHeight={300}>
                 <BarChart
                   data={statistics.ageData || []}
                   margin={{ 
-                    top: 20, 
-                    right: 20, 
-                    left: 20, 
-                    bottom: window.innerWidth < 640 ? 70 : 90 
+                    top: 10, 
+                    right: 10, 
+                    left: 10, 
+                    bottom: window.innerWidth < 640 ? 60 : 80 
                   }}
                 >
                   <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
                   <XAxis
                     dataKey="age"
-                    stroke="#ffffff"
+                    stroke="#94a3b8"
                     angle={window.innerWidth < 640 ? -60 : -45}
                     textAnchor="end"
-                    height={window.innerWidth < 640 ? 80 : 110}
+                    height={window.innerWidth < 640 ? 70 : 100}
                     interval={0}
-                    tick={{ 
-                      fontSize: window.innerWidth < 640 ? 11 : 13, 
-                      fontWeight: 600,
-                      fill: "#ffffff"
-                    }}
+                    tick={{ fontSize: window.innerWidth < 640 ? 10 : 12, fontWeight: 600 }}
                   />
-                  <YAxis 
-                    stroke="#ffffff" 
-                    tick={{ 
-                      fontSize: window.innerWidth < 640 ? 11 : 13,
-                      fill: "#ffffff"
-                    }} 
-                  />
+                  <YAxis stroke="#94a3b8" tick={{ fontSize: window.innerWidth < 640 ? 10 : 12 }} />
                   <Tooltip
                     contentStyle={{
                       backgroundColor: "#1e293b",
                       borderColor: "#334155",
-                      color: "#ffffff",
-                      fontSize: "13px",
-                      padding: "8px",
+                      color: "#f1f5f9",
+                      fontSize: "12px",
                     }}
-                    itemStyle={{ color: "#ffffff", fontSize: "13px" }}
-                    labelStyle={{ color: "#ffffff", fontSize: "13px", fontWeight: "bold" }}
+                    itemStyle={{ color: "#f1f5f9", fontSize: "12px" }}
                   />
-                  <Legend wrapperStyle={{ color: "#ffffff", fontSize: "13px" }} />
+                  <Legend wrapperStyle={{ color: "#94a3b8", fontSize: "12px" }} />
                   <Bar dataKey="count" fill="#82ca9d" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
@@ -1071,22 +1028,27 @@ function Reports() {
 
           {/* Employment Type Distribution */}
           <div className="bg-slate-800 p-3 sm:p-4 rounded-lg shadow border border-slate-700 overflow-hidden">
-            <h3 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-5 text-white">
+            <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-slate-200">
               توزيع نوع التوظيف
             </h3>
-            <div className="w-full" style={{ minHeight: "300px", maxHeight: "380px", paddingBottom: "20px" }}>
-              <ResponsiveContainer width="100%" height="100%" minHeight={300}>
-                <PieChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+            <div className="w-full" style={{ minHeight: "280px", maxHeight: "350px" }}>
+              <ResponsiveContainer width="100%" height="100%" minHeight={280}>
+                <PieChart>
                   <Pie
                     data={statistics.employmentTypeData || []}
                     cx="50%"
                     cy="50%"
-                    labelLine={false}
-                    label={false}
-                    outerRadius={window.innerWidth < 640 ? 65 : 85}
+                    labelLine={window.innerWidth >= 640}
+                    label={({ name, percent }) => {
+                      if (percent < 0.05) return "";
+                      return window.innerWidth >= 640 
+                        ? `${name}: ${(percent * 100).toFixed(0)}%`
+                        : "";
+                    }}
+                    outerRadius={window.innerWidth < 640 ? 70 : 100}
                     fill="#8884d8"
                     dataKey="value"
-                    paddingAngle={3}
+                    paddingAngle={2}
                   >
                     {(statistics.employmentTypeData || []).map((entry, index) => (
                       <Cell
@@ -1099,26 +1061,15 @@ function Reports() {
                     contentStyle={{
                       backgroundColor: "#1e293b",
                       borderColor: "#334155",
-                      color: "#ffffff",
-                      fontSize: "13px",
-                      padding: "8px",
+                      color: "#f1f5f9",
+                      fontSize: "12px",
                     }}
-                    itemStyle={{ color: "#ffffff", fontSize: "13px" }}
-                    formatter={(value, name) => [
-                      `${name}: ${value}`,
-                      "العدد"
-                    ]}
-                    labelStyle={{ color: "#ffffff", fontSize: "13px", fontWeight: "bold" }}
+                    itemStyle={{ color: "#f1f5f9", fontSize: "12px" }}
+                    formatter={(value) => [value, "العدد"]}
                   />
                   <Legend
-                    verticalAlign="bottom"
-                    height={60}
-                    wrapperStyle={{ 
-                      color: "#ffffff", 
-                      fontSize: "13px",
-                      paddingTop: "20px"
-                    }}
-                    iconSize={12}
+                    wrapperStyle={{ color: "#94a3b8", fontSize: "12px" }}
+                    iconSize={10}
                   />
                 </PieChart>
               </ResponsiveContainer>
@@ -1127,39 +1078,36 @@ function Reports() {
 
           {/* Job Category Distribution */}
           <div className="bg-slate-800 p-3 sm:p-4 rounded-lg shadow border border-slate-700 overflow-hidden">
-            <h3 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-5 text-white">
+            <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-slate-200">
               توزيع فئات الوظائف
             </h3>
-            <div className="w-full" style={{ minHeight: "320px", maxHeight: "470px", paddingBottom: "20px" }}>
-              <ResponsiveContainer width="100%" height="100%" minHeight={320}>
+            <div className="w-full" style={{ minHeight: "300px", maxHeight: "450px" }}>
+              <ResponsiveContainer width="100%" height="100%" minHeight={300}>
                 <BarChart
                   data={jobCategoryChartData}
                   layout="vertical"
                   margin={{ 
-                    top: 20, 
-                    bottom: 20, 
-                    left: window.innerWidth < 640 ? 80 : 100, 
-                    right: 30 
+                    top: 10, 
+                    bottom: 10, 
+                    left: window.innerWidth < 640 ? 60 : 80, 
+                    right: 20 
                   }}
                 >
                   <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
                   <XAxis 
                     type="number" 
-                    stroke="#ffffff" 
-                    tick={{ 
-                      fontSize: window.innerWidth < 640 ? 11 : 13,
-                      fill: "#ffffff"
-                    }}
+                    stroke="#94a3b8" 
+                    tick={{ fontSize: window.innerWidth < 640 ? 10 : 12 }}
                   />
                   <YAxis
                     type="category"
                     dataKey="name"
-                    stroke="#ffffff"
+                    stroke="#94a3b8"
                     interval={0}
-                    width={window.innerWidth < 640 ? 130 : 160}
+                    width={window.innerWidth < 640 ? 120 : 150}
                     tick={{ 
-                      fontSize: window.innerWidth < 640 ? 10 : 12, 
-                      fill: "#ffffff"
+                      fontSize: window.innerWidth < 640 ? 9 : 11, 
+                      fill: "#94a3b8"
                     }}
                     tickLine={false}
                   />
@@ -1167,14 +1115,12 @@ function Reports() {
                     contentStyle={{
                       backgroundColor: "#1e293b",
                       borderColor: "#334155",
-                      color: "#ffffff",
-                      fontSize: "13px",
-                      padding: "8px",
+                      color: "#f1f5f9",
+                      fontSize: "12px",
                     }}
-                    itemStyle={{ color: "#ffffff", fontSize: "13px" }}
-                    labelStyle={{ color: "#ffffff", fontSize: "13px", fontWeight: "bold" }}
+                    itemStyle={{ color: "#f1f5f9", fontSize: "12px" }}
                   />
-                  <Legend wrapperStyle={{ color: "#ffffff", fontSize: "13px" }} />
+                  <Legend wrapperStyle={{ color: "#94a3b8", fontSize: "12px" }} />
                   <Bar
                     dataKey="count"
                     fill="#ffc658"
@@ -1188,39 +1134,36 @@ function Reports() {
 
           {/* Department Distribution */}
           <div className="bg-slate-800 p-3 sm:p-4 rounded-lg shadow border border-slate-700 lg:col-span-2 overflow-hidden">
-            <h3 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-5 text-white">
+            <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-slate-200">
               توزيع الأقسام
             </h3>
-            <div className="w-full" style={{ minHeight: "420px", maxHeight: "570px", paddingBottom: "20px" }}>
-              <ResponsiveContainer width="100%" height="100%" minHeight={420}>
+            <div className="w-full" style={{ minHeight: "400px", maxHeight: "550px" }}>
+              <ResponsiveContainer width="100%" height="100%" minHeight={400}>
                 <BarChart
                   data={departmentChartData}
                   layout="vertical"
                   margin={{ 
                     top: 20, 
                     bottom: 20, 
-                    left: window.innerWidth < 640 ? 100 : 140, 
-                    right: 30 
+                    left: window.innerWidth < 640 ? 80 : 120, 
+                    right: 20 
                   }}
                 >
                   <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
                   <XAxis 
                     type="number" 
-                    stroke="#ffffff" 
-                    tick={{ 
-                      fontSize: window.innerWidth < 640 ? 11 : 13,
-                      fill: "#ffffff"
-                    }}
+                    stroke="#94a3b8" 
+                    tick={{ fontSize: window.innerWidth < 640 ? 10 : 12 }}
                   />
                   <YAxis
                     type="category"
                     dataKey="name"
-                    width={window.innerWidth < 640 ? 160 : 210}
-                    stroke="#ffffff"
+                    width={window.innerWidth < 640 ? 150 : 200}
+                    stroke="#94a3b8"
                     interval={0}
                     tick={{ 
-                      fontSize: window.innerWidth < 640 ? 10 : 12, 
-                      fill: "#ffffff"
+                      fontSize: window.innerWidth < 640 ? 9 : 11, 
+                      fill: "#94a3b8"
                     }}
                     tickLine={false}
                   />
@@ -1228,14 +1171,12 @@ function Reports() {
                     contentStyle={{
                       backgroundColor: "#1e293b",
                       borderColor: "#334155",
-                      color: "#ffffff",
-                      fontSize: "13px",
-                      padding: "8px",
+                      color: "#f1f5f9",
+                      fontSize: "12px",
                     }}
-                    itemStyle={{ color: "#ffffff", fontSize: "13px" }}
-                    labelStyle={{ color: "#ffffff", fontSize: "13px", fontWeight: "bold" }}
+                    itemStyle={{ color: "#f1f5f9", fontSize: "12px" }}
                   />
-                  <Legend wrapperStyle={{ color: "#ffffff", fontSize: "13px" }} />
+                  <Legend wrapperStyle={{ color: "#94a3b8", fontSize: "12px" }} />
                   <Bar 
                     dataKey="count" 
                     fill="#8884d8" 
@@ -1249,39 +1190,36 @@ function Reports() {
 
           {/* Education Level Distribution */}
           <div className="bg-slate-800 p-3 sm:p-4 rounded-lg shadow border border-slate-700 overflow-hidden">
-            <h3 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-5 text-white">
+            <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-slate-200">
               المستوى التعليمي
             </h3>
-            <div className="w-full" style={{ minHeight: "320px", maxHeight: "470px", paddingBottom: "20px" }}>
-              <ResponsiveContainer width="100%" height="100%" minHeight={320}>
+            <div className="w-full" style={{ minHeight: "300px", maxHeight: "450px" }}>
+              <ResponsiveContainer width="100%" height="100%" minHeight={300}>
                 <BarChart
                   data={educationChartData}
                   layout="vertical"
                   margin={{ 
                     top: 20, 
                     bottom: 20, 
-                    left: window.innerWidth < 640 ? 90 : 130, 
-                    right: 30 
+                    left: window.innerWidth < 640 ? 80 : 120, 
+                    right: 20 
                   }}
                 >
                   <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
                   <XAxis 
                     type="number" 
-                    stroke="#ffffff" 
-                    tick={{ 
-                      fontSize: window.innerWidth < 640 ? 11 : 13,
-                      fill: "#ffffff"
-                    }}
+                    stroke="#94a3b8" 
+                    tick={{ fontSize: window.innerWidth < 640 ? 10 : 12 }}
                   />
                   <YAxis
                     dataKey="name"
                     type="category"
-                    width={window.innerWidth < 640 ? 160 : 210}
-                    stroke="#ffffff"
+                    width={window.innerWidth < 640 ? 150 : 200}
+                    stroke="#94a3b8"
                     interval={0}
                     tick={{ 
-                      fontSize: window.innerWidth < 640 ? 10 : 12, 
-                      fill: "#ffffff"
+                      fontSize: window.innerWidth < 640 ? 9 : 11, 
+                      fill: "#94a3b8"
                     }}
                     tickLine={false}
                   />
@@ -1289,14 +1227,12 @@ function Reports() {
                     contentStyle={{
                       backgroundColor: "#1e293b",
                       borderColor: "#334155",
-                      color: "#ffffff",
-                      fontSize: "13px",
-                      padding: "8px",
+                      color: "#f1f5f9",
+                      fontSize: "12px",
                     }}
-                    itemStyle={{ color: "#ffffff", fontSize: "13px" }}
-                    labelStyle={{ color: "#ffffff", fontSize: "13px", fontWeight: "bold" }}
+                    itemStyle={{ color: "#f1f5f9", fontSize: "12px" }}
                   />
-                  <Legend wrapperStyle={{ color: "#ffffff", fontSize: "13px" }} />
+                  <Legend wrapperStyle={{ color: "#94a3b8", fontSize: "12px" }} />
                   <Bar 
                     dataKey="count" 
                     fill="#00C49F" 
@@ -1310,22 +1246,27 @@ function Reports() {
 
           {/* Marital Status Distribution */}
           <div className="bg-slate-800 p-3 sm:p-4 rounded-lg shadow border border-slate-700 overflow-hidden">
-            <h3 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-5 text-white">
+            <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-slate-200">
               الحالة الاجتماعية
             </h3>
-            <div className="w-full" style={{ minHeight: "300px", maxHeight: "380px", paddingBottom: "20px" }}>
-              <ResponsiveContainer width="100%" height="100%" minHeight={300}>
-                <PieChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+            <div className="w-full" style={{ minHeight: "280px", maxHeight: "350px" }}>
+              <ResponsiveContainer width="100%" height="100%" minHeight={280}>
+                <PieChart>
                   <Pie
                     data={statistics.maritalStatusData || []}
                     cx="50%"
                     cy="50%"
-                    labelLine={false}
-                    label={false}
-                    outerRadius={window.innerWidth < 640 ? 65 : 85}
+                    labelLine={window.innerWidth >= 640}
+                    label={({ name, percent }) => {
+                      if (percent < 0.05) return "";
+                      return window.innerWidth >= 640
+                        ? `${name}: ${(percent * 100).toFixed(0)}%`
+                        : "";
+                    }}
+                    outerRadius={window.innerWidth < 640 ? 70 : 90}
                     fill="#8884d8"
                     dataKey="value"
-                    paddingAngle={3}
+                    paddingAngle={2}
                   >
                     {(statistics.maritalStatusData || []).map((entry, index) => (
                       <Cell
@@ -1338,26 +1279,15 @@ function Reports() {
                     contentStyle={{
                       backgroundColor: "#1e293b",
                       borderColor: "#334155",
-                      color: "#ffffff",
-                      fontSize: "13px",
-                      padding: "8px",
+                      color: "#f1f5f9",
+                      fontSize: "12px",
                     }}
-                    itemStyle={{ color: "#ffffff", fontSize: "13px" }}
-                    formatter={(value, name) => [
-                      `${name}: ${value}`,
-                      "العدد"
-                    ]}
-                    labelStyle={{ color: "#ffffff", fontSize: "13px", fontWeight: "bold" }}
+                    itemStyle={{ color: "#f1f5f9", fontSize: "12px" }}
+                    formatter={(value) => [value, "العدد"]}
                   />
                   <Legend
-                    verticalAlign="bottom"
-                    height={60}
-                    wrapperStyle={{ 
-                      color: "#ffffff", 
-                      fontSize: "13px",
-                      paddingTop: "20px"
-                    }}
-                    iconSize={12}
+                    wrapperStyle={{ color: "#94a3b8", fontSize: "12px" }}
+                    iconSize={10}
                   />
                 </PieChart>
               </ResponsiveContainer>

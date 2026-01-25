@@ -14,7 +14,7 @@ export default function EmployeeVacations() {
   const [selectedVacation, setSelectedVacation] = useState(null);
   const [user, setUser] = useState(null);
   const [employee, setEmployee] = useState(null);
-
+  const [delay, setDelay] = useState(null)
   const [formData, setFormData] = useState({
     type: "",
     days: "",
@@ -33,6 +33,7 @@ export default function EmployeeVacations() {
     "إجازة خاصة بلا أجر",
     "إجازة زواج",
     "إجازة حج",
+    "تأخير",
   ];
 
   useEffect(() => {
@@ -204,7 +205,11 @@ export default function EmployeeVacations() {
     }
 
     if (!formData.days || parseFloat(formData.days) <= 0) {
-      if (formData.type !== "إجازة ساعية" || !formData.hours || parseFloat(formData.hours) <= 0) {
+      if (
+        formData.type !== "إجازة ساعية" &&
+        formData.type !== "تأخير" &&
+        (!formData.hours || parseFloat(formData.hours) <= 0)
+      ) {
         toast.error("يرجى إدخال عدد أيام أو ساعات صحيح");
         return;
       }
@@ -253,6 +258,7 @@ export default function EmployeeVacations() {
       }
 
       setModalOpen(false);
+      setDelay(false);
       toast.success("تم الحفظ بنجاح");
     } catch (err) {
       toast.error("خطأ أثناء الحفظ");
@@ -338,7 +344,18 @@ export default function EmployeeVacations() {
       toast.error("فشل تحميل ملف PDF");
     }
   };
-
+  const handleDelay = () => {
+    setSelectedVacation(null);
+    setFormData({
+      type: "تأخير",
+      days: 0,
+      hours: "",
+      childOrder: "",
+      startDate: new Date().toISOString().split("T")[0],
+      endDate: new Date().toISOString().split("T")[0],
+    });
+    setDelay(true);
+  };
   const handlePrintPDF = async (vacationId) => {
     try {
       const response = await API.get(`/vacations/${vacationId}/pdf`, {
@@ -381,12 +398,16 @@ export default function EmployeeVacations() {
       .reduce((acc, curr) => acc + parseFloat(curr.hours || 0), 0);
 
     const hourlyDays = Math.floor(hourlyTotal / 8);
-    const totalAdminUsed = adminTotal + hourlyDays;
+    const delayTotal = vacations.filter((v) => v.type === "تأخير").length;
+    const delayDays = Math.floor(delayTotal / 3);
+
     const entitlement = getEntitlement();
 
     const healthTotal = vacations
       .filter((v) => v.type === "إجازة صحية")
       .reduce((acc, curr) => acc + parseFloat(curr.days || 0), 0);
+
+    const totalAdminUsed = adminTotal + hourlyDays + delayDays;
 
     return {
       admin: Math.max(0, entitlement - totalAdminUsed),
@@ -394,6 +415,8 @@ export default function EmployeeVacations() {
       adminTaken: adminTotal,
       hourlyTaken: hourlyTotal,
       hourlyDays: hourlyDays,
+      delayCount: delayTotal,
+      delayDays: delayDays,
       healthTaken: healthTotal,
       entitlement: entitlement,
     };
@@ -573,7 +596,13 @@ export default function EmployeeVacations() {
             <Printer size={18} />
             طباعة بيان وضع
           </button>
+          <button
+            onClick={handleDelay}
+            className="bg-red-600 hover:bg-purple-700 text-white px-4 py-2 rounded flex items-center gap-2 transition"
+          >
 
+            التاخيرات
+          </button>
           <button
             onClick={handleAdd}
             className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded transition"
@@ -617,7 +646,9 @@ export default function EmployeeVacations() {
             <p className="text-xs text-slate-500 mt-1">
               تم استخدام {getRemainingDays().adminTaken} يوم إداري +{" "}
               {getRemainingDays().hourlyDays} يوم (من{" "}
-              {getRemainingDays().hourlyTaken} ساعة)
+              {getRemainingDays().hourlyTaken} ساعة) +{" "}
+              {getRemainingDays().delayDays} يوم (من{" "}
+              {getRemainingDays().delayCount} تأخيرات)
             </p>
           </div>
         </div>
@@ -634,128 +665,145 @@ export default function EmployeeVacations() {
         </div>
       </div>
 
-      <div className="bg-slate-800 rounded-lg shadow overflow-hidden border border-slate-700">
-        {/* جدول الإجازات */}
-        <table className="min-w-full bg-slate-800 border-collapse">
-          <thead className="bg-slate-700/50">
-            <tr>
-              <th className="p-2 border border-slate-700 text-slate-200">
-                النوع
-              </th>
-              <th className="p-2 border border-slate-700 text-slate-200">
-                عدد الأيام
-              </th>
-              <th className="p-2 border border-slate-700 text-slate-200">
-                تاريخ البداية
-              </th>
-              <th className="p-2 border border-slate-700 text-slate-200">
-                إجراءات
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {vacations.map((v) => (
-              <tr
-                key={v.id}
-                className="border-t border-slate-700 hover:bg-slate-700/30 transition-colors"
-              >
-                <td className="p-2 border border-slate-700 text-slate-300">
-                  {v.type}
-                </td>
-                <td className="p-2 border border-slate-700 text-slate-300">
-                  {v.type === "إجازة ساعية" ? `${v.hours} ساعة` : v.days}
-                </td>
-                <td className="p-2 border border-slate-700 text-slate-300">
-                  {new Date(v.startDate).toLocaleDateString("ar-SY")}
-                </td>
-                <td className="p-2 border border-slate-700">
-                  <div className="flex flex-row justify-center">
-                    {" "}
-                    {v.type === "إجازة إدارية" && (
-                      <button
-                        onClick={() => handlePrintRequest(v)}
-                        className="bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700 ml-2 transition flex items-center gap-1 text-sm"
-                        title="طباعة طلب إجازة"
-                      >
-                        <Printer size={14} />
-                        طباعة
-                      </button>
-                    )}
-                    <button
-                      onClick={() => handlePrintPDF(v._id || v.id)}
-                      className="bg-orange-600 text-white px-3 py-1 rounded hover:bg-orange-700 ml-2 transition flex items-center gap-1 text-sm"
-                      title="طباعة مباشرة"
-                    >
-                      <Printer size={14} />
-                      طباعة PDF
-                    </button>
-                    <button
-                      onClick={() => handleDownloadPDF(v._id || v.id)}
-                      className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 ml-2 transition flex items-center gap-1 text-sm"
-                      title="تحميل PDF"
-                    >
-                      <Download size={14} />
-                      PDF
-                    </button>
-                    {checkPermission("vacations.edit", user) && (
-                      <button
-                        onClick={() => handleEdit(v)}
-                        className="bg-slate-600 text-white px-3 py-1 rounded hover:bg-slate-500 ml-2 transition"
-                      >
-                        تعديل
-                      </button>
-                    )}
-                    {checkPermission("vacations.delete", user) && (
-                      <button
-                        onClick={() => handleDelete(v._id || v.id)}
-                        className="bg-red-800 text-white px-3 py-1 rounded hover:bg-red-900 ml-2 transition flex items-center gap-1 text-sm"
-                        title="حذف"
-                      >
-                        <Trash2 size={14} />
-                        حذف
-                      </button>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      {/* Helper function to render a table for a specific set of vacations */}
+      {[
+        { title: "الإجازات الإدارية والساعية", types: ["إجازة إدارية", "إجازة ساعية"] },
+        { title: "الإجازات الصحية", types: ["إجازة صحية"] },
+        { title: "التأخيرات", types: ["تأخير"] },
+        { title: "إجازات أخرى", types: ["إجازة أمومة", "إجازة خاصة بلا أجر", "إجازة زواج", "إجازة حج"] }
+      ].map((section, idx) => {
+        const filteredVacations = vacations.filter(v => section.types.includes(v.type));
+        if (filteredVacations.length === 0) return null;
 
-      {/* مودال */}
-      {modalOpen && (
+        return (
+          <div key={idx} className="mb-8">
+            <h3 className="text-xl font-bold mb-4 text-slate-200 border-r-4 border-slate-500 pr-3">
+              {section.title}
+            </h3>
+            <div className="bg-slate-800 rounded-lg shadow overflow-hidden border border-slate-700">
+              <table className="min-w-full bg-slate-800 border-collapse">
+                <thead className="bg-slate-700/50">
+                  <tr>
+                    <th className="p-2 border border-slate-700 text-slate-200">النوع</th>
+                    <th className="p-2 border border-slate-700 text-slate-200">المدة / التاريخ</th>
+                    <th className="p-2 border border-slate-700 text-slate-200">تاريخ البداية</th>
+                    <th className="p-2 border border-slate-700 text-slate-200">إجراءات</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredVacations.map((v) => (
+                    <tr key={v._id || v.id} className="border-t border-slate-700 hover:bg-slate-700/30 transition-colors">
+                      <td className="p-2 border border-slate-700 text-slate-300">
+                        {v.type === "تأخير" ? "تأخير حضور" : v.type}
+                      </td>
+                      <td className="p-2 border border-slate-700 text-slate-300 text-center">
+                        {v.type === "إجازة ساعية"
+                          ? `${v.hours} ساعة`
+                          : v.type === "تأخير"
+                            ? "-"
+                            : `${v.days} يوم`}
+                      </td>
+                      <td className="p-2 border border-slate-700 text-slate-300 text-center">
+                        {new Date(v.startDate).toLocaleDateString("ar-SY")}
+                      </td>
+                      <td className="p-2 border border-slate-700">
+                        <div className="flex flex-row justify-center gap-2">
+                          {v.type === "إجازة إدارية" && (
+                            <button
+                              onClick={() => handlePrintRequest(v)}
+                              className="bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700 transition flex items-center gap-1 text-sm"
+                              title="طباعة طلب إجازة"
+                            >
+                              <Printer size={14} />
+                              طلب
+                            </button>
+                          )}
+                          <button
+                            onClick={() => handlePrintPDF(v._id || v.id)}
+                            className="bg-orange-600 text-white px-3 py-1 rounded hover:bg-orange-700 transition flex items-center gap-1 text-sm"
+                            title="طباعة مباشر"
+                          >
+                            <Printer size={14} />
+                            طباعة
+                          </button>
+                          <button
+                            onClick={() => handleDownloadPDF(v._id || v.id)}
+                            className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 transition flex items-center gap-1 text-sm"
+                            title="تحميل PDF"
+                          >
+                            <Download size={14} />
+                            PDF
+                          </button>
+                          {checkPermission("vacations.edit", user) && (
+                            <button
+                              onClick={() => handleEdit(v)}
+                              className="bg-slate-600 text-white px-3 py-1 rounded hover:bg-slate-500 transition"
+                            >
+                              تعديل
+                            </button>
+                          )}
+                          {checkPermission("vacations.delete", user) && (
+                            <button
+                              onClick={() => handleDelete(v._id || v.id)}
+                              className="bg-red-800 text-white px-3 py-1 rounded hover:bg-red-900 transition flex items-center gap-1 text-sm"
+                              title="حذف"
+                            >
+                              <Trash2 size={14} />
+                              حذف
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        );
+      })}
+      {/* Modal for adding delay or general vacation */}
+      {(modalOpen || delay) && (
         <div
-          className="fixed inset-0 flex items-center justify-center bg-black/70 backdrop-blur-sm z-50"
+          className="fixed inset-0 flex items-center justify-center bg-black/80 backdrop-blur-sm z-50"
           onClick={(e) => {
-            if (e.target === e.currentTarget) setModalOpen(false);
+            if (e.target === e.currentTarget) {
+              setModalOpen(false);
+              setDelay(false);
+            }
           }}
         >
           <div className="bg-slate-800 rounded-lg p-6 w-full max-w-md animate-fadeInUp border border-slate-700">
             <h3 className="text-xl font-bold mb-4 text-center text-slate-100">
-              {selectedVacation ? "تعديل الإجازة" : "إضافة إجازة جديدة"}
+              {selectedVacation
+                ? "تعديل " + (selectedVacation.type === "تأخير" ? "التأخير" : "الإجازة")
+                : delay
+                  ? "تسجيل تأخير جديد"
+                  : "إضافة إجازة جديدة"}
             </h3>
 
             <form onSubmit={handleSubmit} className="grid gap-3">
-              {/* نوع الإجازة */}
-              <DropdownWithSettings
-                id="vacation_type"
-                value={formData.type}
-                onChange={(e) =>
-                  handleChange({
-                    target: { name: "type", value: e.target.value },
-                  })
-                }
-                options={[
-                  { value: "", label: "اختر النوع" },
-                  ...vacationTypes.map((t) => ({ value: t, label: t })),
-                ]}
-                label="نوع الإجازة"
-                placeholder="اختر النوع"
-                className="border border-slate-600 bg-slate-900 text-slate-100 p-2 w-full rounded !bg-slate-900 !text-slate-100"
-              />
+              {/* Type Selection - only show if not adding via 'Delay' button specifically */}
+              {(!delay || selectedVacation) && (
+                <DropdownWithSettings
+                  id="vacation_type"
+                  value={formData.type || (delay ? "تأخير" : "")}
+                  onChange={(e) =>
+                    handleChange({
+                      target: { name: "type", value: e.target.value },
+                    })
+                  }
+                  options={[
+                    { value: "", label: "اختر النوع" },
+                    ...vacationTypes.map((t) => ({ value: t, label: t })),
+                  ]}
+                  label="نوع الإجازة"
+                  placeholder="اختر النوع"
+                  className="border border-slate-600 bg-slate-900 text-slate-100 p-2 w-full rounded !bg-slate-900 !text-slate-100"
+                />
+              )}
 
-              {/* إجازة أمومة → رقم الطفل */}
+              {/* Maternity leave → child order */}
               {formData.type === "إجازة أمومة" && (
                 <DropdownWithSettings
                   id="child_order"
@@ -777,8 +825,8 @@ export default function EmployeeVacations() {
                 />
               )}
 
-              {/* إجازة ساعية → عدد الساعات */}
-              {formData.type === "إجازة ساعية" && (
+              {/* Hourly leave or Delay → hours */}
+              {(formData.type === "إجازة ساعية" || formData.type === "تأخير") && (
                 <>
                   <div>
                     <label className="block mb-1 font-medium text-slate-300">
@@ -792,27 +840,36 @@ export default function EmployeeVacations() {
                       className="border border-slate-600 bg-slate-900 text-slate-100 p-2 w-full rounded focus:outline-none focus:border-blue-500"
                       placeholder="أدخل عدد الساعات"
                     />
-                    <p className="text-sm text-slate-500 mt-1">
-                      كل 8 ساعات = يوم واحد
-                    </p>
+                    {formData.type === "إجازة ساعية" && (
+                      <p className="text-sm text-slate-500 mt-1">
+                        كل 8 ساعات = يوم واحد
+                      </p>
+                    )}
+                    {formData.type === "تأخير" && (
+                      <p className="text-sm text-slate-500 mt-1">
+                        كل 3 تأخيرات = يوم واحد (يتم حسابها بعدد المرات)
+                      </p>
+                    )}
                   </div>
-                  <div>
-                    <label className="block mb-1 font-medium text-slate-300">
-                      ساعة النهاية
-                    </label>
-                    <input
-                      type="time"
-                      name="endHour"
-                      value={formData.endHour}
-                      onChange={handleChange}
-                      className="border border-slate-600 bg-slate-900 text-slate-100 p-2 w-full rounded focus:outline-none focus:border-blue-500"
-                    />
-                  </div>
+                  {formData.type === "إجازة ساعية" && (
+                    <div>
+                      <label className="block mb-1 font-medium text-slate-300">
+                        ساعة النهاية
+                      </label>
+                      <input
+                        type="time"
+                        name="endHour"
+                        value={formData.endHour}
+                        onChange={handleChange}
+                        className="border border-slate-600 bg-slate-900 text-slate-100 p-2 w-full rounded focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+                  )}
                 </>
               )}
 
-              {/* عدد الأيام */}
-              {formData.type !== "إجازة ساعية" && (
+              {/* Day count - Hidden for hourly and delay */}
+              {formData.type !== "إجازة ساعية" && formData.type !== "تأخير" && (
                 <div>
                   <label className="block mb-1 font-medium text-slate-300">
                     عدد الأيام
@@ -828,10 +885,10 @@ export default function EmployeeVacations() {
                 </div>
               )}
 
-              {/* تاريخ البداية */}
+              {/* Start Date */}
               <div>
                 <label className="block mb-1 font-medium text-slate-300">
-                  تاريخ البداية
+                  التاريخ
                 </label>
                 <input
                   type="date"
@@ -842,8 +899,8 @@ export default function EmployeeVacations() {
                 />
               </div>
 
-              {/* تاريخ النهاية */}
-              {formData.type !== "إجازة ساعية" && (
+              {/* End Date - Hidden for hourly and delay */}
+              {formData.type !== "إجازة ساعية" && formData.type !== "تأخير" && (
                 <div>
                   <label className="block mb-1 font-medium text-slate-300">
                     تاريخ النهاية
@@ -861,7 +918,10 @@ export default function EmployeeVacations() {
               <div className="flex justify-between mt-4">
                 <button
                   type="button"
-                  onClick={() => setModalOpen(false)}
+                  onClick={() => {
+                    setModalOpen(false);
+                    setDelay(false);
+                  }}
                   className="bg-slate-600 text-white px-4 py-2 rounded hover:bg-slate-500 transition"
                 >
                   إلغاء

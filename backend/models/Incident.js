@@ -28,6 +28,8 @@ const incidentSchema = new mongoose.Schema(
 
     isInternal: { type: Boolean, default: false }, // وقوع داخلي
     incidentType: { type: String, default: "external" }, // internal, external
+    directorate: { type: String }, // المديرية
+    department: { type: String }, // الدائرة
   },
   { timestamps: true }
 );

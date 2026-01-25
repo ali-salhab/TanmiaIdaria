@@ -110,12 +110,16 @@ export default function EmployeeIncidents() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      const payload = {
+        ...selectedIncident,
+        isInternal: selectedIncident.incidentType === "داخلي",
+      };
       if (selectedIncident._id) {
         // تعديل الوقوع
-        await API.put(`/incidents/${selectedIncident._id}`, selectedIncident);
+        await API.put(`/incidents/${selectedIncident._id}`, payload);
       } else {
         // إضافة وقوع جديد
-        await API.post("/incidents", selectedIncident);
+        await API.post("/incidents", payload);
       }
       setModalOpen(false);
       setSelectedIncident({
@@ -132,6 +136,8 @@ export default function EmployeeIncidents() {
         document_date: "",
         registrar_name: "",
         registrar_signature: "",
+        directorate: "",
+        department: "",
         employee: id,
       });
       fetchIncidents();
@@ -159,6 +165,8 @@ export default function EmployeeIncidents() {
       document_date: "",
       registrar_name: "",
       registrar_signature: "",
+      directorate: "",
+      department: "",
       employee: id,
     });
     console.log("add new inciedents");
@@ -224,21 +232,19 @@ export default function EmployeeIncidents() {
       {/* Tabs */}
       <div className="flex border-b border-slate-800 mb-4">
         <button
-          className={`py-2 px-4 font-medium transition ${
-            activeTab === "general"
-              ? "border-b-2 border-amber-500 text-amber-400"
-              : "text-slate-400 hover:text-slate-200"
-          }`}
+          className={`py-2 px-4 font-medium transition ${activeTab === "general"
+            ? "border-b-2 border-amber-500 text-amber-400"
+            : "text-slate-400 hover:text-slate-200"
+            }`}
           onClick={() => setActiveTab("general")}
         >
           الوقوعات الخارجية
         </button>
         <button
-          className={`py-2 px-4 font-medium transition ${
-            activeTab === "internal"
-              ? "border-b-2 border-amber-500 text-amber-400"
-              : "text-slate-400 hover:text-slate-200"
-          }`}
+          className={`py-2 px-4 font-medium transition ${activeTab === "internal"
+            ? "border-b-2 border-amber-500 text-amber-400"
+            : "text-slate-400 hover:text-slate-200"
+            }`}
           onClick={() => setActiveTab("internal")}
         >
           الوقوعات الداخلية
@@ -250,20 +256,18 @@ export default function EmployeeIncidents() {
           <thead className="bg-slate-800 border-b border-slate-700 text-slate-200">
             <tr>
               <th className="py-2 px-4 text-right font-semibold">مركز العمل</th>
-              <th className="py-2 px-4 text-right font-semibold">
-                المسمى الوظيفي
-              </th>
-              <th className="py-2 px-4 text-right font-semibold">
-                نوع الوظيفة
-              </th>
+              <th className="py-2 px-4 text-right font-semibold">المسمى الوظيفي</th>
+              <th className="py-2 px-4 text-right font-semibold">نوع الوظيفة</th>
+              {activeTab === "internal" && (
+                <>
+                  <th className="py-2 px-4 text-right font-semibold">المديرية</th>
+                  <th className="py-2 px-4 text-right font-semibold">الدائرة</th>
+                </>
+              )}
               <th className="py-2 px-4 text-right font-semibold">الأجر</th>
               <th className="py-2 px-4 text-right font-semibold">الفئة</th>
-              <th className="py-2 px-4 text-right font-semibold">
-                تاريخ المباشرة
-              </th>
-              <th className="py-2 px-4 text-right font-semibold">
-                تاريخ التبدل
-              </th>
+              <th className="py-2 px-4 text-right font-semibold">تاريخ المباشرة</th>
+              <th className="py-2 px-4 text-right font-semibold">تاريخ التبدل</th>
               <th className="py-2 px-4 text-right font-semibold">السبب</th>
               <th className="py-2 px-4 text-right font-semibold">الإجراءات</th>
             </tr>
@@ -278,11 +282,15 @@ export default function EmployeeIncidents() {
                   key={inc._id}
                   className="border-b border-slate-800 hover:bg-slate-800/60 text-sm transition"
                 >
-                  <td className="py-2 px-4 text-slate-200">
-                    {inc.work_center}
-                  </td>
+                  <td className="py-2 px-4 text-slate-200">{inc.work_center}</td>
                   <td className="py-2 px-4 text-slate-200">{inc.job_title}</td>
                   <td className="py-2 px-4 text-slate-200">{inc.job_type}</td>
+                  {activeTab === "internal" && (
+                    <>
+                      <td className="py-2 px-4 text-slate-200">{inc.directorate || "-"}</td>
+                      <td className="py-2 px-4 text-slate-200">{inc.department || "-"}</td>
+                    </>
+                  )}
                   <td className="py-2 px-4 text-slate-200">{inc.salary}</td>
                   <td className="py-2 px-4 text-slate-200">{inc.category}</td>
                   <td className="py-2 px-4 text-slate-200">
@@ -399,8 +407,7 @@ export default function EmployeeIncidents() {
                       target: { name: "incidentType", value: e.target.value },
                     })
                   }
-                  options={["sdsd", "خارجي"].map((opt) => {
-                    console.log("------00000000000000000", dropdownSettings);
+                  options={["داخلي", "خارجي"].map((opt) => {
                     return {
                       value: opt,
                       label: opt,
@@ -479,6 +486,32 @@ export default function EmployeeIncidents() {
                   )}
                 </div>
               ))}
+
+              {/* Additional fields for internal incidents */}
+              {selectedIncident.incidentType === "داخلي" && (
+                <>
+                  <div className="flex flex-col">
+                    <label className="mb-1 font-medium text-slate-200">المديرية</label>
+                    <input
+                      name="directorate"
+                      type="text"
+                      value={selectedIncident.directorate || ""}
+                      onChange={handleChange}
+                      className="border border-slate-700 p-2 rounded bg-slate-900 text-slate-100 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    />
+                  </div>
+                  <div className="flex flex-col">
+                    <label className="mb-1 font-medium text-slate-200">الدائرة</label>
+                    <input
+                      name="department"
+                      type="text"
+                      value={selectedIncident.department || ""}
+                      onChange={handleChange}
+                      className="border border-slate-700 p-2 rounded bg-slate-900 text-slate-100 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    />
+                  </div>
+                </>
+              )}
 
               <div className="flex items-center gap-2 mt-2">
                 {/* Removed checkbox for isInternal as it is replaced by incidentType dropdown */}

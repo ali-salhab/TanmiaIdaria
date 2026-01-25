@@ -65,6 +65,15 @@ app.use(
   })
 );
 app.use(compression());
+// Respond to preflight Private Network requests (for Chrome's PNA)
+// Must run before the CORS middleware so preflight responses include the header.
+app.use((req, res, next) => {
+  if (req.method === "OPTIONS" && req.headers["access-control-request-private-network"]) {
+    res.setHeader("Access-Control-Allow-Private-Network", "true");
+  }
+  next();
+});
+
 app.use(
   cors({
     origin: function (origin, callback) {
@@ -79,7 +88,8 @@ app.use(
       // Allow all origins from local network and localhost
       const allowedPatterns = [
         /^http:\/\/localhost:\d+$/,
-        /^http:\/\/127\.0\.0\.1:\d+$/,
+        /^http:\/\/12\.0\.0\.10:5001$/,
+        /^http:\/\/127\\.0\\.0\\.1:\d+$/,
         /^http:\/\/192\.168\.\d+\.\d+:\d+$/,
         /^http:\/\/10\.\d+\.\d+\.\d+:\d+$/,
         /^http:\/\/172\.(1[6-9]|2\d|3[01])\.\d+\.\d+:\d+$/,

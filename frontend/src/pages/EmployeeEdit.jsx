@@ -4,7 +4,7 @@ import API from "../api/api";
 import toast from "react-hot-toast";
 import { checkPermission } from "../utils/permissionHelper";
 const VITE_API_URL = import.meta.env.VITE_API_URL;
-const IMAGE_BASE_URL = VITE_API_URL ? VITE_API_URL.replace("/api", "") : "http://localhost:5001";
+const IMAGE_BASE_URL = VITE_API_URL ? VITE_API_URL.replace("/api", "") : "http://12.0.0.10:5001";
 // مكونات فرعية
 import EmployeeDocuments from "../components/EmployeeDocuments";
 import EmployeeIncidents from "../pages/EmployeeIncidents";

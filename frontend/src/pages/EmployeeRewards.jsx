@@ -112,19 +112,17 @@ export default function EmployeeRewards() {
           </div>
           <div class="content">
             <div class="row"><strong>نوع المكافأة:</strong> ${getRewardLabel(
-              reward.type
-            )}</div>
-            ${
-              reward.decisionNumber
-                ? `<div class="row"><strong>رقم القرار:</strong> ${reward.decisionNumber}</div>`
-                : ""
-            }
+      reward.type
+    )}</div>
+            ${reward.decisionNumber
+        ? `<div class="row"><strong>رقم القرار:</strong> ${reward.decisionNumber}</div>`
+        : ""
+      }
             <div class="row"><strong>التاريخ:</strong> ${new Date(
-              reward.date
-            ).toLocaleDateString("ar-SY")}</div>
-            <div class="row"><strong>التفاصيل:</strong> ${
-              reward.description || "-"
-            }</div>
+        reward.date
+      ).toLocaleDateString("ar-SY")}</div>
+            <div class="row"><strong>التفاصيل:</strong> ${reward.description || "-"
+      }</div>
           </div>
           <script>window.print();</script>
         </body>
@@ -165,19 +163,20 @@ export default function EmployeeRewards() {
           {rewards.map((reward) => (
             <div
               key={reward._id}
-              className="bg-white border rounded-lg p-4 flex justify-between items-center shadow-sm"
+              className="bg-slate-800/70 border border-slate-700/50 rounded-xl p-5 flex justify-between items-center shadow-lg backdrop-blur-sm hover:border-slate-600/50 transition-all duration-300"
             >
               <div>
-                <p className="font-bold text-lg">
+                <p className="font-bold text-lg text-amber-500 mb-1">
                   {getRewardLabel(reward.type)}
                 </p>
-                <p className="text-gray-600">{reward.description}</p>
+                <p className="text-slate-200 text-sm mb-2 leading-relaxed">{reward.description}</p>
                 {reward.decisionNumber && (
-                  <p className="text-sm text-gray-600">
-                    رقم القرار: {reward.decisionNumber}
+                  <p className="text-[13px] text-slate-400 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500/50" />
+                    رقم القرار: <span className="text-slate-300">{reward.decisionNumber}</span>
                   </p>
                 )}
-                <p className="text-sm text-gray-500">
+                <p className="text-[12px] text-slate-500 mt-1 italic">
                   {new Date(reward.date).toLocaleDateString("ar-SY")}
                 </p>
                 {reward.file && (
@@ -185,7 +184,7 @@ export default function EmployeeRewards() {
                     href={`${import.meta.env.VITE_API_URL}/${reward.file}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-blue-600 text-sm flex items-center gap-1 mt-1 hover:underline"
+                    className="text-blue-400 text-sm font-medium flex items-center gap-2 mt-3 hover:text-blue-300 transition-colors"
                   >
                     <FileText size={14} /> عرض الملف المرفق
                   </a>
@@ -220,7 +219,7 @@ export default function EmployeeRewards() {
           <div className="bg-slate-800 rounded-xl p-6 w-full max-w-md border border-slate-700 shadow-2xl">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-xl font-bold text-slate-100">إضافة مكافأة جديدة</h3>
-              <button 
+              <button
                 onClick={() => setShowModal(false)}
                 className="text-slate-400 hover:text-slate-100 transition-colors"
               >

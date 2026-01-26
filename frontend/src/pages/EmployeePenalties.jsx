@@ -126,14 +126,13 @@ export default function EmployeePenalties() {
           <div class="content">
             <div class="row"><strong>نوع العقوبة:</strong> ${penalty.type}</div>
             <div class="row"><strong>السبب:</strong> ${penalty.reason}</div>
-            ${
-              penalty.decisionNumber
-                ? `<div class="row"><strong>رقم القرار:</strong> ${penalty.decisionNumber}</div>`
-                : ""
-            }
+            ${penalty.decisionNumber
+        ? `<div class="row"><strong>رقم القرار:</strong> ${penalty.decisionNumber}</div>`
+        : ""
+      }
             <div class="row"><strong>التاريخ:</strong> ${new Date(
-              penalty.date
-            ).toLocaleDateString("ar-SY")}</div>
+        penalty.date
+      ).toLocaleDateString("ar-SY")}</div>
           </div>
           <script>window.print();</script>
         </body>
@@ -163,17 +162,18 @@ export default function EmployeePenalties() {
           {penalties.map((penalty) => (
             <div
               key={penalty._id}
-              className="bg-white border rounded-lg p-4 flex justify-between items-center shadow-sm"
+              className="bg-slate-800/70 border border-slate-700/50 rounded-xl p-5 flex justify-between items-center shadow-lg backdrop-blur-sm hover:border-slate-600/50 transition-all duration-300"
             >
               <div>
-                <p className="font-bold text-lg text-red-600">{penalty.type}</p>
-                <p className="text-gray-800">{penalty.reason}</p>
+                <p className="font-bold text-lg text-rose-500 mb-1">{penalty.type}</p>
+                <p className="text-slate-200 text-sm mb-2 leading-relaxed">{penalty.reason}</p>
                 {penalty.decisionNumber && (
-                  <p className="text-sm text-gray-600">
-                    رقم القرار: {penalty.decisionNumber}
+                  <p className="text-[13px] text-slate-400 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500/50" />
+                    رقم القرار: <span className="text-slate-300">{penalty.decisionNumber}</span>
                   </p>
                 )}
-                <p className="text-sm text-gray-500">
+                <p className="text-[12px] text-slate-500 mt-1 italic">
                   {new Date(penalty.date).toLocaleDateString("ar-SY")}
                 </p>
                 {penalty.file && (
@@ -181,7 +181,7 @@ export default function EmployeePenalties() {
                     href={`${import.meta.env.VITE_API_URL}/${penalty.file}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-blue-600 text-sm flex items-center gap-1 mt-1 hover:underline"
+                    className="text-blue-400 text-sm font-medium flex items-center gap-2 mt-3 hover:text-blue-300 transition-colors"
                   >
                     <FileText size={14} /> عرض الملف المرفق
                   </a>
@@ -223,7 +223,7 @@ export default function EmployeePenalties() {
               <h3 className="text-xl font-bold text-slate-100">
                 {editingId ? "تعديل عقوبة" : "إضافة عقوبة جديدة"}
               </h3>
-              <button 
+              <button
                 onClick={closeModal}
                 className="text-slate-400 hover:text-slate-100 transition-colors"
               >

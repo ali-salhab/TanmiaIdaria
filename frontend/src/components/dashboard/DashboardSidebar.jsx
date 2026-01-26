@@ -136,10 +136,9 @@ export default function DashboardSidebar({
           shadow-[0_0_30px_rgba(0,0,0,0.55)]
           z-50
           transition-all duration-300 ease-in-out
-          ${
-            isOpen
-              ? "translate-x-0"
-              : "translate-x-full lg:translate-x-0"
+          ${isOpen
+            ? "translate-x-0"
+            : "translate-x-full lg:translate-x-0"
           }
         `}
         dir="rtl"
@@ -180,10 +179,9 @@ export default function DashboardSidebar({
                 transform hover:scale-[1.02]
                 font-medium text-sm
                 border border-transparent
-                ${
-                  isActive(item.to)
-                    ? "bg-amber-500/15 text-amber-300 shadow-lg shadow-amber-500/10 border-amber-500/40"
-                    : "text-slate-200 hover:bg-slate-800 hover:text-amber-300 hover:border-slate-700"
+                ${isActive(item.to)
+                  ? "bg-amber-500/15 text-amber-300 shadow-lg shadow-amber-500/10 border-amber-500/40"
+                  : "text-slate-200 hover:bg-slate-800 hover:text-amber-300 hover:border-slate-700"
                 }
                 ${isMinimized ? 'px-0 flex justify-center' : ''}
               `}
@@ -214,6 +212,12 @@ export default function DashboardSidebar({
             <LogOut className="w-4 h-4" />
             {!isMinimized && <span>تسجيل الخروج</span>}
           </button>
+
+          <div className="pt-2 text-center border-t border-slate-800/50 mt-2">
+            <span className="text-[10px] text-slate-500 font-medium tracking-wide uppercase">
+              النسخة 1.0.0
+            </span>
+          </div>
         </div>
       </aside>
 

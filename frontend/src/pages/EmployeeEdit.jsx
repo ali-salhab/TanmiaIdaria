@@ -264,7 +264,7 @@ export default function EmployeeEdit() {
     >
       {/* 🪪 رأس الصفحة */}
       {!isNew && (
-        <div className="bg-slate-800/70 shadow-xl border border-slate-700 p-6 flex flex-col md:flex-row gap-6 items-start rounded-2xl backdrop-blur-sm">
+        <div className="bg-slate-800/70 shadow-xl border border-slate-700 p-6 flex flex-col md:flex-row gap-6 items-start rounded-2xl backdrop-blur-sm print:hidden">
           <div className="flex flex-col items-center md:w-1/3">
             <img
               src={
@@ -331,14 +331,14 @@ export default function EmployeeEdit() {
       {/* ✅ التبويبات */}
       <div className="mt-8">
         {!isNew && (
-          <div className="flex flex-wrap gap-3 border-b border-slate-800 pb-2">
+          <div className="flex flex-wrap gap-3 border-b border-slate-800 pb-2 print:hidden">
             {accessibleTabs.map((tab) => (
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
                 className={`px-4 py-2 rounded-t-lg text-sm font-semibold transition-colors ${activeTab === tab.key
-                    ? "bg-amber-500 text-slate-900 shadow"
-                    : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+                  ? "bg-amber-500 text-slate-900 shadow"
+                  : "bg-slate-800 text-slate-300 hover:bg-slate-700"
                   }`}
               >
                 {tab.label}

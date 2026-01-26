@@ -6,7 +6,7 @@ import toast from "react-hot-toast";
 import { checkPermission } from "../utils/permissionHelper";
 import { useAuth } from "../hooks/useAuth";
 
-export default function EmployeePenalties() {
+export default function EmployeePenalties({ employee }) {
   const { id } = useParams();
   const { user } = useAuth();
   const [penalties, setPenalties] = useState([]);

@@ -410,27 +410,27 @@ export default function EmployeeEdit() {
           {!isNew &&
             activeTab === "incidents" &&
             accessibleTabs.some((tab) => tab.key === "incidents") && (
-              <EmployeeIncidents />
+              <EmployeeIncidents employee={employee} />
             )}
           {!isNew &&
             activeTab === "vacations" &&
             accessibleTabs.some((tab) => tab.key === "vacations") && (
-              <EmployeeVacations />
+              <EmployeeVacations employee={employee} />
             )}
           {!isNew &&
             activeTab === "Penalties" &&
             accessibleTabs.some((tab) => tab.key === "Penalties") && (
-              <EmployeePenalties />
+              <EmployeePenalties employee={employee} />
             )}
           {!isNew &&
             activeTab === "rewards" &&
             accessibleTabs.some((tab) => tab.key === "rewards") && (
-              <EmployeeRewards />
+              <EmployeeRewards employee={employee} />
             )}
           {!isNew &&
             activeTab === "courses" &&
             accessibleTabs.some((tab) => tab.key === "courses") && (
-              <EmployeeCourses />
+              <EmployeeCourses employee={employee} />
             )}
         </div>
       </div>

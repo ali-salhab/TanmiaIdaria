@@ -6,7 +6,7 @@ import toast from "react-hot-toast";
 import { checkPermission } from "../utils/permissionHelper";
 import { useAuth } from "../hooks/useAuth";
 
-export default function EmployeeCourses() {
+export default function EmployeeCourses({ employee }) {
   const { id } = useParams();
   const { user } = useAuth();
   const [courses, setCourses] = useState([]);
@@ -87,31 +87,140 @@ export default function EmployeeCourses() {
     printWindow.document.write(`
       <html dir="rtl">
         <head>
-          <title>طباعة الدورة</title>
+          <title>وثيقة دورة - ${employee?.fullName || 'موظف'}</title>
           <style>
-            body { font-family: 'Arial', sans-serif; padding: 20px; text-align: center; }
-            .header { margin-bottom: 30px; }
-            .content { border: 1px solid #000; padding: 20px; border-radius: 10px; }
-            .row { margin: 10px 0; font-size: 18px; }
+            @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
+            body { 
+              font-family: 'Tajawal', sans-serif; 
+              padding: 40px; 
+              color: #1e293b;
+              background: #fff;
+              line-height: 1.6;
+            }
+            .gov-header {
+              font-size: 14px;
+              color: #475569;
+              margin-bottom: 30px;
+              line-height: 1.8;
+            }
+            .header { 
+              text-align: center; 
+              margin-bottom: 50px; 
+              border-bottom: 2px solid #e2e8f0;
+              padding-bottom: 20px;
+            }
+            .doc-title { 
+              font-size: 32px; 
+              font-weight: 700; 
+              color: #0f172a;
+              margin: 10px 0;
+            }
+            .personal-info {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 20px;
+              background: #f8fafc;
+              padding: 25px;
+              border-radius: 12px;
+              margin-bottom: 40px;
+              border: 1px solid #e2e8f0;
+            }
+            .info-item {
+              font-size: 16px;
+            }
+            .info-label {
+              font-weight: 700;
+              color: #64748b;
+              margin-left: 10px;
+            }
+            .info-value {
+              color: #1e293b;
+              font-weight: 500;
+            }
+            .content-box { 
+              border: 1px solid #e2e8f0; 
+              padding: 30px; 
+              border-radius: 15px; 
+              background: #fff;
+            }
+            .row { 
+              margin: 20px 0; 
+              font-size: 19px; 
+              display: flex;
+              gap: 15px;
+              align-items: flex-start;
+            }
+            .row strong {
+              color: #334155;
+              min-width: 140px;
+              display: inline-block;
+            }
+            .footer {
+              margin-top: 80px;
+              display: flex;
+              justify-content: space-between;
+              padding: 0 60px;
+            }
+            .signature-box {
+              text-align: center;
+            }
+            .sig-title {
+              font-weight: 700;
+              margin-bottom: 50px;
+              font-size: 18px;
+            }
+            @media print {
+              body { padding: 0; }
+              .personal-info { border: 1px solid #cbd5e1; background: #f8fafc !important; -webkit-print-color-adjust: exact; }
+              .header { border-bottom-color: #94a3b8; }
+            }
           </style>
         </head>
         <body>
+          <div class="gov-header">الجمهورية العربية السورية<br/>الأمانة العامة لمحافظة طرطوس<br/>مديرية الموارد البشرية</div>
+          
           <div class="header">
-            <h1>وثيقة دورة تدريبية</h1>
+            <h1 class="doc-title">وثيقة دورة تدريبية</h1>
           </div>
-          <div class="content">
-            <div class="row"><strong>اسم الدورة:</strong> ${course.name}</div>
-            <div class="row"><strong>المدة:</strong> ${course.duration}</div>
-            ${
-              course.decisionNumber
-                ? `<div class="row"><strong>رقم القرار:</strong> ${course.decisionNumber}</div>`
-                : ""
-            }
-            <div class="row"><strong>تاريخ البداية:</strong> ${new Date(
-              course.startDate
-            ).toLocaleDateString("ar-SY")}</div>
+
+          <div class="personal-info">
+            <div class="info-item">
+              <span class="info-label">اسم الموظف:</span>
+              <span class="info-value">${employee?.fullName || "-"}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">الرقم الذاتي:</span>
+              <span class="info-value">${employee?.selfNumber || "-"}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">الوظيفة الحالية:</span>
+              <span class="info-value">${employee?.currentJobTitle || "-"}</span>
+            </div>
           </div>
-          <script>window.print();</script>
+
+          <div class="content-box">
+            <div class="row"><strong>اسم الدورة:</strong> <span>${course.name}</span></div>
+            <div class="row"><strong>المدة:</strong> <span>${course.duration}</span></div>
+            ${course.decisionNumber ? `<div class="row"><strong>رقم القرار:</strong> <span>${course.decisionNumber}</span></div>` : ""}
+            <div class="row"><strong>تاريخ البداية:</strong> <span>${new Date(course.startDate).toLocaleDateString("ar-SY")}</span></div>
+          </div>
+
+          <div class="footer">
+            <div class="signature-box">
+              <div class="sig-title">توقيع الموظف المختص</div>
+              <div>........................</div>
+            </div>
+            <div class="signature-box">
+              <div class="sig-title">ختم الدائرة</div>
+              <div>........................</div>
+            </div>
+          </div>
+
+          <script>
+            window.onload = () => {
+              window.print();
+            };
+          </script>
         </body>
       </html>
     `);
@@ -120,38 +229,39 @@ export default function EmployeeCourses() {
 
   return (
     <div className="p-4">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold">سجل الدورات التدريبية</h2>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-xl font-bold text-slate-100">سجل الدورات التدريبية</h2>
         <button
           onClick={() => setShowModal(true)}
-          className="bg-purple-600 text-white px-4 py-2 rounded flex items-center gap-2 hover:bg-purple-700"
+          className="bg-purple-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-purple-700 transition shadow-lg shadow-purple-900/20"
         >
           <Plus size={18} /> إضافة دورة
         </button>
       </div>
 
       {loading ? (
-        <p className="text-center">جاري التحميل...</p>
+        <p className="text-center text-slate-400 py-10">جاري التحميل...</p>
       ) : courses.length === 0 ? (
-        <p className="text-center text-gray-500">لا توجد دورات مسجلة.</p>
+        <p className="text-center text-slate-500 py-10 border border-dashed border-slate-700 rounded-xl">لا توجد دورات مسجلة.</p>
       ) : (
         <div className="grid gap-4">
           {courses.map((course) => (
             <div
               key={course._id}
-              className="bg-white border rounded-lg p-4 flex justify-between items-center shadow-sm"
+              className="bg-slate-800/70 border border-slate-700/50 rounded-xl p-5 flex justify-between items-center shadow-lg backdrop-blur-sm hover:border-slate-600/50 transition-all duration-300"
             >
               <div>
-                <p className="font-bold text-lg text-purple-700">
+                <p className="font-bold text-lg text-purple-400 mb-1">
                   {course.name}
                 </p>
-                <p className="text-gray-600">المدة: {course.duration}</p>
+                <p className="text-slate-300 text-sm mb-2 leading-relaxed">المدة: {course.duration}</p>
                 {course.decisionNumber && (
-                  <p className="text-sm text-gray-600">
-                    رقم القرار: {course.decisionNumber}
+                  <p className="text-[13px] text-slate-400 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-purple-500/50" />
+                    رقم القرار: <span className="text-slate-300">{course.decisionNumber}</span>
                   </p>
                 )}
-                <p className="text-sm text-gray-500">
+                <p className="text-[12px] text-slate-500 mt-1 italic">
                   تاريخ البداية:{" "}
                   {new Date(course.startDate).toLocaleDateString("ar-SY")}
                 </p>
@@ -160,7 +270,7 @@ export default function EmployeeCourses() {
                     href={`${import.meta.env.VITE_API_URL}/${course.file}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-blue-600 text-sm flex items-center gap-1 mt-1 hover:underline"
+                    className="text-blue-400 text-sm font-medium flex items-center gap-2 mt-3 hover:text-blue-300 transition-colors"
                   >
                     <FileText size={14} /> عرض الملف المرفق
                   </a>
@@ -193,7 +303,7 @@ export default function EmployeeCourses() {
           <div className="bg-slate-800 rounded-xl p-6 w-full max-w-md border border-slate-700 shadow-2xl">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-xl font-bold text-slate-100">إضافة دورة جديدة</h3>
-              <button 
+              <button
                 onClick={() => setShowModal(false)}
                 className="text-slate-400 hover:text-slate-100 transition-colors"
               >

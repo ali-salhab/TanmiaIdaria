@@ -116,25 +116,39 @@ export default function EmployeePenalties({ employee }) {
             @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
             body { 
               font-family: 'Tajawal', sans-serif; 
-              padding: 40px; 
+              padding: 20px 40px; 
               color: #1e293b;
               background: #fff;
               line-height: 1.6;
             }
             .gov-header {
-              font-size: 14px;
-              color: #475569;
+              display: flex;
+              justify-content: space-between;
+              align-items: flex-start;
               margin-bottom: 30px;
+            }
+            .gov-right {
+              text-align: right;
+              font-size: 14px;
+              font-weight: 700;
               line-height: 1.8;
+            }
+            .gov-logo {
+              text-align: center;
+              flex: 1;
+            }
+            .gov-logo img {
+              height: 100px;
+              width: auto;
             }
             .header { 
               text-align: center; 
-              margin-bottom: 50px; 
-              border-bottom: 2px solid #e2e8f0;
+              margin-bottom: 40px; 
+              border-bottom: 2px solid #334155;
               padding-bottom: 20px;
             }
             .doc-title { 
-              font-size: 32px; 
+              font-size: 28px; 
               font-weight: 700; 
               color: #0f172a;
               margin: 10px 0;
@@ -142,15 +156,15 @@ export default function EmployeePenalties({ employee }) {
             .personal-info {
               display: grid;
               grid-template-columns: 1fr 1fr;
-              gap: 20px;
+              gap: 15px;
               background: #f8fafc;
-              padding: 25px;
-              border-radius: 12px;
-              margin-bottom: 40px;
+              padding: 20px;
+              border-radius: 10px;
+              margin-bottom: 30px;
               border: 1px solid #e2e8f0;
             }
             .info-item {
-              font-size: 16px;
+              font-size: 15px;
             }
             .info-label {
               font-weight: 700;
@@ -163,45 +177,57 @@ export default function EmployeePenalties({ employee }) {
             }
             .content-box { 
               border: 1px solid #e2e8f0; 
-              padding: 30px; 
-              border-radius: 15px; 
+              padding: 25px; 
+              border-radius: 12px; 
               background: #fff;
             }
             .row { 
-              margin: 20px 0; 
-              font-size: 19px; 
+              margin: 15px 0; 
+              font-size: 18px; 
               display: flex;
               gap: 15px;
               align-items: flex-start;
             }
             .row strong {
               color: #334155;
-              min-width: 140px;
+              min-width: 130px;
               display: inline-block;
             }
             .footer {
-              margin-top: 80px;
+              margin-top: 60px;
               display: flex;
               justify-content: space-between;
-              padding: 0 60px;
+              padding: 0 50px;
             }
             .signature-box {
               text-align: center;
             }
             .sig-title {
               font-weight: 700;
-              margin-bottom: 50px;
-              font-size: 18px;
+              margin-bottom: 60px;
+              font-size: 17px;
             }
             @media print {
               body { padding: 0 !important; }
               .personal-info { border: 1px solid #cbd5e1; background: #f8fafc !important; -webkit-print-color-adjust: exact; }
-              .header { border-bottom-color: #94a3b8; }
+              .header { border-bottom-color: #1e293b; }
             }
           </style>
         </head>
         <body>
-          <div class="gov-header">الجمهورية العربية السورية<br/>الأمانة العامة لمحافظة طرطوس<br/>مديرية الموارد البشرية</div>
+          <div class="gov-header">
+            <div class="gov-right">
+              الجمهورية العربية السورية<br/>
+              وزارة الإدارة المحلية والبيئة<br/>
+              محافظة طرطوس<br/>
+              الأمانة العامة<br/>
+              مديرية التنمية الإدارية
+            </div>
+            <div class="gov-logo">
+              <img src="/src/assets/syria_logo.svg" alt="الشعار الرسمي" />
+            </div>
+            <div style="width: 180px;"></div>
+          </div>
           
           <div class="header">
             <h1 class="doc-title">وثيقة عقوبة</h1>
@@ -241,7 +267,7 @@ export default function EmployeePenalties({ employee }) {
           </div>
 
           <script>
-            window.onload = () => { window.print(); };
+            window.onload = () => { setTimeout(() => { window.print(); }, 200); };
           </script>
         </body>
       </html>

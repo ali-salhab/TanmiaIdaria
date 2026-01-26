@@ -422,97 +422,172 @@ export default function EmployeeVacations() {
     };
   };
 
-  const handlePrintRequest = async (vacation) => {
-    try {
-      await API.post(`/vacations/${vacation._id || vacation.id}/print-log`);
-    } catch (error) {
-      console.error("Failed to log print action", error);
-    }
-
+  const handlePrintIndividual = (v) => {
     const printWindow = window.open("", "_blank");
-    const entitlement = getEntitlement();
-
-    const htmlContent = `
+    printWindow.document.write(`
       <html dir="rtl">
         <head>
-          <title>طلب إجازة</title>
+          <title>وثيقة إجازة - ${employee?.fullName || 'موظف'}</title>
           <style>
-            body { font-family: 'Arial', sans-serif; padding: 40px; direction: rtl; }
-            .header { display: flex; justify-content: space-between; margin-bottom: 40px; }
-            .header-right, .header-left { text-align: center; font-weight: bold; }
-            .logo { text-align: center; flex-grow: 1; }
-            .title { text-align: center; font-weight: bold; font-size: 24px; margin: 40px 0; }
-            .content { font-size: 18px; line-height: 2; text-align: right; margin-bottom: 60px; }
-            .footer { display: flex; justify-content: space-between; margin-top: 60px; font-weight: bold; }
-            .date { text-align: center; margin: 20px 0; }
-            .signature-section { display: flex; flex-direction: column; gap: 40px; margin-top: 40px; }
-            .signature-row { display: flex; justify-content: space-between; }
+            @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
+            body { 
+              font-family: 'Tajawal', sans-serif; 
+              padding: 20px 40px; 
+              color: #1e293b;
+              background: #fff;
+              line-height: 1.6;
+            }
+            .gov-header {
+              display: flex;
+              justify-content: space-between;
+              align-items: flex-start;
+              margin-bottom: 30px;
+            }
+            .gov-right {
+              text-align: right;
+              font-size: 14px;
+              font-weight: 700;
+              line-height: 1.8;
+            }
+            .gov-logo {
+              text-align: center;
+              flex: 1;
+            }
+            .gov-logo img {
+              height: 100px;
+              width: auto;
+            }
+            .header { 
+              text-align: center; 
+              margin-bottom: 40px; 
+              border-bottom: 2px solid #334155;
+              padding-bottom: 20px;
+            }
+            .doc-title { 
+              font-size: 28px; 
+              font-weight: 700; 
+              color: #0f172a;
+              margin: 10px 0;
+            }
+            .personal-info {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 15px;
+              background: #f8fafc;
+              padding: 20px;
+              border-radius: 10px;
+              margin-bottom: 30px;
+              border: 1px solid #e2e8f0;
+            }
+            .info-item {
+              font-size: 15px;
+            }
+            .info-label {
+              font-weight: 700;
+              color: #64748b;
+              margin-left: 10px;
+            }
+            .info-value {
+              color: #1e293b;
+              font-weight: 500;
+            }
+            .content-box { 
+              border: 1px solid #e2e8f0; 
+              padding: 25px; 
+              border-radius: 12px; 
+              background: #fff;
+            }
+            .row { 
+              margin: 15px 0; 
+              font-size: 18px; 
+              display: flex;
+              gap: 15px;
+              align-items: flex-start;
+            }
+            .row strong {
+              color: #334155;
+              min-width: 130px;
+              display: inline-block;
+            }
+            .footer {
+              margin-top: 60px;
+              display: flex;
+              justify-content: space-between;
+              padding: 0 50px;
+            }
+            .signature-box {
+              text-align: center;
+            }
+            .sig-title {
+              font-weight: 700;
+              margin-bottom: 60px;
+              font-size: 17px;
+            }
+            @media print {
+              body { padding: 0 !important; }
+              .personal-info { border: 1px solid #cbd5e1; background: #f8fafc !important; -webkit-print-color-adjust: exact; }
+              .header { border-bottom-color: #1e293b; }
+            }
           </style>
         </head>
         <body>
+          <div class="gov-header">
+            <div class="gov-right">
+              الجمهورية العربية السورية<br/>
+              وزارة الإدارة المحلية والبيئة<br/>
+              محافظة طرطوس<br/>
+              الأمانة العامة<br/>
+              مديرية التنمية الإدارية
+            </div>
+            <div class="gov-logo">
+              <img src="/src/assets/syria_logo.svg" alt="الشعار الرسمي" />
+            </div>
+            <div style="width: 180px;"></div>
+          </div>
+          
           <div class="header">
-            <div class="header-right">
-              <p>الجمهورية العربية السورية</p>
-              <p>وزارة الإدارة المحلية والبيئة</p>
-              <p>محافظة طرطوس</p>
+            <h1 class="doc-title">وثيقة إجازة</h1>
+          </div>
+
+          <div class="personal-info">
+            <div class="info-item">
+              <span class="info-label">اسم الموظف:</span>
+              <span class="info-value">${employee?.fullName || "-"}</span>
             </div>
-            <div class="logo">
-              <!-- Eagle Logo Placeholder -->
-              <svg width="100" height="100" viewBox="0 0 100 100">
-                 <text x="50%" y="50%" text-anchor="middle" dy=".3em" font-size="20">🦅</text>
-              </svg>
+            <div class="info-item">
+              <span class="info-label">الرقم الذاتي:</span>
+              <span class="info-value">${employee?.selfNumber || "-"}</span>
             </div>
-            <div class="header-left">
-              <p>Syrian Arab Republic</p>
-              <p>Ministry of Local Administration and Environment</p>
-              <p>Tartous Governorate</p>
+            <div class="info-item">
+              <span class="info-label">الوظيفة الحالية:</span>
+              <span class="info-value">${employee?.currentJobTitle || "-"}</span>
             </div>
           </div>
 
-          <div class="title">السيد محافظ طرطوس</div>
-
-          <div class="content">
-            <p>
-              الاسم: ....................${employee?.fullName || ""
-      }.................... العامل لدى ....................${employee?.workLocation || "المحافظة"
-      }....................
-            </p>
-            <p>
-              أرجو الموافقة على منحي إجازة إدارية لمدة ..........${vacation.days || ""
-      }.......... اعتباراً من يوم ..........${new Date(
-        vacation.startDate
-      ).toLocaleDateString("ar-SY")}..........
-            </p>
-            <p>
-              على أن تحسب من إجازاتي الإدارية السنوية لعام ${new Date().getFullYear()}.
-            </p>
+          <div class="content-box">
+            <div class="row"><strong>نوع الإجازة:</strong> <span>${v.type}</span></div>
+            <div class="row"><strong>المدة:</strong> <span>${v.hours ? v.hours + ' ساعة' : v.days + ' يوم'}</span></div>
+            <div class="row"><strong>تاريخ البداية:</strong> <span>${new Date(v.startDate).toLocaleDateString("ar-SY")}</span></div>
+            ${v.endDate ? `<div class="row"><strong>تاريخ النهاية:</strong> <span>${new Date(v.endDate).toLocaleDateString("ar-SY")}</span></div>` : ""}
           </div>
 
-          <div class="date">
-            طرطوس في: ${new Date().toLocaleDateString("ar-SY")}
-          </div>
-
-          <div class="signature-section">
-            <div class="signature-row">
-              <div>مدير التنمية الإدارية .................... الإجازة المطلوبة</div>
+          <div class="footer">
+            <div class="signature-box">
+              <div class="sig-title">توقيع الموظف المختص</div>
+              <div>........................</div>
             </div>
-            <div class="signature-row">
-              <div>الرئيس المباشر</div>
-            </div>
-            <div class="signature-row" style="margin-top: 40px;">
-              <div>أمين عام المحافظة</div>
-            </div>
-            <div class="signature-row">
-              <div>أ. ريم مصطفى صالح</div>
+            <div class="signature-box">
+              <div class="sig-title">ختم الدائرة</div>
+              <div>........................</div>
             </div>
           </div>
 
-          <script>window.print();</script>
+          <script>
+            window.onload = () => { setTimeout(() => { window.print(); }, 200); };
+          </script>
         </body>
       </html>
-    `;
-
-    printWindow.document.write(htmlContent);
+    `);
     printWindow.document.close();
   };
 
@@ -532,32 +607,93 @@ export default function EmployeeVacations() {
   };
 
   const handlePrint = () => {
-    const printWindow = window.open("", "", "width=800,height=600");
+    const printWindow = window.open("", "_blank");
     const htmlContent = `
       <html dir="rtl">
         <head>
-          <title>إجازات الموظف</title>
+          <title>إجازات الموظف - ${employee?.fullName}</title>
           <style>
-            body { font-family: Arial, sans-serif; padding: 20px; }
-            h1 { text-align: center; margin-bottom: 20px; }
-            .employee-info { text-align: right; margin-bottom: 20px; }
-            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-            th, td { border: 1px solid #000; padding: 10px; text-align: center; }
-            th { background-color: #f0f0f0; font-weight: bold; }
-            @media print { body { margin: 0; } }
+            @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
+            body { 
+              font-family: 'Tajawal', sans-serif; 
+              padding: 20px 40px; 
+              color: #1e293b;
+              background: #fff;
+            }
+            .gov-header {
+              display: flex;
+              justify-content: space-between;
+              align-items: flex-start;
+              margin-bottom: 20px;
+              border-bottom: 2px solid black;
+              padding-bottom: 10px;
+            }
+            .gov-right {
+              text-align: right;
+              font-size: 13px;
+              font-weight: 700;
+              line-height: 1.6;
+            }
+            .gov-logo {
+              text-align: center;
+              flex: 1;
+            }
+            .gov-logo img {
+              height: 80px;
+              width: auto;
+            }
+            .doc-title { text-align: center; margin: 20px 0; font-size: 24px; font-weight: 700; }
+            .personal-info {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 10px;
+              background: #f8fafc;
+              padding: 15px;
+              border-radius: 8px;
+              margin-bottom: 20px;
+              border: 1px solid #e2e8f0;
+            }
+            .info-item { font-size: 14px; }
+            .info-label { font-weight: 700; color: #64748b; margin-left: 5px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+            th, td { border: 1px solid #000; padding: 10px; text-align: center; font-size: 13px; }
+            th { background-color: #f1f5f9; font-weight: bold; }
+            @media print { 
+              body { padding: 0 !important; }
+              .personal-info { -webkit-print-color-adjust: exact; background: #f8fafc !important; }
+              th { -webkit-print-color-adjust: exact; background: #f1f5f9 !important; }
+            }
           </style>
         </head>
         <body>
-          <h1>إجازات الموظف</h1>
-          <div class="employee-info">
-            <p><strong>رقم الموظف:</strong> ${id}</p>
+          <div class="gov-header">
+            <div class="gov-right">
+              الجمهورية العربية السورية<br/>
+              وزارة الإدارة المحلية والبيئة<br/>
+              محافظة طرطوس<br/>
+              الأمانة العامة<br/>
+              مديرية التنمية الإدارية
+            </div>
+            <div class="gov-logo">
+              <img src="/src/assets/syria_logo.svg" alt="الشعار الرسمي" />
+            </div>
+            <div style="width: 150px;"></div>
           </div>
+
+          <h1 class="doc-title">سجل إجازات الموظف</h1>
+
+          <div class="personal-info">
+            <div class="info-item"><span class="info-label">الموظف:</span><span>${employee?.fullName}</span></div>
+            <div class="info-item"><span class="info-label">الرقم الذاتي:</span><span>${employee?.selfNumber}</span></div>
+            <div class="info-item"><span class="info-label">المسمى الوظيفي:</span><span>${employee?.currentJobTitle}</span></div>
+          </div>
+
           <table>
             <thead>
               <tr>
                 <th>الترتيب</th>
                 <th>نوع الإجازة</th>
-                <th>عدد الأيام</th>
+                <th>المدة/الأيام</th>
                 <th>تاريخ البداية</th>
               </tr>
             </thead>
@@ -568,20 +704,22 @@ export default function EmployeeVacations() {
                 <tr>
                   <td>${idx + 1}</td>
                   <td>${v.type}</td>
-                  <td>${v.days}</td>
-                  <td>${v.startDate}</td>
+                  <td>${v.hours ? v.hours + ' ساعة' : v.days + ' يوم'}</td>
+                  <td>${new Date(v.startDate).toLocaleDateString("ar-SY")}</td>
                 </tr>
               `
         )
         .join("")}
             </tbody>
           </table>
+          <script>
+            window.onload = () => { setTimeout(() => { window.print(); }, 200); };
+          </script>
         </body>
       </html>
     `;
     printWindow.document.write(htmlContent);
     printWindow.document.close();
-    printWindow.print();
   };
 
   return (
@@ -590,7 +728,7 @@ export default function EmployeeVacations() {
         <h2 className="text-2xl font-bold text-slate-100">سجل الإجازات</h2>
         <div className="flex gap-2">
           <button
-            onClick={handlePrintCircular}
+            onClick={handlePrint}
             className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded flex items-center gap-2 transition"
           >
             <Printer size={18} />
@@ -708,18 +846,8 @@ export default function EmployeeVacations() {
                       </td>
                       <td className="p-2 border border-slate-700">
                         <div className="flex flex-row justify-center gap-2">
-                          {v.type === "إجازة إدارية" && (
-                            <button
-                              onClick={() => handlePrintRequest(v)}
-                              className="bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700 transition flex items-center gap-1 text-sm"
-                              title="طباعة طلب إجازة"
-                            >
-                              <Printer size={14} />
-                              طلب
-                            </button>
-                          )}
                           <button
-                            onClick={() => handlePrintPDF(v._id || v.id)}
+                            onClick={() => handlePrintIndividual(v)}
                             className="bg-orange-600 text-white px-3 py-1 rounded hover:bg-orange-700 transition flex items-center gap-1 text-sm"
                             title="طباعة مباشر"
                           >

@@ -290,9 +290,39 @@ export default function EmployeeIncidents() {
       </div>
 
       <div className="bg-slate-900/60 rounded-xl shadow-xl overflow-x-auto border border-slate-800 print:bg-white print:text-black print:border-black print:rounded-none">
-        <div className="hidden print:block text-center mb-6">
-          <h2 className="text-2xl font-bold mb-2">وقوعات وظيفية {activeTab === "internal" ? "داخلية" : "خارجية"}</h2>
-          <h3 className="text-xl">الموظف: {currentEmployee?.fullName}</h3>
+        <div className="hidden print:block">
+          <div className="official-header">
+            <div className="gov-right">
+              الجمهورية العربية السورية<br />
+              وزارة الإدارة المحلية والبيئة<br />
+              محافظة طرطوس<br />
+              الأمانة العامة<br />
+              مديرية التنمية الإدارية
+            </div>
+            <div className="gov-logo">
+              <img src="/src/assets/syria_logo.svg" alt="الشعار الرسمي" />
+            </div>
+            <div style={{ width: "150px" }}></div>
+          </div>
+
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-bold mb-4">وقوعات وظيفية {activeTab === "internal" ? "داخلية" : "خارجية"}</h2>
+          </div>
+
+          <div className="print-personal-info">
+            <div className="info-item">
+              <span className="info-label">اسم الموظف:</span>
+              <span>{currentEmployee?.fullName || "-"}</span>
+            </div>
+            <div className="info-item">
+              <span className="info-label">الرقم الذاتي:</span>
+              <span>{currentEmployee?.selfNumber || "-"}</span>
+            </div>
+            <div className="info-item">
+              <span className="info-label">الوظيفة الحالية:</span>
+              <span>{currentEmployee?.currentJobTitle || "-"}</span>
+            </div>
+          </div>
         </div>
         <table className="min-w-full border-collapse print:text-xs">
           <thead className="bg-slate-800 border-b border-slate-700 text-slate-200 print:bg-gray-100 print:text-black print:border-black">
@@ -368,21 +398,16 @@ export default function EmployeeIncidents() {
       {/* Print styles */}
       <style>{`
         @media print {
-          /* Hide everything by default */
-          body * {
-            visibility: hidden;
+          body { 
+            font-family: 'Arial', sans-serif !important; 
+            padding: 20px !important;
+            background: white !important;
           }
-          /* Specifically hide root layout elements that might leave traces */
-          #root > div > aside, 
-          #root > div > main > header,
-          .print\\:hidden {
-            display: none !important;
-          }
-          /* Show only the target container and its children */
-          .max-w-6xl, .max-w-6xl * {
-            visibility: visible;
-          }
-          /* Reset container for full-page print */
+          
+          /* Show targeted containers only */
+          body * { visibility: hidden; }
+          .max-w-6xl, .max-w-6xl * { visibility: visible; }
+          
           .max-w-6xl {
             position: absolute;
             left: 0;
@@ -394,22 +419,69 @@ export default function EmployeeIncidents() {
             border: none !important;
             padding: 0 !important;
             margin: 0 !important;
-            transform: none !important;
           }
-          /* Ensure table looks professional */
+
+          /* Official Header */
+          .official-header {
+            display: flex !important;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            width: 100%;
+            border-bottom: 2px solid black;
+            padding-bottom: 10px;
+          }
+          .gov-right {
+            text-align: right;
+            font-size: 12px;
+            font-weight: bold;
+            line-height: 1.6;
+          }
+          .gov-logo {
+            text-align: center;
+            flex: 1;
+          }
+          .gov-logo img {
+            height: 80px;
+            width: auto;
+          }
+
+          /* Personal Info for print */
+          .print-personal-info {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            background: #f8fafc !important;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd !important;
+            -webkit-print-color-adjust: exact;
+          }
+          .info-item { font-size: 14px; }
+          .info-label { font-weight: bold; margin-left: 5px; }
+
+          /* Table refined */
+          .bg-slate-900\\/60 {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+          }
           table {
             width: 100% !important;
             border-collapse: collapse !important;
-            border: 1px solid black !important;
+            border: 1.5px solid black !important;
           }
           th, td {
             border: 1px solid black !important;
             color: black !important;
-            padding: 6px !important;
-            background: transparent !important;
+            padding: 8px !important;
+            font-size: 11px !important;
           }
-          thead {
-            display: table-header-group;
+          thead { display: table-header-group; background: #eee !important; }
+          
+          .print\\:hidden, #root > div > aside, #root > div > main > header {
+            display: none !important;
           }
         }
       `}</style>

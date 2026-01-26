@@ -33,7 +33,19 @@ export const protect = async (req, res, next) => {
     next();
   } catch (err) {
     console.error("Auth error:", err);
-    res.status(401).json({ message: "Not authorized, token invalid" });
+    console.error("Auth error stack:", err?.stack);
+    if (res.headersSent) {
+      console.error("Cannot send auth error - headers already sent");
+      return;
+    }
+    try {
+      res.status(401).json({ message: "Not authorized, token invalid" });
+    } catch (jsonErr) {
+      console.error("Failed to send auth error JSON:", jsonErr);
+      if (!res.headersSent) {
+        res.status(401).send("Not authorized, token invalid");
+      }
+    }
   }
 };
 

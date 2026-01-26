@@ -198,6 +198,12 @@ export default function EmployeeEdit() {
     childrenCount: "عدد الأولاد",
     notes: "ملاحظات",
     workLocation: "مكان العمل",
+    level1: "المستوى الإداري 1",
+    level2: "المستوى الإداري 2",
+    level3: "المستوى الإداري 3",
+    level4: "المستوى الإداري 4",
+    level5: "المستوى الإداري 5",
+    level6: "المستوى الإداري 6",
   };
 
   const excluded = [
@@ -330,11 +336,10 @@ export default function EmployeeEdit() {
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
-                className={`px-4 py-2 rounded-t-lg text-sm font-semibold transition-colors ${
-                  activeTab === tab.key
+                className={`px-4 py-2 rounded-t-lg text-sm font-semibold transition-colors ${activeTab === tab.key
                     ? "bg-amber-500 text-slate-900 shadow"
                     : "bg-slate-800 text-slate-300 hover:bg-slate-700"
-                }`}
+                  }`}
               >
                 {tab.label}
               </button>
@@ -379,8 +384,8 @@ export default function EmployeeEdit() {
                         value={
                           isDate && employee[key]
                             ? new Date(employee[key])
-                                .toISOString()
-                                .split("T")[0]
+                              .toISOString()
+                              .split("T")[0]
                             : employee[key] || ""
                         }
                         onChange={handleChange}

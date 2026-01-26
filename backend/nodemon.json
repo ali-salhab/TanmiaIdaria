@@ -1,0 +1,9 @@
+{
+    "ignore": [
+        "backups/*",
+        "uploads/*",
+        "node_modules/*",
+        "debug-backup.js"
+    ],
+    "ext": "js,json"
+}

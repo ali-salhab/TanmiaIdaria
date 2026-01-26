@@ -29,6 +29,11 @@ function isWindows() {
   return os.platform() === "win32";
 }
 
+// Test endpoint to verify route is working
+router.get("/test", protect, checkPermission("settings.backup"), (req, res) => {
+  res.json({ message: "DB Recovery route is working", timestamp: new Date().toISOString() });
+});
+
 router.get(
   "/tools",
   protect,
@@ -78,22 +83,79 @@ router.post(
   "/create",
   protect,
   checkPermission("settings.backup"),
-  async (req, res) => {
+  async (req, res, next) => {
+    console.log("====================================");
+    console.log("POST /db-recovery/create - Route handler called");
+    console.log("Request received at:", new Date().toISOString());
+    console.log("====================================");
+
     try {
+      console.log("Starting backup creation...");
       const backup = await createBackup();
-      res.json({
+      console.log("Backup created successfully:", backup?.name);
+
+      if (res.headersSent) {
+        console.error("WARNING: Headers already sent");
+        return;
+      }
+
+      return res.json({
         message: "Backup created successfully",
         backup,
       });
     } catch (err) {
-      if (isSpawnNotFoundError(err)) {
-        return res.status(500).json({
-          message: getToolHelpMessage(),
-          error: "MONGODB_TOOLS_NOT_FOUND",
-        });
+      console.error("====================================");
+      console.error("ERROR in backup creation:");
+      console.error("Error:", err);
+      console.error("Error message:", err?.message);
+      console.error("Error code:", err?.code);
+      console.error("Error name:", err?.name);
+      console.error("Error stack:", err?.stack);
+      console.error("Response headers sent:", res.headersSent);
+      console.error("====================================");
+
+      if (res.headersSent) {
+        console.error("Cannot send error - headers already sent, passing to next");
+        return next(err);
       }
-      const msg = err?.message || "Failed to create backup.";
-      res.status(500).json({ message: msg });
+
+      // Determine error message and code
+      let errorMessage = "Failed to create backup.";
+      let errorCode = "BACKUP_ERROR";
+
+      if (isSpawnNotFoundError(err)) {
+        errorMessage = getToolHelpMessage();
+        errorCode = "MONGODB_TOOLS_NOT_FOUND";
+      } else if (err?.message?.includes("MONGO_URI")) {
+        errorMessage = "MONGO_URI is not set. Please configure it in backend/.env";
+        errorCode = "MONGO_URI_NOT_SET";
+      } else if (err?.message) {
+        errorMessage = String(err.message);
+        errorCode = err?.code || "BACKUP_ERROR";
+      } else if (err?.toString) {
+        errorMessage = String(err.toString());
+      }
+
+      console.log("Sending error response:", { status: 500, message: errorMessage, error: errorCode });
+
+      try {
+        const response = {
+          message: errorMessage,
+          error: errorCode
+        };
+
+        console.log("Response object:", JSON.stringify(response));
+        res.status(500).json(response);
+        console.log("Error response sent successfully");
+      } catch (jsonError) {
+        console.error("CRITICAL: Failed to send JSON response:", jsonError);
+        try {
+          res.status(500).send(errorMessage);
+        } catch (sendError) {
+          console.error("CRITICAL: Failed to send plain text response:", sendError);
+          next(err);
+        }
+      }
     }
   }
 );
@@ -148,13 +210,9 @@ router.post(
       );
       fs.mkdirSync(tmpFolder, { recursive: true });
 
-      const psArgs = [
-        "-NoProfile",
-        "-NonInteractive",
-        "-Command",
-        `Expand-Archive -Path "${zipPath}" -DestinationPath "${tmpFolder}" -Force`,
-      ];
-      await runCommand("powershell.exe", psArgs);
+      // Use tar -xf (Cross-platform and faster/more robust than PowerShell Archive)
+      const tarArgs = ["-xf", zipPath, "-C", tmpFolder];
+      await runCommand("tar.exe", tarArgs);
 
       const args = ["--uri", uri, "--dir", tmpFolder];
       if (drop) args.push("--drop");
@@ -172,7 +230,8 @@ router.post(
         });
       }
       const msg = err?.message || "Failed to restore.";
-      res.status(500).json({ message: msg });
+      console.error("❌ Backup restoration failed:", err);
+      res.status(500).json({ message: msg, error: err.toString(), stack: err.stack });
     }
   }
 );

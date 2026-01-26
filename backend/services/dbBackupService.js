@@ -160,15 +160,19 @@ export function findMongoTool(toolBaseName) {
   }
 
   // 3. Fallback to just the tool name (rely on system PATH)
+  console.log(`🔍 findMongoTool: returning '${exeName}' (fallback)`);
   return exeName;
 }
 
 export async function checkToolAvailability(toolBaseName) {
   const cmd = findMongoTool(toolBaseName);
+  console.log(`🔍 checkToolAvailability: checking '${cmd}'`);
   try {
-    await runCommand(cmd, ["--version"]);
+    const { stdout } = await runCommand(cmd, ["--version"]);
+    console.log(`✅ ${toolBaseName} is available:`, stdout.split('\n')[0]);
     return { available: true, path: cmd };
   } catch (err) {
+    console.error(`❌ ${toolBaseName} check failed:`, err.message);
     return { available: false, path: cmd, error: err.message };
   }
 }
@@ -186,6 +190,7 @@ export function getToolHelpMessage() {
 
 export function runCommand(command, args, options = {}) {
   return new Promise((resolve, reject) => {
+    console.log(`🚀 Executing command: ${command} ${args.join(" ")}`);
     const child = spawn(command, args, {
       shell: false,
       windowsHide: true,
@@ -204,11 +209,13 @@ export function runCommand(command, args, options = {}) {
     });
 
     child.on("error", (err) => {
+      console.error(`❌ Spawn error for ${command}:`, err);
       reject(err);
     });
 
     child.on("close", (code) => {
       if (code === 0) {
+        console.log(`✅ Command succeeded: ${command}`);
         resolve({ stdout, stderr });
       } else {
         const error = new Error(
@@ -226,9 +233,18 @@ async function zipDirectory(sourceDir, outZipPath) {
     const output = fs.createWriteStream(outZipPath);
     const archive = archiver("zip", { zlib: { level: 9 } });
 
-    output.on("close", () => resolve());
-    output.on("error", (err) => reject(err));
-    archive.on("error", (err) => reject(err));
+    output.on("close", () => {
+      console.log(`✅ Zip file created: ${outZipPath} (${archive.pointer()} total bytes)`);
+      resolve();
+    });
+    output.on("error", (err) => {
+      console.error("❌ Zip stream error:", err);
+      reject(err);
+    });
+    archive.on("error", (err) => {
+      console.error("❌ Archiver error:", err);
+      reject(err);
+    });
 
     archive.pipe(output);
     archive.directory(sourceDir, false);

@@ -302,11 +302,10 @@ export default function PermissionGroupsPage() {
                   key={u._id}
                   type="button"
                   onClick={() => selectUser(u)}
-                  className={`w-full text-right px-3 py-2 border-b border-slate-600 last:border-b-0 hover:bg-slate-600 transition-colors ${
-                    selectedUser?._id === u._id
+                  className={`w-full text-right px-3 py-2 border-b border-slate-600 last:border-b-0 hover:bg-slate-600 transition-colors ${selectedUser?._id === u._id
                       ? "bg-teal-900/30 text-teal-300"
                       : "text-slate-200"
-                  }`}
+                    }`}
                 >
                   <div className="font-medium">{u.username}</div>
                   <div className="text-xs text-slate-400">{u.role}</div>
@@ -420,25 +419,30 @@ export default function PermissionGroupsPage() {
                             <span>{category}</span>
                             <button
                               type="button"
-                              onClick={() => {
+                              onClick={async () => {
                                 const allIds = perms.map((p) => p._id);
                                 const allSelected = allIds.every((id) =>
                                   selectedUserDirectIds.includes(id)
                                 );
+
+                                let updated;
                                 if (allSelected) {
-                                  // Remove all
-                                  allIds.forEach((id) => {
-                                    if (selectedUserDirectIds.includes(id)) {
-                                      toggleUserDirectPermission(id);
-                                    }
-                                  });
+                                  // Remove all from this category
+                                  updated = selectedUserDirectIds.filter(id => !allIds.includes(id));
                                 } else {
-                                  // Add missing
-                                  allIds.forEach((id) => {
-                                    if (!selectedUserDirectIds.includes(id)) {
-                                      toggleUserDirectPermission(id);
-                                    }
+                                  // Add all from this category
+                                  updated = [...new Set([...selectedUserDirectIds, ...allIds])];
+                                }
+
+                                try {
+                                  await API.put(`/permissions/users/${selectedUser._id}/permissions`, {
+                                    directPermissions: updated,
                                   });
+                                  setSelectedUserDirectIds(updated);
+                                  toast.success(`تم تحديث صلاحيات فئة ${category} بنجاح`);
+                                } catch (err) {
+                                  console.error("Bulk update error:", err);
+                                  toast.error("فشل في تحديث الصلاحيات");
                                 }
                               }}
                               className="text-xs text-blue-400 hover:text-blue-300"

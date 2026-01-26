@@ -8,9 +8,6 @@ import PermissionGroup from "../models/PermissionGroup.js";
  */
 
 const checkPermission = (permissionKey) => {
-  //
-  console.log("check permission middle ware called --------------> ");
-
   return async (req, res, next) => {
     try {
       // Ensure user is authenticated
@@ -30,16 +27,7 @@ const checkPermission = (permissionKey) => {
           },
         })
         .populate("directPermissions", "key label category");
-      console.log(
-        "user object in check permisssion middleware after populate permissionGroups and permissions"
-      );
-      console.log(
-        "-------------user in check permissions middleware after populating--------------"
-      );
-      console.log(user);
-      console.log(
-        "🔻🔻🔻----------------------------------------------🍄‍🟫🍄‍🟫🍄‍🟫"
-      );
+
       if (!user) {
         return res.status(401).json({
           message: "المستخدم غير موجود",
@@ -78,10 +66,22 @@ const checkPermission = (permissionKey) => {
       });
     } catch (error) {
       console.error("❌ Permission check error:", error);
-      return res.status(500).json({
-        message: "خطأ في التحقق من الصلاحيات",
-        error: "INTERNAL_SERVER_ERROR",
-      });
+      console.error("Permission check error stack:", error?.stack);
+      if (res.headersSent) {
+        console.error("Cannot send permission error - headers already sent");
+        return next(error);
+      }
+      try {
+        return res.status(500).json({
+          message: "خطأ في التحقق من الصلاحيات",
+          error: "INTERNAL_SERVER_ERROR",
+        });
+      } catch (jsonErr) {
+        console.error("Failed to send permission error JSON:", jsonErr);
+        if (!res.headersSent) {
+          res.status(500).send("خطأ في التحقق من الصلاحيات");
+        }
+      }
     }
   };
 };

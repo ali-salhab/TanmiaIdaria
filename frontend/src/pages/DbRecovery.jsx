@@ -99,10 +99,25 @@ export default function DbRecovery() {
       }
       await fetchBackups();
     } catch (err) {
-      console.error(err);
-      toast.error(
-        err?.response?.data?.message || "فشل إنشاء النسخة الاحتياطية"
-      );
+      console.error("Backup creation error:", err);
+      const errorMessage =
+        err?.response?.data?.message ||
+        err?.message ||
+        err?.response?.statusText ||
+        "فشل إنشاء النسخة الاحتياطية";
+      toast.error(errorMessage);
+      
+      // Log full error details for debugging
+      if (err?.response?.data?.error) {
+        console.error("Error code:", err.response.data.error);
+      }
+      if (err?.response?.status === 500) {
+        console.error("Server error details:", {
+          status: err.response.status,
+          data: err.response.data,
+          config: err.config,
+        });
+      }
     } finally {
       setCreating(false);
     }

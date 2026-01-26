@@ -88,8 +88,7 @@ app.use(
       // Allow all origins from local network and localhost
       const allowedPatterns = [
         /^http:\/\/localhost:\d+$/,
-        /^http:\/\/12\.0\.0\.10:5001$/,
-        /^http:\/\/127\\.0\\.0\\.1:\d+$/,
+        /^http:\/\/127\.0\.0\.1:\d+$/,
         /^http:\/\/192\.168\.\d+\.\d+:\d+$/,
         /^http:\/\/10\.\d+\.\d+\.\d+:\d+$/,
         /^http:\/\/172\.(1[6-9]|2\d|3[01])\.\d+\.\d+:\d+$/,
@@ -163,16 +162,16 @@ app.use(
   })
 );
 
-  // Serve frontend static files (production build)
-  const frontendDistPath = path.join(__dirname, "..", "frontend", "dist");
-  app.use(express.static(frontendDistPath));
+// Serve frontend static files (production build)
+const frontendDistPath = path.join(__dirname, "..", "frontend", "dist");
+app.use(express.static(frontendDistPath));
 
-  // SPA fallback: for any non-API request, serve the frontend index.html
-  app.get("*", (req, res, next) => {
-    
-    if (req.path.startsWith("/api") || req.path.startsWith("/uploads")) return next();
-    res.sendFile(path.join(frontendDistPath, "index.html"));
-  });
+// SPA fallback: for any non-API request, serve the frontend index.html
+app.get("*", (req, res, next) => {
+
+  if (req.path.startsWith("/api") || req.path.startsWith("/uploads")) return next();
+  res.sendFile(path.join(frontendDistPath, "index.html"));
+});
 // error handler
 app.use((err, req, res, next) => {
   console.log("====================================");

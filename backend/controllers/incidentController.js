@@ -144,9 +144,8 @@ export const createIncident = async (req, res) => {
         section: "الوقوعات الوظيفية",
         action: "create",
         title: "تم إنشاء وقوع وظيفي  جديد",
-        message: `تم إنشاء وقوع وظيفي جديد للموظف: ${
-          employee?.fullName || "غير محدد"
-        }`,
+        message: `تم إنشاء وقوع وظيفي جديد للموظف: ${employee?.fullName || "غير محدد"
+          }`,
         employeeName: employee?.fullName,
         department: employee?.level4 || employee?.currentJobTitle || null,
       });
@@ -227,9 +226,8 @@ export const updateIncident = async (req, res) => {
         section: "incidents",
         action: "update",
         title: "تم تحديث بيانات حادث",
-        message: `تم تحديث بيانات الحادث للموظف: ${
-          employee?.fullName || "غير محدد"
-        }`,
+        message: `تم تحديث بيانات الحادث للموظف: ${employee?.fullName || "غير محدد"
+          }`,
         employeeName: employee?.fullName,
         department: employee?.level4 || employee?.currentJobTitle || null,
       });
@@ -239,5 +237,89 @@ export const updateIncident = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
+  }
+};
+
+// GET /api/incidents/:employeeId/export-internal
+export const exportInternalIncidents = async (req, res) => {
+  try {
+    const { employeeId } = req.params;
+
+    // 1️⃣ Fetch employee & related internal incidents
+    const employee = await Employee.findById(employeeId);
+    if (!employee) return res.status(404).send("Employee not found");
+
+    const incidents = await Incident.find({
+      employee: employeeId,
+      isInternal: true,
+    }).sort({ start_date: 1 });
+
+    // 2️⃣ Create workbook with ExcelJS
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet("الوقوعات الداخلية");
+
+    // Configure sheet (RTL)
+    sheet.views = [{ rightToLeft: true }];
+
+    // 3️⃣ Define headers
+    sheet.columns = [
+      { header: "مركز العمل", key: "work_center", width: 20 },
+      { header: "المسمى الوظيفي", key: "job_title", width: 20 },
+      { header: "نوع الوظيفة", key: "job_type", width: 20 },
+      { header: "المديرية", key: "directorate", width: 20 },
+      { header: "الدائرة", key: "department", width: 20 },
+      { header: "الشعبة", key: "divisionName", width: 20 },
+      { header: "الأجر", key: "salary", width: 15 },
+      { header: "الفئة", key: "category", width: 15 },
+      { header: "تاريخ المباشرة", key: "start_date", width: 15 },
+      { header: "السبب", key: "reason", width: 20 },
+    ];
+
+    // Style headers
+    sheet.getRow(1).font = { bold: true };
+    sheet.getRow(1).fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FFD3D3D3" },
+    };
+
+    // 4️⃣ Add data
+    const formatDate = (date) => {
+      if (!date) return "-";
+      const d = new Date(date);
+      return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;
+    };
+
+    incidents.forEach((inc) => {
+      sheet.addRow({
+        work_center: inc.work_center,
+        job_title: inc.job_title,
+        job_type: inc.job_type,
+        directorate: inc.directorate || "-",
+        department: inc.department || "-",
+        divisionName: inc.divisionName || "-",
+        salary: inc.salary,
+        category: inc.category,
+        start_date: formatDate(inc.start_date),
+        reason: inc.reason || "-",
+      });
+    });
+
+    // 5️⃣ Save and send output
+    const safeName = employee.fullName.replace(/[<>:"/\\|?*]+/g, "_");
+    const outputPath = path.join(
+      path.dirname(fileURLToPath(import.meta.url)),
+      `وقوعات_داخلية_${safeName}.xlsx`
+    );
+
+    await workbook.xlsx.writeFile(outputPath);
+
+    res.download(outputPath, (err) => {
+      if (err) console.error("Download error:", err);
+      if (fs.existsSync(outputPath)) fs.unlinkSync(outputPath);
+    });
+  } catch (error) {
+    console.error("❌ Error generating internal incidents Excel:", error);
+    res.status(500).send("Server error while generating Excel file");
   }
 };

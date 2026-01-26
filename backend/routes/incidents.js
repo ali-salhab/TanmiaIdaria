@@ -7,6 +7,7 @@ import {
   updateIncident,
   getIncidentsByEmployee,
   generateEmployeeCV,
+  exportInternalIncidents,
 } from "../controllers/incidentController.js";
 
 const router = express.Router();
@@ -16,6 +17,12 @@ router.get(
   protect,
   checkPermission("incidents.generate_cv"),
   generateEmployeeCV
+);
+router.get(
+  "/:employeeId/export-internal",
+  protect,
+  checkPermission("incidents.generate_cv"),
+  exportInternalIncidents
 );
 router.delete(
   "/:id/",

@@ -138,6 +138,7 @@ export default function EmployeeIncidents() {
         registrar_signature: "",
         directorate: "",
         department: "",
+        divisionName: "",
         employee: id,
       });
       fetchIncidents();
@@ -167,6 +168,7 @@ export default function EmployeeIncidents() {
       registrar_signature: "",
       directorate: "",
       department: "",
+      divisionName: "",
       employee: id,
     });
     console.log("add new inciedents");
@@ -220,17 +222,53 @@ export default function EmployeeIncidents() {
           >
             إضافة وقوع جديد
           </button>
-          <button
-            onClick={openCvModal}
-            className="flex items-center gap-2 px-4 py-3 rounded-lg bg-slate-800/70 border border-slate-700 text-slate-100 hover:bg-slate-700/70 hover:animate-slowBounce transition"
-          >
-            البطاقة الداتية للموظف <FileArchive />
-          </button>
+          {activeTab !== "internal" && (
+            <button
+              onClick={openCvModal}
+              className="flex items-center gap-2 px-4 py-3 rounded-lg bg-slate-800/70 border border-slate-700 text-slate-100 hover:bg-slate-700/70 hover:animate-slowBounce transition"
+            >
+              البطاقة الذاتية للموظف <FileArchive />
+            </button>
+          )}
+          {activeTab === "internal" && (
+            <div className="flex gap-2">
+              <button
+                onClick={async () => {
+                  try {
+                    const response = await API.get(`/incidents/${id}/export-internal`, {
+                      responseType: "blob",
+                    });
+                    const url = window.URL.createObjectURL(new Blob([response.data]));
+                    const link = document.createElement("a");
+                    link.href = url;
+                    link.setAttribute("download", `الوقوعات_الداخلية_${currentEmployee.fullName}.xlsx`);
+                    document.body.appendChild(link);
+                    link.click();
+                    link.parentNode.removeChild(link);
+                    window.URL.revokeObjectURL(url);
+                    toast.success("تم تصدير الوقوعات بنجاح");
+                  } catch (error) {
+                    console.error(error);
+                    toast.error("فشل تصدير الوقوعات");
+                  }
+                }}
+                className="px-4 py-2 rounded-lg bg-teal-600 text-white font-semibold hover:bg-teal-500 transition shadow"
+              >
+                تصدير الوقوعات الداخلية إلى اكسل
+              </button>
+              <button
+                onClick={() => window.print()}
+                className="px-4 py-2 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-500 transition shadow print:hidden"
+              >
+                طباعة الوقوعات الداخلية
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-slate-800 mb-4">
+      <div className="flex border-b border-slate-800 mb-4 print:hidden">
         <button
           className={`py-2 px-4 font-medium transition ${activeTab === "general"
             ? "border-b-2 border-amber-500 text-amber-400"
@@ -251,25 +289,30 @@ export default function EmployeeIncidents() {
         </button>
       </div>
 
-      <div className="bg-slate-900/60 rounded-xl shadow-xl overflow-x-auto border border-slate-800">
-        <table className="min-w-full border-collapse">
-          <thead className="bg-slate-800 border-b border-slate-700 text-slate-200">
+      <div className="bg-slate-900/60 rounded-xl shadow-xl overflow-x-auto border border-slate-800 print:bg-white print:text-black print:border-black print:rounded-none">
+        <div className="hidden print:block text-center mb-6">
+          <h2 className="text-2xl font-bold mb-2">وقوعات وظيفية {activeTab === "internal" ? "داخلية" : "خارجية"}</h2>
+          <h3 className="text-xl">الموظف: {currentEmployee?.fullName}</h3>
+        </div>
+        <table className="min-w-full border-collapse print:text-xs">
+          <thead className="bg-slate-800 border-b border-slate-700 text-slate-200 print:bg-gray-100 print:text-black print:border-black">
             <tr>
-              <th className="py-2 px-4 text-right font-semibold">مركز العمل</th>
-              <th className="py-2 px-4 text-right font-semibold">المسمى الوظيفي</th>
-              <th className="py-2 px-4 text-right font-semibold">نوع الوظيفة</th>
+              <th className="py-2 px-4 text-right font-semibold border-b border-slate-700 print:border-black">مركز العمل</th>
+              <th className="py-2 px-4 text-right font-semibold border-b border-slate-700 print:border-black">المسمى الوظيفي</th>
+              <th className="py-2 px-4 text-right font-semibold border-b border-slate-700 print:border-black">نوع الوظيفة</th>
               {activeTab === "internal" && (
                 <>
-                  <th className="py-2 px-4 text-right font-semibold">المديرية</th>
-                  <th className="py-2 px-4 text-right font-semibold">الدائرة</th>
+                  <th className="py-2 px-4 text-right font-semibold border-b border-slate-700 print:border-black">المديرية</th>
+                  <th className="py-2 px-4 text-right font-semibold border-b border-slate-700 print:border-black">الدائرة</th>
+                  <th className="py-2 px-4 text-right font-semibold border-b border-slate-700 print:border-black">الشعبة</th>
                 </>
               )}
-              <th className="py-2 px-4 text-right font-semibold">الأجر</th>
-              <th className="py-2 px-4 text-right font-semibold">الفئة</th>
-              <th className="py-2 px-4 text-right font-semibold">تاريخ المباشرة</th>
-              <th className="py-2 px-4 text-right font-semibold">تاريخ التبدل</th>
-              <th className="py-2 px-4 text-right font-semibold">السبب</th>
-              <th className="py-2 px-4 text-right font-semibold">الإجراءات</th>
+              <th className="py-2 px-4 text-right font-semibold border-b border-slate-700 print:border-black">الأجر</th>
+              <th className="py-2 px-4 text-right font-semibold border-b border-slate-700 print:border-black">الفئة</th>
+              <th className="py-2 px-4 text-right font-semibold border-b border-slate-700 print:border-black">تاريخ المباشرة</th>
+              <th className="py-2 px-4 text-right font-semibold border-b border-slate-700 print:border-black">تاريخ التبدل</th>
+              <th className="py-2 px-4 text-right font-semibold border-b border-slate-700 print:border-black">السبب</th>
+              <th className="py-2 px-4 text-right font-semibold border-b border-slate-700 print:border-black print:hidden">الإجراءات</th>
             </tr>
           </thead>
           <tbody>
@@ -280,27 +323,28 @@ export default function EmployeeIncidents() {
               .map((inc) => (
                 <tr
                   key={inc._id}
-                  className="border-b border-slate-800 hover:bg-slate-800/60 text-sm transition"
+                  className="border-b border-slate-800 hover:bg-slate-800/60 text-sm transition print:border-black"
                 >
-                  <td className="py-2 px-4 text-slate-200">{inc.work_center}</td>
-                  <td className="py-2 px-4 text-slate-200">{inc.job_title}</td>
-                  <td className="py-2 px-4 text-slate-200">{inc.job_type}</td>
+                  <td className="py-2 px-4 text-slate-200 print:text-black">{inc.work_center}</td>
+                  <td className="py-2 px-4 text-slate-200 print:text-black">{inc.job_title}</td>
+                  <td className="py-2 px-4 text-slate-200 print:text-black">{inc.job_type}</td>
                   {activeTab === "internal" && (
                     <>
-                      <td className="py-2 px-4 text-slate-200">{inc.directorate || "-"}</td>
-                      <td className="py-2 px-4 text-slate-200">{inc.department || "-"}</td>
+                      <td className="py-2 px-4 text-slate-200 print:text-black">{inc.directorate || "-"}</td>
+                      <td className="py-2 px-4 text-slate-200 print:text-black">{inc.department || "-"}</td>
+                      <td className="py-2 px-4 text-slate-200 print:text-black">{inc.divisionName || "-"}</td>
                     </>
                   )}
-                  <td className="py-2 px-4 text-slate-200">{inc.salary}</td>
-                  <td className="py-2 px-4 text-slate-200">{inc.category}</td>
-                  <td className="py-2 px-4 text-slate-200">
+                  <td className="py-2 px-4 text-slate-200 print:text-black">{inc.salary}</td>
+                  <td className="py-2 px-4 text-slate-200 print:text-black">{inc.category}</td>
+                  <td className="py-2 px-4 text-slate-200 print:text-black">
                     {inc.start_date?.split("T")[0]}
                   </td>
-                  <td className="py-2 px-4 text-slate-200">
+                  <td className="py-2 px-4 text-slate-200 print:text-black">
                     {inc.change_date?.split("T")[0]}
                   </td>
-                  <td className="py-2 px-4 text-slate-200">{inc.reason}</td>
-                  <td className="py-2 px-4 text-center">
+                  <td className="py-2 px-4 text-slate-200 print:text-black">{inc.reason}</td>
+                  <td className="py-2 px-4 text-center print:hidden">
                     <button
                       onClick={() => openEditModal(inc)}
                       className="text-amber-400 hover:text-amber-300 transition"
@@ -312,7 +356,7 @@ export default function EmployeeIncidents() {
               ))}
             {incidents.length === 0 && (
               <tr>
-                <td colSpan="9" className="text-center py-4 text-slate-400">
+                <td colSpan={activeTab === "internal" ? "12" : "9"} className="text-center py-4 text-slate-400">
                   لا توجد وقوعات حالياً
                 </td>
               </tr>
@@ -320,6 +364,56 @@ export default function EmployeeIncidents() {
           </tbody>
         </table>
       </div>
+
+      {/* Print styles */}
+      <style>{`
+        @media print {
+          /* Hide everything by default */
+          body * {
+            visibility: hidden;
+          }
+          /* Specifically hide root layout elements that might leave traces */
+          #root > div > aside, 
+          #root > div > main > header,
+          .print\\:hidden {
+            display: none !important;
+          }
+          /* Show only the target container and its children */
+          .max-w-6xl, .max-w-6xl * {
+            visibility: visible;
+          }
+          /* Reset container for full-page print */
+          .max-w-6xl {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            background: white !important;
+            color: black !important;
+            box-shadow: none !important;
+            border: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            transform: none !important;
+          }
+          /* Ensure table looks professional */
+          table {
+            width: 100% !important;
+            border-collapse: collapse !important;
+            border: 1px solid black !important;
+          }
+          th, td {
+            border: 1px solid black !important;
+            color: black !important;
+            padding: 6px !important;
+            background: transparent !important;
+          }
+          thead {
+            display: table-header-group;
+          }
+        }
+      `}</style>
+
       {cvModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
           <div className="bg-slate-900 rounded-xl p-6 max-w-md w-full transform transition-all duration-300 animate-fadeInUp overflow-y-auto max-h-[90vh] border border-slate-700 shadow-2xl">
@@ -392,15 +486,15 @@ export default function EmployeeIncidents() {
           }}
           className="fixed inset-0 flex items-center justify-center bg-black/60 z-50"
         >
-          <div className="bg-slate-900 rounded-xl p-6 max-w-md w-full transform transition-all duration-300 scale-95 animate-fadeInUp overflow-y-auto max-h-[90vh] border border-slate-700 shadow-2xl text-slate-100">
+          <div className="bg-slate-900 rounded-xl p-6 max-w-2xl w-full transform transition-all duration-300 scale-95 animate-fadeInUp overflow-y-auto max-h-[90vh] border border-slate-700 shadow-2xl text-slate-100">
             <h3 className="text-xl font-bold mb-4 text-center text-amber-400">
               {selectedIncident._id ? "تعديل الوقوع" : "إضافة وقوع جديد"}
             </h3>
-            <form className="grid grid-cols-1 gap-3" onSubmit={handleSubmit}>
-              <div className="flex flex-col">
+            <form className="grid grid-cols-1 md:grid-cols-2 gap-4" onSubmit={handleSubmit}>
+              <div className="flex flex-col md:col-span-2">
+                <label className="mb-1 font-medium text-slate-200">نوع الوقوع</label>
                 <DropdownWithSettings
                   id="incidentType"
-                  label="نوع الوقوع"
                   value={selectedIncident.incidentType || ""}
                   onChange={(e) =>
                     handleChange({
@@ -419,48 +513,51 @@ export default function EmployeeIncidents() {
                 />
               </div>
               {[
-                { label: "مركز العمل", name: "work_center", type: "text" },
-                { label: "المسمى الوظيفي", name: "job_title", type: "text" },
-                { label: "نوع الوظيفة", name: "job_type", type: "text" },
-                { label: "الأجر", name: "salary", type: "number" },
+                { label: "مركز العمل", name: "work_center", type: "text", required: true },
+                { label: "المسمى الوظيفي", name: "job_title", type: "text", required: true },
+                { label: "نوع الوظيفة", name: "job_type", type: "text", required: true },
+                { label: "الأجر", name: "salary", type: "number", min: "0", required: true },
                 {
                   label: "الفئة",
                   name: "category",
                   type: "select",
                   options: dropdownSettings.category,
+                  required: true
                 },
-                { label: "تاريخ المباشرة", name: "start_date", type: "date" },
-                { label: "تاريخ التبدل", name: "change_date", type: "date" },
+                { label: "تاريخ المباشرة", name: "start_date", type: "date", required: true },
+                { label: "تاريخ التبدل", name: "change_date", type: "date", required: true },
                 {
                   label: "السبب",
                   name: "reason",
                   type: "select",
                   options: dropdownSettings.reason,
+                  required: true
                 },
                 {
                   label: "نوع المستند",
                   name: "document_type",
                   type: "select",
                   options: dropdownSettings.document_type,
+                  required: true
                 },
-                { label: "رقم المستند", name: "document_number", type: "text" },
-                { label: "تاريخ المستند", name: "document_date", type: "date" },
-                { label: "اسم المسجل", name: "registrar_name", type: "text" },
+                { label: "رقم المستند", name: "document_number", type: "text", required: true },
+                { label: "تاريخ المستند", name: "document_date", type: "date", required: true },
+                { label: "اسم المسجل", name: "registrar_name", type: "text", required: false },
                 {
                   label: "توقيع المسجل",
                   name: "registrar_signature",
                   type: "text",
+                  required: false
                 },
               ].map((field) => (
                 <div key={field.name} className="flex flex-col">
                   <label className="mb-1 font-medium text-slate-200">
-                    {field.label}
+                    {field.label} {field.required && <span className="text-rose-500">*</span>}
                   </label>
 
                   {field.type === "select" ? (
                     <DropdownWithSettings
                       id={field.name}
-                      label={field.label}
                       value={selectedIncident[field.name] || ""}
                       onChange={(e) =>
                         handleChange({
@@ -479,6 +576,8 @@ export default function EmployeeIncidents() {
                     <input
                       name={field.name}
                       type={field.type}
+                      min={field.min}
+                      required={field.required}
                       value={selectedIncident[field.name] || ""}
                       onChange={handleChange}
                       className="border border-slate-700 p-2 rounded bg-slate-900 text-slate-100 focus:outline-none focus:ring-2 focus:ring-amber-500"
@@ -491,21 +590,34 @@ export default function EmployeeIncidents() {
               {selectedIncident.incidentType === "داخلي" && (
                 <>
                   <div className="flex flex-col">
-                    <label className="mb-1 font-medium text-slate-200">المديرية</label>
+                    <label className="mb-1 font-medium text-slate-200">المديرية <span className="text-rose-500">*</span></label>
                     <input
                       name="directorate"
                       type="text"
+                      required
                       value={selectedIncident.directorate || ""}
                       onChange={handleChange}
                       className="border border-slate-700 p-2 rounded bg-slate-900 text-slate-100 focus:outline-none focus:ring-2 focus:ring-amber-500"
                     />
                   </div>
                   <div className="flex flex-col">
-                    <label className="mb-1 font-medium text-slate-200">الدائرة</label>
+                    <label className="mb-1 font-medium text-slate-200">الدائرة <span className="text-rose-500">*</span></label>
                     <input
                       name="department"
                       type="text"
+                      required
                       value={selectedIncident.department || ""}
+                      onChange={handleChange}
+                      className="border border-slate-700 p-2 rounded bg-slate-900 text-slate-100 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    />
+                  </div>
+                  <div className="flex flex-col">
+                    <label className="mb-1 font-medium text-slate-200">الشعبة <span className="text-rose-500">*</span></label>
+                    <input
+                      name="divisionName"
+                      type="text"
+                      required
+                      value={selectedIncident.divisionName || ""}
                       onChange={handleChange}
                       className="border border-slate-700 p-2 rounded bg-slate-900 text-slate-100 focus:outline-none focus:ring-2 focus:ring-amber-500"
                     />
@@ -513,11 +625,7 @@ export default function EmployeeIncidents() {
                 </>
               )}
 
-              <div className="flex items-center gap-2 mt-2">
-                {/* Removed checkbox for isInternal as it is replaced by incidentType dropdown */}
-              </div>
-
-              <div className="flex justify-between mt-4">
+              <div className="flex justify-between mt-4 md:col-span-2">
                 <button
                   type="button"
                   onClick={() => setModalOpen(false)}

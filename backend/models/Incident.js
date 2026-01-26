@@ -30,6 +30,7 @@ const incidentSchema = new mongoose.Schema(
     incidentType: { type: String, default: "external" }, // internal, external
     directorate: { type: String }, // المديرية
     department: { type: String }, // الدائرة
+    divisionName: { type: String }, // الشعبة
   },
   { timestamps: true }
 );

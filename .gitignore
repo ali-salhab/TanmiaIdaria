@@ -11,3 +11,4 @@ pnpm-lock.yaml
 dist/
 
 backend/assets/
+backend/backups/

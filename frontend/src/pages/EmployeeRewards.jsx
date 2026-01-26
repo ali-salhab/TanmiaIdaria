@@ -21,16 +21,8 @@ export default function EmployeeRewards({ employee }) {
   const [file, setFile] = useState(null);
   const fileInputRef = useRef(null);
 
-  // Get user info from context if available, or fetch it
-  // Assuming EmployeeEdit passes context or we can get it from local storage/api
-  // For now, we'll assume we can get permissions from a helper or context
-  // But EmployeeEdit doesn't pass context to children.
-  // We can use a hook or just check localStorage for role/permissions if stored there
-  // Or fetch /auth/me again.
-
-  // Simplified permission check (assuming admin or has permission)
-  const canAdd = true; // Replace with actual permission check
-  const canDelete = true; // Replace with actual permission check
+  const canAdd = true;
+  const canDelete = true;
 
   useEffect(() => {
     fetchRewards();
@@ -98,33 +90,138 @@ export default function EmployeeRewards({ employee }) {
     printWindow.document.write(`
       <html dir="rtl">
         <head>
-          <title>طباعة المكافأة</title>
+          <title>وثيقة مكافأة - ${employee?.fullName || 'موظف'}</title>
           <style>
-            body { font-family: 'Arial', sans-serif; padding: 20px; text-align: center; }
-            .header { margin-bottom: 30px; }
-            .content { border: 1px solid #000; padding: 20px; border-radius: 10px; }
-            .row { margin: 10px 0; font-size: 18px; }
+            @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
+            body { 
+              font-family: 'Tajawal', sans-serif; 
+              padding: 40px; 
+              color: #1e293b;
+              background: #fff;
+              line-height: 1.6;
+            }
+            .gov-header {
+              font-size: 14px;
+              color: #475569;
+              margin-bottom: 30px;
+              line-height: 1.8;
+            }
+            .header { 
+              text-align: center; 
+              margin-bottom: 50px; 
+              border-bottom: 2px solid #e2e8f0;
+              padding-bottom: 20px;
+            }
+            .doc-title { 
+              font-size: 32px; 
+              font-weight: 700; 
+              color: #0f172a;
+              margin: 10px 0;
+            }
+            .personal-info {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 20px;
+              background: #f8fafc;
+              padding: 25px;
+              border-radius: 12px;
+              margin-bottom: 40px;
+              border: 1px solid #e2e8f0;
+            }
+            .info-item {
+              font-size: 16px;
+            }
+            .info-label {
+              font-weight: 700;
+              color: #64748b;
+              margin-left: 10px;
+            }
+            .info-value {
+              color: #1e293b;
+              font-weight: 500;
+            }
+            .content-box { 
+              border: 1px solid #e2e8f0; 
+              padding: 30px; 
+              border-radius: 15px; 
+              background: #fff;
+            }
+            .row { 
+              margin: 20px 0; 
+              font-size: 19px; 
+              display: flex;
+              gap: 15px;
+              align-items: flex-start;
+            }
+            .row strong {
+              color: #334155;
+              min-width: 140px;
+              display: inline-block;
+            }
+            .footer {
+              margin-top: 80px;
+              display: flex;
+              justify-content: space-between;
+              padding: 0 60px;
+            }
+            .signature-box {
+              text-align: center;
+            }
+            .sig-title {
+              font-weight: 700;
+              margin-bottom: 50px;
+              font-size: 18px;
+            }
+            @media print {
+              body { padding: 0 !important; }
+              .personal-info { border: 1px solid #cbd5e1; background: #f8fafc !important; -webkit-print-color-adjust: exact; }
+              .header { border-bottom-color: #94a3b8; }
+            }
           </style>
         </head>
         <body>
+          <div class="gov-header">الجمهورية العربية السورية<br/>الأمانة العامة لمحافظة طرطوس<br/>مديرية الموارد البشرية</div>
+          
           <div class="header">
-            <h1>وثيقة مكافأة</h1>
+            <h1 class="doc-title">وثيقة مكافأة</h1>
           </div>
-          <div class="content">
-            <div class="row"><strong>نوع المكافأة:</strong> ${getRewardLabel(
-      reward.type
-    )}</div>
-            ${reward.decisionNumber
-        ? `<div class="row"><strong>رقم القرار:</strong> ${reward.decisionNumber}</div>`
-        : ""
-      }
-            <div class="row"><strong>التاريخ:</strong> ${new Date(
-        reward.date
-      ).toLocaleDateString("ar-SY")}</div>
-            <div class="row"><strong>التفاصيل:</strong> ${reward.description || "-"
-      }</div>
+
+          <div class="personal-info">
+            <div class="info-item">
+              <span class="info-label">اسم الموظف:</span>
+              <span class="info-value">${employee?.fullName || "-"}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">الرقم الذاتي:</span>
+              <span class="info-value">${employee?.selfNumber || "-"}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">الوظيفة الحالية:</span>
+              <span class="info-value">${employee?.currentJobTitle || "-"}</span>
+            </div>
           </div>
-          <script>window.print();</script>
+
+          <div class="content-box">
+            <div class="row"><strong>نوع المكافأة:</strong> <span>${getRewardLabel(reward.type)}</span></div>
+            ${reward.decisionNumber ? `<div class="row"><strong>رقم القرار:</strong> <span>${reward.decisionNumber}</span></div>` : ""}
+            <div class="row"><strong>التاريخ:</strong> <span>${new Date(reward.date).toLocaleDateString("ar-SY")}</span></div>
+            <div class="row"><strong>التفاصيل:</strong> <span style="white-space: pre-wrap;">${reward.description || "-"}</span></div>
+          </div>
+
+          <div class="footer">
+            <div class="signature-box">
+              <div class="sig-title">توقيع الموظف المختص</div>
+              <div>........................</div>
+            </div>
+            <div class="signature-box">
+              <div class="sig-title">ختم الدائرة</div>
+              <div>........................</div>
+            </div>
+          </div>
+
+          <script>
+            window.onload = () => { window.print(); };
+          </script>
         </body>
       </html>
     `);
@@ -142,12 +239,12 @@ export default function EmployeeRewards({ employee }) {
 
   return (
     <div className="p-4">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold">سجل المكافآت</h2>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-xl font-bold text-slate-100">سجل المكافآت</h2>
         {canAdd && (
           <button
             onClick={() => setShowModal(true)}
-            className="bg-green-600 text-white px-4 py-2 rounded flex items-center gap-2 hover:bg-green-700"
+            className="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-green-700 transition"
           >
             <Plus size={18} /> إضافة مكافأة
           </button>
@@ -155,9 +252,9 @@ export default function EmployeeRewards({ employee }) {
       </div>
 
       {loading ? (
-        <p className="text-center">جاري التحميل...</p>
+        <p className="text-center text-slate-400 py-10">جاري التحميل...</p>
       ) : rewards.length === 0 ? (
-        <p className="text-center text-gray-500">لا توجد مكافآت مسجلة.</p>
+        <p className="text-center text-slate-500 py-10 border border-dashed border-slate-700 rounded-xl">لا توجد مكافآت مسجلة للموظف حالياً.</p>
       ) : (
         <div className="grid gap-4">
           {rewards.map((reward) => (
@@ -193,7 +290,7 @@ export default function EmployeeRewards({ employee }) {
               <div className="flex gap-2">
                 <button
                   onClick={() => handlePrint(reward)}
-                  className="p-2 text-gray-600 hover:bg-gray-100 rounded"
+                  className="p-2 text-slate-400 hover:bg-slate-700 hover:text-amber-500 rounded-lg transition"
                   title="طباعة"
                 >
                   <Printer size={18} />
@@ -201,7 +298,7 @@ export default function EmployeeRewards({ employee }) {
                 {canDelete && (
                   <button
                     onClick={() => handleDelete(reward._id)}
-                    className="p-2 text-red-600 hover:bg-red-50 rounded"
+                    className="p-2 text-slate-400 hover:bg-rose-900/40 hover:text-rose-500 rounded-lg transition"
                     title="حذف"
                   >
                     <Trash2 size={18} />

@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import API from "../api/api";
 import { FaEdit } from "react-icons/fa";
 import toast from "react-hot-toast";
-import { FileArchive, Settings } from "lucide-react";
+import { FileArchive, Settings, Printer } from "lucide-react";
 import DropdownWithSettings from "../components/DropdownWithSettings";
 import { checkPermission } from "../utils/permissionHelper";
 
@@ -24,7 +24,6 @@ export default function EmployeeIncidents() {
     category: ["أولى", "تانية", "تالتة", "رابعة", "خامسة"],
     reason: ["زيادة أجر", "تجديد عقد", "تثبيت", "ترفيع"],
     document_type: ["مرسوم", "قرار"],
-    document_typre: ["مرسوم", "قرار"],
     // incidentType: ["aaaaaaaaa", "aaaaaaaaaaaaaaa,"],
     incidentType: ["داخلي", "خارجي"],
   });
@@ -198,6 +197,468 @@ export default function EmployeeIncidents() {
     setModalOpen(true);
   };
 
+  const handlePrintIncident = (incident) => {
+    const printWindow = window.open("", "_blank");
+    printWindow.document.write(`
+      <html dir="rtl">
+        <head>
+          <title>وثيقة وقوع وظيفي - ${currentEmployee?.fullName || "موظف"}</title>
+          <style>
+            @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
+            body { 
+              font-family: 'Tajawal', sans-serif; 
+              padding: 20px 40px; 
+              color: #1e293b;
+              background: #fff;
+              line-height: 1.6;
+            }
+            .gov-header {
+              display: flex;
+              justify-content: space-between;
+              align-items: flex-start;
+              margin-bottom: 30px;
+            }
+            .gov-right {
+              text-align: right;
+              font-size: 14px;
+              font-weight: 700;
+              line-height: 1.8;
+            }
+            .gov-logo {
+              text-align: center;
+              flex: 1;
+            }
+            .gov-logo img {
+              height: 100px;
+              width: auto;
+            }
+            .header { 
+              text-align: center; 
+              margin-bottom: 40px; 
+              border-bottom: 2px solid #334155;
+              padding-bottom: 20px;
+            }
+            .doc-title { 
+              font-size: 28px; 
+              font-weight: 700; 
+              color: #0f172a;
+              margin: 10px 0;
+            }
+            .personal-info {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 15px;
+              background: #f8fafc;
+              padding: 20px;
+              border-radius: 10px;
+              margin-bottom: 30px;
+              border: 1px solid #e2e8f0;
+            }
+            .info-item {
+              font-size: 15px;
+            }
+            .info-label {
+              font-weight: 700;
+              color: #64748b;
+              margin-left: 10px;
+            }
+            .info-value {
+              color: #1e293b;
+              font-weight: 500;
+            }
+            .content-box { 
+              border: 1px solid #e2e8f0; 
+              padding: 25px; 
+              border-radius: 12px; 
+              background: #fff;
+            }
+            .row { 
+              margin: 15px 0; 
+              font-size: 18px; 
+              display: flex;
+              gap: 15px;
+              align-items: flex-start;
+              border-bottom: 1px dashed #e2e8f0;
+              padding-bottom: 10px;
+            }
+            .row:last-child { border-bottom: none; }
+            .row strong {
+              color: #334155;
+              min-width: 150px;
+              display: inline-block;
+            }
+            .footer {
+              margin-top: 60px;
+              display: flex;
+              justify-content: space-between;
+              padding: 0 50px;
+            }
+            .signature-box {
+              text-align: center;
+            }
+            .sig-title {
+              font-weight: 700;
+              margin-bottom: 60px;
+              font-size: 17px;
+            }
+            @media print {
+              body { padding: 0 !important; }
+              .personal-info { border: 1px solid #cbd5e1; background: #f8fafc !important; -webkit-print-color-adjust: exact; }
+              .header { border-bottom-color: #1e293b; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="gov-header">
+            <div class="gov-right">
+              الجمهورية العربية السورية<br/>
+              وزارة الإدارة المحلية والبيئة<br/>
+              محافظة طرطوس<br/>
+              الأمانة العامة<br/>
+              مديرية التنمية الإدارية
+            </div>
+            <div class="gov-logo">
+              <img src="/src/assets/syria_logo.svg" alt="الشعار الرسمي" />
+            </div>
+            <div style="width: 180px;"></div>
+          </div>
+          
+          <div class="header">
+            <h1 class="doc-title">وثيقة وقوع وظيفي ${incident.isInternal ? "(داخلي)" : "(خارجي)"}</h1>
+          </div>
+ 
+          <div class="personal-info">
+            <div class="info-item">
+              <span class="info-label">اسم الموظف:</span>
+              <span class="info-value">${currentEmployee?.fullName || "-"}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">الرقم الذاتي:</span>
+              <span class="info-value">${currentEmployee?.selfNumber || "-"}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">الوظيفة الحالية:</span>
+              <span class="info-value">${currentEmployee?.currentJobTitle || "-"}</span>
+            </div>
+          </div>
+ 
+          <div class="content-box">
+            <div class="row"><strong>مركز العمل:</strong> <span>${incident.work_center}</span></div>
+            <div class="row"><strong>المسمى الوظيفي:</strong> <span>${incident.job_title}</span></div>
+            <div class="row"><strong>نوع الوظيفة:</strong> <span>${incident.job_type}</span></div>
+            ${incident.isInternal ? `
+              <div class="row"><strong>المديرية:</strong> <span>${incident.directorate || "-"}</span></div>
+              <div class="row"><strong>الدائرة:</strong> <span>${incident.department || "-"}</span></div>
+              <div class="row"><strong>الشعبة:</strong> <span>${incident.divisionName || "-"}</span></div>
+            ` : ""}
+            <div class="row"><strong>الأجر:</strong> <span>${incident.salary}</span></div>
+            <div class="row"><strong>الفئة:</strong> <span>${incident.category}</span></div>
+            <div class="row"><strong>تاريخ المباشرة:</strong> <span>${incident.start_date ? new Date(incident.start_date).toLocaleDateString("ar-SY") : "-"}</span></div>
+            <div class="row"><strong>تاريخ التبدل:</strong> <span>${incident.change_date ? new Date(incident.change_date).toLocaleDateString("ar-SY") : "-"}</span></div>
+            <div class="row"><strong>السبب:</strong> <span>${incident.reason}</span></div>
+            <div class="row"><strong>نوع المستند:</strong> <span>${incident.document_type || "-"}</span></div>
+            <div class="row"><strong>رقم المستند:</strong> <span>${incident.document_number || "-"}</span></div>
+            <div class="row"><strong>تاريخ المستند:</strong> <span>${incident.document_date ? new Date(incident.document_date).toLocaleDateString("ar-SY") : "-"}</span></div>
+          </div>
+ 
+          <div class="footer">
+            <div class="signature-box">
+              <div class="sig-title">توقيع الموظف المختص</div>
+              <div>........................</div>
+            </div>
+            <div class="signature-box">
+              <div class="sig-title">ختم الدائرة</div>
+              <div>........................</div>
+            </div>
+          </div>
+ 
+          <script>
+            window.onload = () => { setTimeout(() => { window.print(); }, 200); };
+          </script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+  };
+
+  const handlePrintInternalList = () => {
+    const internalIncidents = incidents.filter(inc => inc.isInternal);
+    if (internalIncidents.length === 0) {
+      toast.error("لا توجد وقوعات داخلية للطباعة");
+      return;
+    }
+
+    const printWindow = window.open("", "_blank");
+    printWindow.document.write(`
+      <html dir="rtl">
+        <head>
+          <title>سجل الوقوعات الداخلية - ${currentEmployee?.fullName || "موظف"}</title>
+          <style>
+            @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
+            body { 
+              font-family: 'Tajawal', sans-serif; 
+              padding: 20px 40px; 
+              color: #1e293b;
+              background: #fff;
+              line-height: 1.6;
+            }
+            .gov-header {
+              display: flex;
+              justify-content: space-between;
+              align-items: flex-start;
+              margin-bottom: 30px;
+            }
+            .gov-right {
+              text-align: right;
+              font-size: 14px;
+              font-weight: 700;
+              line-height: 1.8;
+            }
+            .gov-logo {
+              text-align: center;
+              flex: 1;
+            }
+            .gov-logo img {
+              height: 100px;
+              width: auto;
+            }
+            .header { 
+              text-align: center; 
+              margin-bottom: 30px; 
+              border-bottom: 2px solid #334155;
+              padding-bottom: 20px;
+            }
+            .doc-title { 
+              font-size: 24px; 
+              font-weight: 700; 
+              color: #0f172a;
+              margin: 10px 0;
+            }
+            .personal-info {
+              display: flex;
+              justify-content: space-around;
+              background: #f8fafc;
+              padding: 15px;
+              border-radius: 10px;
+              margin-bottom: 20px;
+              border: 1px solid #e2e8f0;
+            }
+            .info-item {
+              font-size: 14px;
+            }
+            .info-label {
+              font-weight: 700;
+              color: #64748b;
+              margin-left: 5px;
+            }
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-top: 20px;
+              font-size: 12px;
+            }
+            th, td {
+              border: 1px solid #cbd5e1;
+              padding: 8px;
+              text-align: right;
+            }
+            th {
+              background-color: #f1f5f9;
+              font-weight: 700;
+            }
+            .footer {
+              margin-top: 40px;
+              display: flex;
+              justify-content: space-between;
+              padding: 0 50px;
+            }
+            .signature-box {
+              text-align: center;
+            }
+            .sig-title {
+              font-weight: 700;
+              margin-bottom: 40px;
+              font-size: 15px;
+            }
+            @media print {
+              body { padding: 0 !important; }
+              table { font-size: 10px; }
+              th { background-color: #f1f5f9 !important; -webkit-print-color-adjust: exact; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="gov-header">
+            <div class="gov-right">
+              الجمهورية العربية السورية<br/>
+              وزارة الإدارة المحلية والبيئة<br/>
+              محافظة طرطوس<br/>
+              الأمانة العامة<br/>
+              مديرية التنمية الإدارية
+            </div>
+            <div class="gov-logo">
+              <img src="/src/assets/syria_logo.svg" alt="الشعار الرسمي" />
+            </div>
+            <div style="width: 180px;"></div>
+          </div>
+          
+          <div class="header">
+            <h1 class="doc-title">سجل الوقوعات الوظيفية الداخلية</h1>
+          </div>
+ 
+          <div class="personal-info">
+            <div class="info-item">
+              <span class="info-label">الموظف:</span>
+              <span>${currentEmployee?.fullName || "-"}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">الرقم الذاتي:</span>
+              <span>${currentEmployee?.selfNumber || "-"}</span>
+            </div>
+          </div>
+ 
+          <table>
+            <thead>
+              <tr>
+                <th>مركز العمل</th>
+                <th>المسمى الوظيفي</th>
+                <th>المديرية</th>
+                <th>الدائرة</th>
+                <th>الشعبة</th>
+                <th>الأجر</th>
+                <th>الفئة</th>
+                <th>المباشرة</th>
+                <th>التبدل</th>
+                <th>السبب</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${internalIncidents.map(inc => `
+                <tr>
+                  <td>${inc.work_center}</td>
+                  <td>${inc.job_title}</td>
+                  <td>${inc.directorate || "-"}</td>
+                  <td>${inc.department || "-"}</td>
+                  <td>${inc.divisionName || "-"}</td>
+                  <td>${inc.salary}</td>
+                  <td>${inc.category}</td>
+                  <td>${inc.start_date ? new Date(inc.start_date).toLocaleDateString("ar-SY") : "-"}</td>
+                  <td>${inc.change_date ? new Date(inc.change_date).toLocaleDateString("ar-SY") : "-"}</td>
+                  <td>${inc.reason}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+ 
+          <div class="footer">
+            <div class="signature-box">
+              <div class="sig-title">توقيع الموظف المختص</div>
+              <div>........................</div>
+            </div>
+            <div class="signature-box">
+              <div class="sig-title">ختم الدائرة</div>
+              <div>........................</div>
+            </div>
+          </div>
+ 
+          <script>
+            window.onload = () => { setTimeout(() => { window.print(); }, 200); };
+          </script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+  };
+
+  const newLocal = `
+        @media print {
+          body { 
+            font-family: 'Arial', sans-serif !important; 
+            padding: 20px !important;
+            background: white !important;
+          }
+          
+          /* Show targeted containers only */
+          body * { visibility: hidden; }
+          .max-w-6xl, .max-w-6xl * { visibility: visible; }
+          
+          .max-w-6xl {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            background: white !important;
+            color: black !important;
+            box-shadow: none !important;
+            border: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+          }
+
+          /* Official Header */
+          .official-header {
+            display: flex !important;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            width: 100%;
+            border-bottom: 2px solid black;
+            padding-bottom: 10px;
+          }
+          .gov-right {
+            text-align: right;
+            font-size: 12px;
+            font-weight: bold;
+            line-height: 1.6;
+          }
+          .gov-logo {
+            text-align: center;
+            flex: 1;
+          }
+          .gov-logo img {
+            height: 80px;
+            width: auto;
+          }
+
+          /* Personal Info for print */
+          .print-personal-info {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            background: #f8fafc !important;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd !important;
+            -webkit-print-color-adjust: exact;
+          }
+          .info-item { font-size: 14px; }
+          .info-label { font-weight: bold; margin-left: 5px; }
+
+          /* Table refined */
+          .bg-slate-900\\/60 {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+          }
+          table {
+            width: 100% !important;
+            border-collapse: collapse !important;
+            border: 1.5px solid black !important;
+          }
+          th, td {
+            border: 1px solid black !important;
+            color: black !important;
+            padding: 8px !important;
+            font-size: 11px !important;
+          }
+          thead { display: table-header-group; background: #eee !important; }
+          
+          .print\\:hidden, #root > div > aside, #root > div > main > header {
+            display: none !important;
+          }
+        }
+      `;
   return (
     <div
       className="max-w-6xl mx-auto p-6 bg-slate-900/95 rounded-2xl mt-6 text-slate-100 border border-slate-800 shadow-2xl"
@@ -257,7 +718,7 @@ export default function EmployeeIncidents() {
                 تصدير الوقوعات الداخلية إلى اكسل
               </button>
               <button
-                onClick={() => window.print()}
+                onClick={handlePrintInternalList}
                 className="px-4 py-2 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-500 transition shadow print:hidden"
               >
                 طباعة الوقوعات الداخلية
@@ -375,12 +836,22 @@ export default function EmployeeIncidents() {
                   </td>
                   <td className="py-2 px-4 text-slate-200 print:text-black">{inc.reason}</td>
                   <td className="py-2 px-4 text-center print:hidden">
-                    <button
-                      onClick={() => openEditModal(inc)}
-                      className="text-amber-400 hover:text-amber-300 transition"
-                    >
-                      <FaEdit />
-                    </button>
+                    <div className="flex justify-center gap-2">
+                      <button
+                        onClick={() => openEditModal(inc)}
+                        className="text-amber-400 hover:text-amber-300 transition"
+                        title="تعديل"
+                      >
+                        <FaEdit />
+                      </button>
+                      <button
+                        onClick={() => handlePrintIncident(inc)}
+                        className="text-indigo-400 hover:text-indigo-300 transition"
+                        title="طباعة"
+                      >
+                        <Printer size={16} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -396,95 +867,7 @@ export default function EmployeeIncidents() {
       </div>
 
       {/* Print styles */}
-      <style>{`
-        @media print {
-          body { 
-            font-family: 'Arial', sans-serif !important; 
-            padding: 20px !important;
-            background: white !important;
-          }
-          
-          /* Show targeted containers only */
-          body * { visibility: hidden; }
-          .max-w-6xl, .max-w-6xl * { visibility: visible; }
-          
-          .max-w-6xl {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            background: white !important;
-            color: black !important;
-            box-shadow: none !important;
-            border: none !important;
-            padding: 0 !important;
-            margin: 0 !important;
-          }
-
-          /* Official Header */
-          .official-header {
-            display: flex !important;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 20px;
-            width: 100%;
-            border-bottom: 2px solid black;
-            padding-bottom: 10px;
-          }
-          .gov-right {
-            text-align: right;
-            font-size: 12px;
-            font-weight: bold;
-            line-height: 1.6;
-          }
-          .gov-logo {
-            text-align: center;
-            flex: 1;
-          }
-          .gov-logo img {
-            height: 80px;
-            width: auto;
-          }
-
-          /* Personal Info for print */
-          .print-personal-info {
-            display: grid !important;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            background: #f8fafc !important;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            border: 1px solid #ddd !important;
-            -webkit-print-color-adjust: exact;
-          }
-          .info-item { font-size: 14px; }
-          .info-label { font-weight: bold; margin-left: 5px; }
-
-          /* Table refined */
-          .bg-slate-900\\/60 {
-            background: transparent !important;
-            border: none !important;
-            box-shadow: none !important;
-          }
-          table {
-            width: 100% !important;
-            border-collapse: collapse !important;
-            border: 1.5px solid black !important;
-          }
-          th, td {
-            border: 1px solid black !important;
-            color: black !important;
-            padding: 8px !important;
-            font-size: 11px !important;
-          }
-          thead { display: table-header-group; background: #eee !important; }
-          
-          .print\\:hidden, #root > div > aside, #root > div > main > header {
-            display: none !important;
-          }
-        }
-      `}</style>
+      <style>{newLocal}</style>
 
       {cvModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">

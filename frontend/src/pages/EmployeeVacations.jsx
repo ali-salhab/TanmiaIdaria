@@ -738,13 +738,14 @@ export default function EmployeeVacations() {
             onClick={handleDelay}
             className="bg-red-600 hover:bg-purple-700 text-white px-4 py-2 rounded flex items-center gap-2 transition"
           >
-
+            <Printer size={18} />
             التاخيرات
           </button>
           <button
             onClick={handleAdd}
             className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded transition"
           >
+
             تسجيل إجازة
           </button>
         </div>

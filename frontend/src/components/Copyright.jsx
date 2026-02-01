@@ -4,7 +4,7 @@ import { X, Github, Mail, Phone, MessageCircle } from "lucide-react";
 export default function Copyright({ onClose }) {
   const developers = [
     {
-      name: "Ali Salhab",
+      name: "ENG. Ali Salhab",
       role: "Full Stack Developer",
       github: "ali-salhab",
       email: "alisalhab258@gmail.com",
@@ -12,10 +12,10 @@ export default function Copyright({ onClose }) {
       avatar: "https://avatars.githubusercontent.com/u/ali-salhab"
     },
     {
-      name: "Mohammad Nasif",
+      name: "ENG. Mohammad Nasif",
       role: "supervisor",
       github: "mohammad-nasif",
-      email: "mohammadnasif@example.com",
+      email: "mohammad.nasif@hotmail.com",
       phone: "0934029909",
       avatar: "https://ui-avatars.com/api/?name=Mohammad+Nasif&background=1e293b&color=fff&size=128"
     }
@@ -62,8 +62,8 @@ export default function Copyright({ onClose }) {
               <div className="flex items-center gap-4 mb-4">
                 <div className="relative">
                   <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full blur opacity-25 group-hover:opacity-75 transition duration-500"></div>
-                  <img
-                    src={dev.avatar}
+                  <img  
+
                     alt={dev.name}
                     className="relative w-16 h-16 rounded-full border-2 border-slate-800 object-cover"
                     onError={(e) => {

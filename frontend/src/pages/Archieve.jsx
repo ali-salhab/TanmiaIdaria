@@ -82,7 +82,7 @@ export default function Archieve() {
 
       const baseURL = import.meta.env.VITE_API_URL
         ? import.meta.env.VITE_API_URL.replace("/api", "")
-        : `http://${window.location.hostname}:5000`;
+        : `http://${window.location.hostname}:5001`;
 
       const link = document.createElement("a");
       link.href = `${baseURL}${fileShare.fileUrl}`;
@@ -176,8 +176,8 @@ export default function Archieve() {
                     {item.fileType === "image"
                       ? "🖼️"
                       : item.fileType === "document"
-                      ? "📄"
-                      : "📎"}
+                        ? "📄"
+                        : "📎"}
                   </div>
                   <div>
                     <p className="font-medium text-slate-200">
@@ -185,11 +185,10 @@ export default function Archieve() {
                     </p>
                     <div className="flex gap-2 mt-1">
                       <span
-                        className={`text-xs px-2 py-0.5 rounded ${
-                          item.archiveType === "received"
+                        className={`text-xs px-2 py-0.5 rounded ${item.archiveType === "received"
                             ? "bg-blue-900/50 text-blue-300 border border-blue-500/30"
                             : "bg-amber-900/50 text-amber-300 border border-amber-500/30"
-                        }`}
+                          }`}
                       >
                         {item.archiveType === "received" ? "وارد" : "صادر"}
                       </span>

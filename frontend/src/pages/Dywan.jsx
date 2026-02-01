@@ -72,7 +72,7 @@ export default function Dywan() {
   const buildFileUrl = (filePath) => {
     const baseURL = import.meta.env.VITE_API_URL
       ? import.meta.env.VITE_API_URL.replace("/api", "")
-      : `http://${window.location.hostname}:5000`;
+      : `http://${window.location.hostname}:5001`;
     return `${baseURL}${filePath}`;
   };
 
@@ -193,10 +193,10 @@ export default function Dywan() {
         activeTab === "outgoing"
           ? ["outgoing", "decision"].includes(doc.documentType)
           : activeTab === "incoming"
-          ? doc.documentType === "incoming"
-          : activeTab === "decisions"
-          ? doc.documentType === "decision"
-          : true;
+            ? doc.documentType === "incoming"
+            : activeTab === "decisions"
+              ? doc.documentType === "decision"
+              : true;
 
       const searchMatch =
         !searchQuery ||
@@ -445,8 +445,8 @@ export default function Dywan() {
                   {file.fileType === "image"
                     ? "🖼️"
                     : file.fileType === "document"
-                    ? "📄"
-                    : "📎"}
+                      ? "📄"
+                      : "📎"}
                 </div>
                 <div className="min-w-0">
                   {file.subject && (
@@ -519,8 +519,7 @@ export default function Dywan() {
         relatedDocument: selectedDocument._id,
         title:
           legalCaseData.title ||
-          `بخصوص وثيقة: ${
-            selectedDocument.incomingSubject || selectedDocument.documentNumber
+          `بخصوص وثيقة: ${selectedDocument.incomingSubject || selectedDocument.documentNumber
           }`,
       });
       toast.success("تم إرسال الوثيقة إلى الشؤون القانونية");
@@ -553,10 +552,9 @@ export default function Dywan() {
   const inputClass =
     "w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500 transition";
   const tabClass = (active) =>
-    `px-4 py-2 font-medium transition rounded-lg border ${
-      active
-        ? "bg-amber-500 text-slate-900 border-amber-400 shadow-lg shadow-amber-500/20"
-        : "text-slate-300 border-transparent hover:text-amber-300 hover:border-slate-700"
+    `px-4 py-2 font-medium transition rounded-lg border ${active
+      ? "bg-amber-500 text-slate-900 border-amber-400 shadow-lg shadow-amber-500/20"
+      : "text-slate-300 border-transparent hover:text-amber-300 hover:border-slate-700"
     }`;
   const pillClass = (color) =>
     `text-xs px-2 py-0.5 rounded font-medium bg-${color}-900/40 text-${color}-200 border border-${color}-800/60`;
@@ -632,11 +630,10 @@ export default function Dywan() {
                     key={doc._id}
                     type="button"
                     onClick={() => setSelectedDocument(doc)}
-                    className={`w-full text-right px-4 py-3 border-b border-slate-800 transition text-slate-200 ${
-                      selectedDocument?._id === doc._id
+                    className={`w-full text-right px-4 py-3 border-b border-slate-800 transition text-slate-200 ${selectedDocument?._id === doc._id
                         ? "bg-amber-500/10 border-amber-500/40"
                         : "bg-slate-900/40 hover:bg-slate-800/70"
-                    }`}
+                      }`}
                   >
                     <div className="flex items-start gap-3">
                       <div className="w-9 h-9 flex items-center justify-center border border-slate-700 rounded bg-slate-900 text-amber-300">
@@ -969,11 +966,10 @@ export default function Dywan() {
                 type="button"
                 onClick={handleScan}
                 disabled={loading || (!file && !selectedDocument)}
-                className={`px-4 py-2 text-sm rounded text-white font-semibold transition ${
-                  loading || (!file && !selectedDocument)
+                className={`px-4 py-2 text-sm rounded text-white font-semibold transition ${loading || (!file && !selectedDocument)
                     ? "bg-slate-700 cursor-not-allowed"
                     : "bg-amber-600 hover:bg-amber-500 shadow-lg shadow-amber-600/20"
-                }`}
+                  }`}
               >
                 {loading ? "جاري الحفظ..." : "حفظ"}
               </button>
@@ -1216,11 +1212,10 @@ export default function Dywan() {
             <button
               onClick={handleScan}
               disabled={loading || !file}
-              className={`w-full py-3 rounded-lg text-white font-semibold transition flex items-center justify-center gap-2 ${
-                loading || !file
+              className={`w-full py-3 rounded-lg text-white font-semibold transition flex items-center justify-center gap-2 ${loading || !file
                   ? "bg-slate-700 cursor-not-allowed"
                   : "bg-amber-500 hover:bg-amber-400"
-              }`}
+                }`}
             >
               <Upload className="w-5 h-5" />
               {loading ? "جاري التحميل..." : "تحميل الوثيقة"}
@@ -1331,11 +1326,10 @@ export default function Dywan() {
                   <div
                     key={doc._id}
                     onClick={() => setSelectedDocument(doc)}
-                    className={`p-3 rounded-lg border cursor-pointer transition ${
-                      selectedDocument?._id === doc._id
+                    className={`p-3 rounded-lg border cursor-pointer transition ${selectedDocument?._id === doc._id
                         ? "bg-amber-500/10 border-amber-500/40"
                         : "bg-slate-900/40 border-slate-800 hover:border-slate-700"
-                    }`}
+                      }`}
                   >
                     <div className="flex items-start gap-2">
                       <File className="w-4 h-4 text-amber-400 mt-1 flex-shrink-0" />
@@ -1355,8 +1349,8 @@ export default function Dywan() {
                               doc.status === "موافق عليها"
                                 ? pillClass("green")
                                 : doc.status === "مرفوضة"
-                                ? pillClass("red")
-                                : pillClass("amber")
+                                  ? pillClass("red")
+                                  : pillClass("amber")
                             }
                           >
                             {doc.status}
@@ -1452,11 +1446,10 @@ export default function Dywan() {
                       title: e.target.value,
                     })
                   }
-                  placeholder={`بخصوص وثيقة: ${
-                    selectedDocument?.incomingSubject ||
+                  placeholder={`بخصوص وثيقة: ${selectedDocument?.incomingSubject ||
                     selectedDocument?.documentNumber ||
                     ""
-                  }`}
+                    }`}
                   className="w-full bg-slate-950 border border-slate-700 rounded px-3 py-2 text-sm focus:border-amber-500 outline-none"
                 />
               </div>

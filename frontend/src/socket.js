@@ -10,7 +10,7 @@ const getSocketURL = () => {
 
   // Use same hostname as frontend with port 5000
   const hostname = window.location.hostname;
-  return `http://${hostname}:5000`;
+  return `http://${hostname}:5001`;
 };
 
 export const socket = io(getSocketURL());

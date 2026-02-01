@@ -16,7 +16,7 @@ import { toast } from "react-hot-toast";
 const buildFileUrl = (filePath) => {
   const base = import.meta.env.VITE_API_URL
     ? import.meta.env.VITE_API_URL.replace("/api", "")
-    : `http://${window.location.hostname}:5000`;
+    : `http://${window.location.hostname}:5001`;
   return `${base}${filePath}`;
 };
 

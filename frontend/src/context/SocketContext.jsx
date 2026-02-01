@@ -13,16 +13,17 @@ export const SocketProvider = ({ children }) => {
     if (import.meta.env.VITE_API_URL) {
       return import.meta.env.VITE_API_URL.replace("/api", "");
     }
-    const hostname = window.location.hostname;
-    return `http://${hostname}:5000`;
+    const host = window.location.hostname;
+    // Fallback to backend port 5001 if not using proxy
+    return `http://${host}:5001`;
   };
 
   const getAPIURL = () => {
     if (import.meta.env.VITE_API_URL) {
       return import.meta.env.VITE_API_URL;
     }
-    const hostname = window.location.hostname;
-    return `http://${hostname}:5000/api`;
+    // Use relative path to hit Vite proxy
+    return "/api";
   };
 
   useEffect(() => {

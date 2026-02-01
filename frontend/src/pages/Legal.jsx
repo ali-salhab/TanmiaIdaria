@@ -178,7 +178,7 @@ export default function Legal() {
   const buildFileUrl = (filePath) => {
     const baseURL = import.meta.env.VITE_API_URL
       ? import.meta.env.VITE_API_URL.replace("/api", "")
-      : `http://${window.location.hostname}:5000`;
+      : `http://${window.location.hostname}:5001`;
     return `${baseURL}${filePath}`;
   };
 
@@ -247,11 +247,10 @@ export default function Legal() {
               <div
                 key={c._id}
                 onClick={() => setSelectedCase(c)}
-                className={`p-3 rounded-lg border cursor-pointer transition hover:bg-slate-800/50 ${
-                  selectedCase?._id === c._id
+                className={`p-3 rounded-lg border cursor-pointer transition hover:bg-slate-800/50 ${selectedCase?._id === c._id
                     ? "bg-amber-500/10 border-amber-500/40"
                     : "bg-slate-900/40 border-slate-800"
-                }`}
+                  }`}
               >
                 <div className="flex justify-between items-start mb-1">
                   <h4 className="font-semibold text-slate-200 truncate flex-1 ml-2">

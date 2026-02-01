@@ -91,7 +91,7 @@ export default function FileSharing() {
 
       const baseURL = import.meta.env.VITE_API_URL
         ? import.meta.env.VITE_API_URL.replace("/api", "")
-        : `http://${window.location.hostname}:5000`;
+        : `http://${window.location.hostname}:5001`;
 
       const link = document.createElement("a");
       link.href = `${baseURL}${fileShare.fileUrl}`;
@@ -150,8 +150,8 @@ export default function FileSharing() {
                   {file.fileType === "image"
                     ? "🖼️"
                     : file.fileType === "document"
-                    ? "📄"
-                    : "📎"}
+                      ? "📄"
+                      : "📎"}
                 </div>
                 <div className="min-w-0">
                   <p className="font-medium truncate text-gray-800">
@@ -224,21 +224,19 @@ export default function FileSharing() {
       <div className="mb-6 flex gap-2 border-b">
         <button
           onClick={() => setActiveTab("received")}
-          className={`px-4 py-2 font-medium transition ${
-            activeTab === "received"
+          className={`px-4 py-2 font-medium transition ${activeTab === "received"
               ? "border-b-2 border-green-600 text-green-600"
               : "text-gray-600 hover:text-gray-800"
-          }`}
+            }`}
         >
           الملفات المستقبلة ({receivedFiles.length})
         </button>
         <button
           onClick={() => setActiveTab("sent")}
-          className={`px-4 py-2 font-medium transition ${
-            activeTab === "sent"
+          className={`px-4 py-2 font-medium transition ${activeTab === "sent"
               ? "border-b-2 border-blue-600 text-blue-600"
               : "text-gray-600 hover:text-gray-800"
-          }`}
+            }`}
         >
           الملفات المرسلة ({sentFiles.length})
         </button>

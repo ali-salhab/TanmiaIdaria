@@ -35,24 +35,24 @@ function normalizeLabel(v) {
   if (!v) return "غير محدد";
   const normalized = String(v).trim();
   const lower = normalized.toLowerCase();
-  
+
   // Handle male variations
   if (normalized === "ذكر" || lower === "male" || lower === "m") {
     return "ذكر";
   }
-  
+
   // Handle female variations (with and without hamza)
   if (
-    normalized === "أنثى" || 
-    normalized === "انثى" || 
+    normalized === "أنثى" ||
+    normalized === "انثى" ||
     normalized === "أنثي" ||
     normalized === "انثي" ||
-    lower === "female" || 
+    lower === "female" ||
     lower === "f"
   ) {
     return "أنثى";
   }
-  
+
   return normalized;
 }
 
@@ -142,11 +142,11 @@ function Reports() {
       if (raw === "ذكر" || lower === "male" || lower === "m") {
         totals.male += numericValue;
       } else if (
-        raw === "أنثى" || 
-        raw === "انثى" || 
+        raw === "أنثى" ||
+        raw === "انثى" ||
         raw === "أنثي" ||
         raw === "انثي" ||
-        lower === "female" || 
+        lower === "female" ||
         lower === "f"
       ) {
         totals.female += numericValue;
@@ -220,8 +220,7 @@ function Reports() {
   }, [statistics?.employmentTypeData]);
 
   const apiUrl =
-    import.meta.env.VITE_API_URL ||
-    `http://${window.location.hostname}:5000/api`;
+    import.meta.env.VITE_API_URL || "/api";
 
   useEffect(() => {
     fetchData();
@@ -441,25 +440,25 @@ function Reports() {
 
     try {
       toast.loading("جاري تصدير التقرير إلى PDF...");
-      
+
       const pdf = new jsPDF("p", "mm", "a4");
-      
+
       // Add title
       pdf.setFontSize(18);
       pdf.text("تقرير إحصائي للموظفين", 105, 15, { align: "center" });
-      
+
       // Add date
       pdf.setFontSize(12);
       const dateStr = new Date().toLocaleDateString("ar-EG");
       pdf.text(`تاريخ التقرير: ${dateStr}`, 105, 25, { align: "center" });
-      
+
       let yPos = 35;
-      
+
       // Add statistics summary
       pdf.setFontSize(14);
       pdf.text("ملخص الإحصائيات", 20, yPos);
       yPos += 10;
-      
+
       pdf.setFontSize(11);
       const statsData = [
         ["المؤشر", "القيمة"],
@@ -469,7 +468,7 @@ function Reports() {
         ["عدد الإناث", String(genderSummary.female)],
         ["عدد الأقسام", String(departmentCount)],
       ];
-      
+
       autoTable(pdf, {
         startY: yPos,
         head: [statsData[0]],
@@ -479,26 +478,26 @@ function Reports() {
         styles: { font: "Arial", fontSize: 10, halign: "right" },
         margin: { left: 20, right: 20 },
       });
-      
+
       yPos = pdf.lastAutoTable.finalY + 15;
-      
+
       // Check if we need a new page
       if (yPos > 250) {
         pdf.addPage();
         yPos = 20;
       }
-      
+
       // Add department distribution
       if (departmentChartData.length > 0) {
         pdf.setFontSize(14);
         pdf.text("توزيع الأقسام", 20, yPos);
         yPos += 10;
-        
+
         const deptData = departmentChartData.slice(0, 10).map((item) => [
           item.name || "غير محدد",
           String(item.count || 0),
         ]);
-        
+
         autoTable(pdf, {
           startY: yPos,
           head: [["القسم", "العدد"]],
@@ -508,26 +507,26 @@ function Reports() {
           styles: { font: "Arial", fontSize: 9, halign: "right" },
           margin: { left: 20, right: 20 },
         });
-        
+
         yPos = pdf.lastAutoTable.finalY + 15;
-        
+
         if (yPos > 250) {
           pdf.addPage();
           yPos = 20;
         }
       }
-      
+
       // Add gender distribution
       if (genderChartData.length > 0) {
         pdf.setFontSize(14);
         pdf.text("توزيع الجنس", 20, yPos);
         yPos += 10;
-        
+
         const genderData = genderChartData.map((item) => [
           normalizeLabel(item.name || "غير محدد"),
           String(item.value || 0),
         ]);
-        
+
         autoTable(pdf, {
           startY: yPos,
           head: [["الجنس", "العدد"]],
@@ -537,26 +536,26 @@ function Reports() {
           styles: { font: "Arial", fontSize: 10, halign: "right" },
           margin: { left: 20, right: 20 },
         });
-        
+
         yPos = pdf.lastAutoTable.finalY + 15;
-        
+
         if (yPos > 250) {
           pdf.addPage();
           yPos = 20;
         }
       }
-      
+
       // Add employment type distribution
       if (statistics?.employmentTypeData?.length > 0) {
         pdf.setFontSize(14);
         pdf.text("توزيع نوع التوظيف", 20, yPos);
         yPos += 10;
-        
+
         const empData = statistics.employmentTypeData.map((item) => [
           item.name || "غير محدد",
           String(item.value || 0),
         ]);
-        
+
         autoTable(pdf, {
           startY: yPos,
           head: [["نوع التوظيف", "العدد"]],
@@ -567,11 +566,11 @@ function Reports() {
           margin: { left: 20, right: 20 },
         });
       }
-      
+
       // Save PDF
       const dateStr2 = new Date().toISOString().split("T")[0];
       pdf.save(`report_${dateStr2}.pdf`);
-      
+
       toast.dismiss();
       toast.success("تم تصدير التقرير إلى PDF بنجاح");
     } catch (error) {
@@ -939,19 +938,19 @@ function Reports() {
             <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-slate-200">
               توزيع الجنس
             </h3>
-            <div className="w-full" style={{ minHeight: "280px", maxHeight: "350px" }}>
+            <div className="w-full" style={{ minHeight: "280px", maxHeight: "350px" }} dir="ltr">
               <ResponsiveContainer width="100%" height="100%" minHeight={280}>
-                <PieChart>
+                <PieChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
                   <Pie
                     data={genderChartData}
                     cx="50%"
                     cy="50%"
-                    labelLine={false}
+                    labelLine={true}
                     label={({ name, percent }) => {
                       if (percent < 0.05) return "";
                       return `${normalizeLabel(name)}: ${(percent * 100).toFixed(0)}%`;
                     }}
-                    outerRadius={window.innerWidth < 640 ? 70 : 90}
+                    outerRadius={window.innerWidth < 640 ? 55 : 75}
                     fill="#8884d8"
                     dataKey="value"
                     paddingAngle={2}
@@ -988,15 +987,15 @@ function Reports() {
             <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-slate-200">
               توزيع الأعمار
             </h3>
-            <div className="w-full" style={{ minHeight: "300px", maxHeight: "400px" }}>
+            <div className="w-full" style={{ minHeight: "300px", maxHeight: "400px" }} dir="ltr">
               <ResponsiveContainer width="100%" height="100%" minHeight={300}>
                 <BarChart
                   data={statistics.ageData || []}
-                  margin={{ 
-                    top: 10, 
-                    right: 10, 
-                    left: 10, 
-                    bottom: window.innerWidth < 640 ? 60 : 80 
+                  margin={{
+                    top: 10,
+                    right: 20,
+                    left: 20,
+                    bottom: window.innerWidth < 640 ? 60 : 80
                   }}
                 >
                   <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
@@ -1031,21 +1030,19 @@ function Reports() {
             <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-slate-200">
               توزيع نوع التوظيف
             </h3>
-            <div className="w-full" style={{ minHeight: "280px", maxHeight: "350px" }}>
+            <div className="w-full" style={{ minHeight: "280px", maxHeight: "350px" }} dir="ltr">
               <ResponsiveContainer width="100%" height="100%" minHeight={280}>
-                <PieChart>
+                <PieChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
                   <Pie
                     data={statistics.employmentTypeData || []}
                     cx="50%"
                     cy="50%"
-                    labelLine={window.innerWidth >= 640}
+                    labelLine={true}
                     label={({ name, percent }) => {
                       if (percent < 0.05) return "";
-                      return window.innerWidth >= 640 
-                        ? `${name}: ${(percent * 100).toFixed(0)}%`
-                        : "";
+                      return `${name}: ${(percent * 100).toFixed(0)}%`;
                     }}
-                    outerRadius={window.innerWidth < 640 ? 70 : 100}
+                    outerRadius={window.innerWidth < 640 ? 55 : 75}
                     fill="#8884d8"
                     dataKey="value"
                     paddingAngle={2}
@@ -1081,22 +1078,22 @@ function Reports() {
             <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-slate-200">
               توزيع فئات الوظائف
             </h3>
-            <div className="w-full" style={{ minHeight: "300px", maxHeight: "450px" }}>
+            <div className="w-full" style={{ minHeight: "300px", maxHeight: "450px" }} dir="ltr">
               <ResponsiveContainer width="100%" height="100%" minHeight={300}>
                 <BarChart
                   data={jobCategoryChartData}
                   layout="vertical"
-                  margin={{ 
-                    top: 10, 
-                    bottom: 10, 
-                    left: window.innerWidth < 640 ? 60 : 80, 
-                    right: 20 
+                  margin={{
+                    top: 10,
+                    bottom: 10,
+                    left: window.innerWidth < 640 ? 120 : 180,
+                    right: 40
                   }}
                 >
                   <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
-                  <XAxis 
-                    type="number" 
-                    stroke="#94a3b8" 
+                  <XAxis
+                    type="number"
+                    stroke="#94a3b8"
                     tick={{ fontSize: window.innerWidth < 640 ? 10 : 12 }}
                   />
                   <YAxis
@@ -1104,10 +1101,12 @@ function Reports() {
                     dataKey="name"
                     stroke="#94a3b8"
                     interval={0}
-                    width={window.innerWidth < 640 ? 120 : 150}
-                    tick={{ 
-                      fontSize: window.innerWidth < 640 ? 9 : 11, 
-                      fill: "#94a3b8"
+                    width={window.innerWidth < 640 ? 110 : 170}
+                    tick={{
+                      fontSize: window.innerWidth < 640 ? 9 : 11,
+                      fill: "#94a3b8",
+                      textAnchor: "end",
+                      dx: -10
                     }}
                     tickLine={false}
                   />
@@ -1137,33 +1136,35 @@ function Reports() {
             <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-slate-200">
               توزيع الأقسام
             </h3>
-            <div className="w-full" style={{ minHeight: "400px", maxHeight: "550px" }}>
+            <div className="w-full" style={{ minHeight: "400px", maxHeight: "550px" }} dir="ltr">
               <ResponsiveContainer width="100%" height="100%" minHeight={400}>
                 <BarChart
                   data={departmentChartData}
                   layout="vertical"
-                  margin={{ 
-                    top: 20, 
-                    bottom: 20, 
-                    left: window.innerWidth < 640 ? 80 : 120, 
-                    right: 20 
+                  margin={{
+                    top: 20,
+                    bottom: 20,
+                    left: window.innerWidth < 640 ? 150 : 250,
+                    right: 40
                   }}
                 >
                   <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
-                  <XAxis 
-                    type="number" 
-                    stroke="#94a3b8" 
+                  <XAxis
+                    type="number"
+                    stroke="#94a3b8"
                     tick={{ fontSize: window.innerWidth < 640 ? 10 : 12 }}
                   />
                   <YAxis
                     type="category"
                     dataKey="name"
-                    width={window.innerWidth < 640 ? 150 : 200}
+                    width={window.innerWidth < 640 ? 140 : 240}
                     stroke="#94a3b8"
                     interval={0}
-                    tick={{ 
-                      fontSize: window.innerWidth < 640 ? 9 : 11, 
-                      fill: "#94a3b8"
+                    tick={{
+                      fontSize: window.innerWidth < 640 ? 9 : 11,
+                      fill: "#94a3b8",
+                      textAnchor: "end",
+                      dx: -10
                     }}
                     tickLine={false}
                   />
@@ -1177,11 +1178,11 @@ function Reports() {
                     itemStyle={{ color: "#f1f5f9", fontSize: "12px" }}
                   />
                   <Legend wrapperStyle={{ color: "#94a3b8", fontSize: "12px" }} />
-                  <Bar 
-                    dataKey="count" 
-                    fill="#8884d8" 
+                  <Bar
+                    dataKey="count"
+                    fill="#8884d8"
                     radius={[0, 4, 4, 0]}
-                    barSize={window.innerWidth < 640 ? 15 : 20} 
+                    barSize={window.innerWidth < 640 ? 15 : 20}
                   />
                 </BarChart>
               </ResponsiveContainer>
@@ -1189,37 +1190,39 @@ function Reports() {
           </div>
 
           {/* Education Level Distribution */}
-          <div className="bg-slate-800 p-3 sm:p-4 rounded-lg shadow border border-slate-700 overflow-hidden">
+          <div className="bg-slate-800 p-3 sm:p-4 rounded-lg shadow border border-slate-700 lg:col-span-2 overflow-hidden">
             <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-slate-200">
               المستوى التعليمي
             </h3>
-            <div className="w-full" style={{ minHeight: "300px", maxHeight: "450px" }}>
+            <div className="w-full" style={{ minHeight: "300px", maxHeight: "450px" }} dir="ltr">
               <ResponsiveContainer width="100%" height="100%" minHeight={300}>
                 <BarChart
                   data={educationChartData}
                   layout="vertical"
-                  margin={{ 
-                    top: 20, 
-                    bottom: 20, 
-                    left: window.innerWidth < 640 ? 80 : 120, 
-                    right: 20 
+                  margin={{
+                    top: 20,
+                    bottom: 20,
+                    left: window.innerWidth < 640 ? 150 : 250,
+                    right: 60
                   }}
                 >
                   <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
-                  <XAxis 
-                    type="number" 
-                    stroke="#94a3b8" 
+                  <XAxis
+                    type="number"
+                    stroke="#94a3b8"
                     tick={{ fontSize: window.innerWidth < 640 ? 10 : 12 }}
                   />
                   <YAxis
                     dataKey="name"
                     type="category"
-                    width={window.innerWidth < 640 ? 150 : 200}
+                    width={window.innerWidth < 640 ? 140 : 240}
                     stroke="#94a3b8"
                     interval={0}
-                    tick={{ 
-                      fontSize: window.innerWidth < 640 ? 9 : 11, 
-                      fill: "#94a3b8"
+                    tick={{
+                      fontSize: window.innerWidth < 640 ? 9 : 11,
+                      fill: "#94a3b8",
+                      textAnchor: "end",
+                      dx: -10
                     }}
                     tickLine={false}
                   />
@@ -1233,11 +1236,11 @@ function Reports() {
                     itemStyle={{ color: "#f1f5f9", fontSize: "12px" }}
                   />
                   <Legend wrapperStyle={{ color: "#94a3b8", fontSize: "12px" }} />
-                  <Bar 
-                    dataKey="count" 
-                    fill="#00C49F" 
+                  <Bar
+                    dataKey="count"
+                    fill="#00C49F"
                     radius={[0, 4, 4, 0]}
-                    barSize={window.innerWidth < 640 ? 15 : 18} 
+                    barSize={window.innerWidth < 640 ? 20 : 30}
                   />
                 </BarChart>
               </ResponsiveContainer>
@@ -1249,21 +1252,19 @@ function Reports() {
             <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-slate-200">
               الحالة الاجتماعية
             </h3>
-            <div className="w-full" style={{ minHeight: "280px", maxHeight: "350px" }}>
+            <div className="w-full" style={{ minHeight: "280px", maxHeight: "350px" }} dir="ltr">
               <ResponsiveContainer width="100%" height="100%" minHeight={280}>
-                <PieChart>
+                <PieChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
                   <Pie
                     data={statistics.maritalStatusData || []}
                     cx="50%"
                     cy="50%"
-                    labelLine={window.innerWidth >= 640}
+                    labelLine={true}
                     label={({ name, percent }) => {
                       if (percent < 0.05) return "";
-                      return window.innerWidth >= 640
-                        ? `${name}: ${(percent * 100).toFixed(0)}%`
-                        : "";
+                      return `${name}: ${(percent * 100).toFixed(0)}%`;
                     }}
-                    outerRadius={window.innerWidth < 640 ? 70 : 90}
+                    outerRadius={window.innerWidth < 640 ? 55 : 75}
                     fill="#8884d8"
                     dataKey="value"
                     paddingAngle={2}

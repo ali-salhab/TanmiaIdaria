@@ -49,10 +49,10 @@ export default function DashboardSidebar({
       // No permission needed, or basic user permission
     },
     {
-      label: " الصفحة الرئيسية",
+      label: " الصلاحيات والمستخدمين",
       to: "/dashboard/homepage-builder",
-      icon: "🎨",
-      permission: "homepage.edit_layout",
+      icon: "🔐",
+      permission: "permissions.view",
     },
     {
       label: " التقارير",

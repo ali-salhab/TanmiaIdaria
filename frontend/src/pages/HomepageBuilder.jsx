@@ -13,7 +13,7 @@ export default function HomepageBuilder() {
   const [saving, setSaving] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [activeTab, setActiveTab] = useState("homepage");
+  const [activeTab, setActiveTab] = useState("permissions");
   const [sortOrder, setSortOrder] = useState("desc");
   const [newUser, setNewUser] = useState({
     username: "",
@@ -523,51 +523,37 @@ export default function HomepageBuilder() {
     <div dir="rtl" className="min-h-screen bg-slate-900 p-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
         <h2 className="text-3xl font-semibold text-slate-100">
-          {activeTab === "homepage"
-            ? "🎨 أداة تخصيص الصفحة الرئيسية"
-            : "👑 إدارة المستخدمين والصلاحيات"}
+          👑 إدارة المستخدمين والصلاحيات
         </h2>
         <div className="flex gap-2">
-          <button
-            onClick={() => setActiveTab("homepage")}
-            className={`px-4 py-2 rounded-lg font-medium transition ${
-              activeTab === "homepage"
-                ? "bg-blue-600 text-white"
-                : "bg-slate-700 text-slate-300 hover:bg-slate-600"
-            }`}
-          >
-            🎨 الصفحة الرئيسية
-          </button>
+
           {isAdmin && (
             <>
               <button
                 onClick={() => setActiveTab("permissions")}
-                className={`px-4 py-2 rounded-lg font-medium transition ${
-                  activeTab === "permissions"
+                className={`px-4 py-2 rounded-lg font-medium transition ${activeTab === "permissions"
                     ? "bg-blue-600 text-white"
                     : "bg-slate-700 text-slate-300 hover:bg-slate-600"
-                }`}
+                  }`}
               >
                 🔐 مجموعات الصلاحيات
               </button>
               <button
                 onClick={() => setActiveTab("permission-manager")}
-                className={`px-4 py-2 rounded-lg font-medium transition ${
-                  activeTab === "permission-manager"
+                className={`px-4 py-2 rounded-lg font-medium transition ${activeTab === "permission-manager"
                     ? "bg-blue-600 text-white"
                     : "bg-slate-700 text-slate-300 hover:bg-slate-600"
-                }`}
+                  }`}
               >
                 🛡️ كافة الصلاحيات
               </button>
 
               <button
                 onClick={() => setActiveTab("users")}
-                className={`px-4 py-2 rounded-lg font-medium transition ${
-                  activeTab === "users"
+                className={`px-4 py-2 rounded-lg font-medium transition ${activeTab === "users"
                     ? "bg-blue-600 text-white"
                     : "bg-slate-700 text-slate-300 hover:bg-slate-600"
-                }`}
+                  }`}
               >
                 👥 المستخدمون
               </button>
@@ -578,165 +564,7 @@ export default function HomepageBuilder() {
 
       {/* Homepage Builder Tab */}
       {activeTab === "permission-manager" && <PermissionPage />}
-      {activeTab === "homepage" && (
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Users List - Only for Admins */}
-          {isAdmin && (
-            <div className="bg-slate-800 rounded-2xl shadow p-6 lg:col-span-1 border border-slate-700">
-              <h3 className="text-lg font-medium mb-4 text-slate-100">
-                المستخدمون
-              </h3>
-              <div className="space-y-2 max-h-96 overflow-y-auto">
-                {users.map((user) => (
-                  <button
-                    key={user._id}
-                    onClick={() => handleUserSelect(user._id)}
-                    className={`w-full text-right p-3 rounded-lg transition ${
-                      selectedUser === user._id
-                        ? "bg-blue-600 text-white"
-                        : "bg-slate-700 text-slate-300 hover:bg-slate-600"
-                    }`}
-                  >
-                    <div className="font-medium">{user.username}</div>
-                    <div className="text-xs opacity-75">{user.role}</div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
 
-          {/* Settings Panel */}
-          <div
-            className={`bg-slate-800 rounded-2xl shadow p-6 border border-slate-700 ${
-              isAdmin ? "lg:col-span-3" : "lg:col-span-4"
-            }`}
-          >
-            {!isAdmin && currentUser && !selectedUser && (
-              <div className="mb-4 p-4 bg-blue-900/20 border border-blue-500/30 rounded-lg">
-                <p className="text-blue-400">
-                  تخصيص صفحتك الرئيسية: <strong>{currentUser.username}</strong>
-                </p>
-                <button
-                  onClick={() => handleUserSelect(currentUser._id)}
-                  className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                >
-                  ابدأ التخصيص
-                </button>
-              </div>
-            )}
-            {selectedUser && settings ? (
-              <>
-                <div className="space-y-6">
-                  {/* Layout Settings */}
-                  <div>
-                    <h4 className="font-medium mb-3 text-slate-100">
-                      إعدادات التخطيط
-                    </h4>
-                    <div className="space-y-3">
-                      <div>
-                        <label className="block text-sm text-slate-400 mb-2">
-                          نوع التخطيط
-                        </label>
-                        <select
-                          value={settings.layout}
-                          onChange={(e) => updateLayout(e.target.value)}
-                          className="w-full border border-slate-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 outline-none bg-slate-700 text-slate-100"
-                        >
-                          <option value="grid">شبكة (Grid)</option>
-                          <option value="list">قائمة (List)</option>
-                        </select>
-                      </div>
-
-                      {settings.layout === "grid" && (
-                        <div>
-                          <label className="block text-sm text-slate-400 mb-2">
-                            عدد الأعمدة
-                          </label>
-                          <select
-                            value={settings.columns}
-                            onChange={(e) =>
-                              updateColumns(parseInt(e.target.value))
-                            }
-                            className="w-full border border-slate-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 outline-none bg-slate-700 text-slate-100"
-                          >
-                            <option value={1}>1 عمود</option>
-                            <option value={2}>عمودين</option>
-                            <option value={3}>3 أعمدة</option>
-                            <option value={4}>4 أعمدة</option>
-                          </select>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Widgets Management */}
-                  <div>
-                    <h4 className="font-medium mb-3 text-slate-100">
-                      إدارة الأداوات
-                    </h4>
-                    <div className="space-y-2">
-                      {settings.widgets.map((widget, idx) => (
-                        <div
-                          key={widget.id}
-                          className={`flex items-center justify-between p-4 rounded-lg border transition ${
-                            widget.enabled
-                              ? "border-green-500/30 bg-green-500/10"
-                              : "border-slate-600 bg-slate-700/50"
-                          }`}
-                        >
-                          <div className="flex items-center gap-3 flex-1">
-                            <input
-                              type="checkbox"
-                              checked={widget.enabled}
-                              onChange={() => toggleWidget(widget.id)}
-                              className="w-5 h-5 accent-blue-600"
-                            />
-                            <span className="font-medium text-slate-200">
-                              {widget.label}
-                            </span>
-                          </div>
-
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => changeWidgetOrder(widget.id, "up")}
-                              disabled={idx === 0}
-                              className="px-2 py-1 text-sm bg-blue-600 text-white rounded disabled:opacity-50 hover:bg-blue-700"
-                            >
-                              ⬆️
-                            </button>
-                            <button
-                              onClick={() =>
-                                changeWidgetOrder(widget.id, "down")
-                              }
-                              disabled={idx === settings.widgets.length - 1}
-                              className="px-2 py-1 text-sm bg-blue-600 text-white rounded disabled:opacity-50 hover:bg-blue-700"
-                            >
-                              ⬇️
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Save Button */}
-                  <button
-                    onClick={saveSettings}
-                    disabled={saving}
-                    className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-medium transition disabled:opacity-50"
-                  >
-                    {saving ? "جاري الحفظ..." : "💾 حفظ الإعدادات"}
-                  </button>
-                </div>
-              </>
-            ) : (
-              <div className="text-center py-12 text-slate-500">
-                اختر مستخدماً لتخصيص صفحته الرئيسية
-              </div>
-            )}
-          </div>
-        </div>
-      )}
       {/* Permission Groups Tab */}
       {activeTab === "permissions" && <PermissionGroupsPage />}
 
@@ -922,11 +750,10 @@ export default function HomepageBuilder() {
             <button
               onClick={createUser}
               disabled={!newUser.employeeId || !newUser.password}
-              className={`mt-6 px-6 py-3 rounded-lg transition font-medium ${
-                newUser.employeeId && newUser.password
+              className={`mt-6 px-6 py-3 rounded-lg transition font-medium ${newUser.employeeId && newUser.password
                   ? "bg-blue-600 hover:bg-blue-700 text-white"
                   : "bg-slate-700 text-slate-500 cursor-not-allowed"
-              }`}
+                }`}
             >
               ✅ إنشاء المستخدم
             </button>
@@ -1104,11 +931,10 @@ export default function HomepageBuilder() {
                         ) : (
                           <div className="flex flex-wrap gap-1 items-center">
                             <span
-                              className={`text-xs px-2 py-1 rounded-full border ${
-                                groupSummary.text === "لا توجد مجموعات"
+                              className={`text-xs px-2 py-1 rounded-full border ${groupSummary.text === "لا توجد مجموعات"
                                   ? "bg-slate-700 text-slate-400 border-slate-600"
                                   : "bg-blue-900/30 text-blue-300 border-blue-500/30"
-                              }`}
+                                }`}
                               title={groupSummary.title}
                             >
                               {groupSummary.text}

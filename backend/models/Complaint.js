@@ -16,11 +16,14 @@ const complaintSchema = new mongoose.Schema(
       default: "جديد",
     },
     employee: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" },
+    complainantName: { type: String, required: true }, // اسم مقدم الشكوى
+    mobilePhone: { type: String, required: true }, // رقم الموبايل
+    nationalId: { type: String }, // الرقم الوطني
     attachments: [
       {
         name: String,
         url: String,
-        type: String,
+        fileType: String,
         size: Number,
       },
     ],

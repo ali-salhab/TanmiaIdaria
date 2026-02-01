@@ -3,14 +3,30 @@ import { notifyAdmin } from "../services/notificationService.js";
 
 export const listComplaints = async (req, res) => {
   try {
-    const { q, status, priority } = req.query;
+    const { q, status, priority, category, year, month } = req.query;
     const filter = {};
     if (status) filter.status = status;
     if (priority) filter.priority = priority;
+    if (category) filter.category = category;
+
+    if (year || month) {
+      const startYear = year ? parseInt(year) : new Date().getFullYear();
+      let startMonth = month ? parseInt(month) - 1 : 0;
+      let endMonth = month ? parseInt(month) : 12;
+
+      const startDate = new Date(startYear, startMonth, 1);
+      const endDate = new Date(startYear, endMonth, 0, 23, 59, 59, 999);
+
+      filter.createdAt = { $gte: startDate, $lte: endDate };
+    }
+
     if (q) {
       filter.$or = [
         { title: { $regex: q, $options: "i" } },
         { description: { $regex: q, $options: "i" } },
+        { complainantName: { $regex: q, $options: "i" } },
+        { mobilePhone: { $regex: q, $options: "i" } },
+        { nationalId: { $regex: q, $options: "i" } },
       ];
     }
     const complaints = await Complaint.find(filter)
@@ -42,13 +58,18 @@ export const getComplaint = async (req, res) => {
 
 export const createComplaint = async (req, res) => {
   try {
+    // Basic safeguard: remove attachments from body if it's a string (e.g. from FormData)
+    if (typeof req.body.attachments === "string") {
+      delete req.body.attachments;
+    }
+
     const payload = {
       ...req.body,
       // Accept uploaded files
       attachments: (req.files || []).map((file) => ({
         name: file.originalname,
         url: `/uploads/${file.filename}`,
-        type: file.mimetype,
+        fileType: file.mimetype,
         size: file.size,
       })),
       createdBy: req.user?._id,
@@ -62,9 +83,8 @@ export const createComplaint = async (req, res) => {
         section: "complaints",
         action: "create",
         title: "تم إضافة شكوى جديدة",
-        message: `قام ${
-          req.user.username || "مستخدم"
-        } بإنشاء شكوى جديدة بعنوان: ${complaint.title}`,
+        message: `قام ${req.user.username || "مستخدم"
+          } بإنشاء شكوى جديدة بعنوان: ${complaint.title}`,
         employeeName: null,
         department: null,
         io: req.io,
@@ -74,7 +94,7 @@ export const createComplaint = async (req, res) => {
     res.status(201).json(complaint);
   } catch (err) {
     console.error("createComplaint error", err);
-    res.status(400).json({ message: "فشل في إنشاء الشكوى" });
+    res.status(400).json({ message: err.message || "فشل في إنشاء الشكوى" });
   }
 };
 
@@ -83,14 +103,23 @@ export const updateComplaint = async (req, res) => {
     const attachments = (req.files || []).map((file) => ({
       name: file.originalname,
       url: `/uploads/${file.filename}`,
-      type: file.mimetype,
+      fileType: file.mimetype,
       size: file.size,
     }));
+
+    const oldComplaint = await Complaint.findById(req.params.id);
+    if (!oldComplaint)
+      return res.status(404).json({ message: "الشكوى غير موجودة" });
+
+    // Safeguard: handle existing attachments vs new ones
+    // and remove attachments from body to prevent type conflicts
+    const updateData = { ...req.body };
+    delete updateData.attachments;
 
     const complaint = await Complaint.findByIdAndUpdate(
       req.params.id,
       {
-        ...req.body,
+        ...updateData,
         ...(attachments.length ? { attachments } : {}),
         updatedBy: req.user?._id,
       },
@@ -106,9 +135,8 @@ export const updateComplaint = async (req, res) => {
         section: "complaints",
         action: "update",
         title: "تم تعديل شكوى",
-        message: `قام ${req.user.username || "مستخدم"} بتعديل شكوى بعنوان: ${
-          complaint.title
-        }`,
+        message: `قام ${req.user.username || "مستخدم"} بتعديل شكوى بعنوان: ${complaint.title
+          }`,
         io: req.io,
       });
     }
@@ -116,17 +144,15 @@ export const updateComplaint = async (req, res) => {
     res.json(complaint);
   } catch (err) {
     console.error("updateComplaint error", err);
-    res.status(400).json({ message: "فشل في تعديل الشكوى" });
+    res.status(400).json({ message: err.message || "فشل في تعديل الشكوى" });
   }
 };
 
 export const deleteComplaint = async (req, res) => {
   try {
-    const complaint = await Complaint.findById(req.params.id);
+    const complaint = await Complaint.findByIdAndDelete(req.params.id);
     if (!complaint)
       return res.status(404).json({ message: "الشكوى غير موجودة" });
-
-    await complaint.deleteOne();
 
     if (req.user && req.user.role !== "admin") {
       await notifyAdmin({
@@ -134,14 +160,13 @@ export const deleteComplaint = async (req, res) => {
         section: "complaints",
         action: "delete",
         title: "تم حذف شكوى",
-        message: `قام ${req.user.username || "مستخدم"} بحذف شكوى بعنوان: ${
-          complaint.title
-        }`,
+        message: `قام ${req.user.username || "مستخدم"} بحذف شكوى بعنوان: ${complaint.title
+          }`,
         io: req.io,
       });
     }
 
-    res.json({ message: "تم الحذف" });
+    res.json({ message: "تم الحذف بنجاح" });
   } catch (err) {
     console.error("deleteComplaint error", err);
     res.status(500).json({ message: "فشل في حذف الشكوى" });
